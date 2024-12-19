@@ -1,8 +1,12 @@
 const express = require("express");
+const multer = require("multer");
 const Startup = require("../models/Startup");
 const router = express.Router();
 
-router.post("/", async (req, res) => {
+// Set up multer for parsing `form-data`
+const upload = multer(); // Use multer's memory storage or configure as needed
+
+router.post("/", upload.none(), async (req, res) => {
   const {
     startup_name,
     email_id,

@@ -16,10 +16,9 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ message: "Invalid email or password." });
     }
 
-    // Compare the hashed password
-    const isPasswordValid = await Startup.findOne({ password });
-    if (!isPasswordValid) {
-      return res.status(400).json({ message: "Invalid password." });
+    // Compare the plaintext password
+    if (password !== user.password) {
+      return res.status(400).json({ message: "Invalid email or password." });
     }
 
     // Generate JWT token
