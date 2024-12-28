@@ -1,37 +1,33 @@
-require("dotenv").config();
-
-// server.js
 const express = require("express");
-const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const connectDB = require("./config/db");
+const authRoutes = require("./routes/authRoutes");
+require("dotenv").config();
 
 const app = express();
-const PORT = 5000;
 
 // Middleware
 app.use(bodyParser.json());
-app.use(cors());
+app.use(bodyParser.urlencoded({ extended: true })); // For parsing URL-encoded bodies
 
-// MongoDB Atlas Connection
-const uri = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@${process.env.MONGO_CLUSTER_URL}/${process.env.MONGO_DB_NAME}?retryWrites=true&w=majority&appName=EIM`;
-
-mongoose
-  .connect(uri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
+app.use(
+  cors({
+    origin: ["http://localhost:3000", "http://localhost:3001"], // Frontend origins
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type"],
+    credentials: true,
   })
-  .then(() => console.log("MongoDB Connected"))
-  .catch((err) => console.error("MongoDB connection error:", err));
+);
+
+// Connect to Database
+connectDB();
 
 // Routes
-const signupRoute = require("./routes/signup");
-const loginRoute = require("./routes/login");
+app.use("/api/auth", authRoutes);
 
-app.use("/signup", signupRoute);
-app.use("/login", loginRoute);
-
-// Start the server
+// Start Server
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
