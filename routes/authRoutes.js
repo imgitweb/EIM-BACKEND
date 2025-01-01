@@ -3,9 +3,12 @@ const multer = require("multer");
 const { signup, login } = require("../controller/authController");
 
 const router = express.Router();
-const upload = multer(); // Initialize multer without storage for form-data parsing
 
-// Use `upload.none()` for form-data parsing
+// Multer setup for parsing form-data
+const upload = multer(); // Default storage (used for form-data parsing)
+
+// Routes for authentication
+// Use `upload.none()` to handle form-data without files
 router.post("/signup", upload.none(), signup);
 router.post("/login", upload.none(), login);
 

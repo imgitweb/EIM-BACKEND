@@ -3,19 +3,21 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
+const teamRoutes = require("./routes/teamRoutes");
+
 require("dotenv").config();
 
 const app = express();
 
 // Middleware
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true })); // For parsing URL-encoded bodies
+app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(
   cors({
-    origin: ["http://localhost:3000", "http://localhost:3001"], // Frontend origins
-    methods: ["GET", "POST"],
-    allowedHeaders: ["Content-Type"],
+    origin: ["http://localhost:3000", "http://localhost:3001"],
+    methods: ["GET", "POST", "PUT"],
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })
 );
@@ -24,7 +26,8 @@ app.use(
 connectDB();
 
 // Routes
-app.use("/api/auth", authRoutes);
+app.use("/api/auth", authRoutes); // Ensure this works
+app.use("/api/team", teamRoutes); // Ensure this works
 
 // Start Server
 const PORT = process.env.PORT || 5000;
