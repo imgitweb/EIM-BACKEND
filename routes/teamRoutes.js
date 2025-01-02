@@ -7,7 +7,7 @@ const {
   getAllTeamByTeamId,
 } = require("../controller/teamController");
 const router = express.Router();
-const upload = multer();
+const upload = multer();  
 router.post("/add_team", create);
 router.get("/get_team/:startup_id", getAllTeamById);
 router.get("/get_team_id/:id", getAllTeamByTeamId);
