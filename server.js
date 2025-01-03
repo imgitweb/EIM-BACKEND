@@ -7,7 +7,9 @@ const teamRoutes = require("./routes/teamRoutes");
 const companyRoutes = require("./routes/companyRoutes");
 const documentRoutes = require("./routes/documentRoutes");
 const matrixRoutes = require("./routes/matrixRoutes");
-
+const leadRoutes = require("./routes/leadRoutes");
+const jobRequestRoutes = require("./routes/jobRequestRoutes");
+const todoRoutes = require("./routes/todoRoutes");
 require("dotenv").config();
 
 const app = express();
@@ -34,7 +36,9 @@ app.use("/api/team", teamRoutes); // Ensure this works
 app.use("/api/company", companyRoutes);
 app.use("/api/document", documentRoutes);
 app.use("/api/matrix", matrixRoutes);
-
+app.use("/api/leads", leadRoutes);
+app.use("/api/job-requests", jobRequestRoutes);
+app.use("/api/todos", todoRoutes);
 // Start Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
