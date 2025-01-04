@@ -41,6 +41,6 @@ app.use("/api/job-requests", jobRequestRoutes);
 app.use("/api/todos", todoRoutes);
 // Start Server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server is running on port ${PORT}`);
 });
