@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema(
     city_name: { type: String, required: true },
     startup_idea: { type: String, required: true },
     password: { type: String, required: true },
+    usertype: { type: String, require: true },
   },
   { timestamps: true }
 );

@@ -14,6 +14,7 @@ const signup = async (req, res) => {
       city_name,
       startup_idea,
       password,
+      usertype,
     } = req.body;
 
     // Validate required fields
@@ -26,7 +27,8 @@ const signup = async (req, res) => {
       !stage ||
       !city_name ||
       !startup_idea ||
-      !password
+      !password ||
+      !usertype
     ) {
       return res.status(400).json({ message: "All fields are required" });
     }
@@ -52,6 +54,7 @@ const signup = async (req, res) => {
       stage,
       city_name,
       startup_idea,
+      usertype,
       password: md5(password), // Hash password with MD5
     });
 
@@ -98,6 +101,7 @@ const login = async (req, res) => {
         stage: user.stage,
         city_name: user.city_name,
         startup_idea: user.startup_idea,
+        usertype: user.usertype,
       },
     });
   } catch (error) {
