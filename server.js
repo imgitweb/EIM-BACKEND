@@ -1,5 +1,4 @@
 const express = require("express");
-const bodyParser = require("body-parser");
 const cors = require("cors");
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
@@ -15,21 +14,18 @@ require("dotenv").config();
 const app = express();
 
 // Middleware
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json()); // Replacing body-parser with Express's built-in middleware
+app.use(express.urlencoded({ extended: true }));
 
-// app.use(
-//   cors({
-//     origin: ["http://localhost:3000", "http://localhost:3001"],
-//     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-//     allowedHeaders: ["Content-Type", "Authorization"],
-//     credentials: true,
-//   })
-// );
+// Configure CORS based on environment
+const allowedOrigins =
+  process.env.NODE_ENV === "production"
+    ? ["http://64.227.177.30"] // Production origin
+    : ["http://localhost:3000", "http://localhost:3001"]; // Development origins
 
 app.use(
   cors({
-    origin: "http://64.227.177.30", // Allow frontend
+    origin: allowedOrigins,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
@@ -40,17 +36,25 @@ app.use(
 connectDB();
 
 // Routes
-app.use("/api/auth", authRoutes); // Ensure this works
-app.use("/api/team", teamRoutes); // Ensure this works
+app.use("/api/auth", authRoutes);
+app.use("/api/team", teamRoutes);
 app.use("/api/company", companyRoutes);
 app.use("/api/document", documentRoutes);
 app.use("/api/matrix", matrixRoutes);
 app.use("/api/leads", leadRoutes);
 app.use("/api/job-requests", jobRequestRoutes);
 app.use("/api/todos", todoRoutes);
+app.use("/api/startup", startupRoutes);
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send("Something went wrong!");
+});
+
 // Start Server
 const PORT = process.env.PORT || 5000;
-const HOST = "64.227.177.30";
+const HOST = "0.0.0.0"; // Bind to all network interfaces
 app.listen(PORT, HOST, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`Server is running on http://${HOST}:${PORT}`);
 });
