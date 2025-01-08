@@ -9,6 +9,7 @@ const matrixRoutes = require("./routes/matrixRoutes");
 const leadRoutes = require("./routes/leadRoutes");
 const jobRequestRoutes = require("./routes/jobRequestRoutes");
 const todoRoutes = require("./routes/todoRoutes");
+const startupRoutes = require("./routes/startupRoutes");
 require("dotenv").config();
 
 const app = express();

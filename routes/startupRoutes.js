@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const startupController = require("./controller/startupController");
+const startupController = require("./../controller/startupController");
 
 // Route to get users by industry
 router.get(

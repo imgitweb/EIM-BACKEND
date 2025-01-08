@@ -1,4 +1,4 @@
-const User = require("./models/userModel"); // Import User model
+const User = require("./../models/userModel"); // Import User model
 
 // Controller function to get 3 more users with the same industry
 exports.getUsersByIndustry = async (req, res) => {
