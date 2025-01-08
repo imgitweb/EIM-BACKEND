@@ -9,6 +9,7 @@ const matrixRoutes = require("./routes/matrixRoutes");
 const leadRoutes = require("./routes/leadRoutes");
 const jobRequestRoutes = require("./routes/jobRequestRoutes");
 const todoRoutes = require("./routes/todoRoutes");
+const startupRoutes = require("./routes/startupRoutes");
 require("dotenv").config();
 
 const app = express();
@@ -44,19 +45,12 @@ app.use("/api/matrix", matrixRoutes);
 app.use("/api/leads", leadRoutes);
 app.use("/api/job-requests", jobRequestRoutes);
 app.use("/api/todos", todoRoutes);
-<<<<<<< HEAD
-=======
 app.use("/api/startup", startupRoutes);
->>>>>>> c87916cec9214b090bccabf343c406bbba0b20e1
 
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
-<<<<<<< HEAD
-  res.status(500).send('Something went wrong!');
-=======
   res.status(500).send("Something went wrong!");
->>>>>>> c87916cec9214b090bccabf343c406bbba0b20e1
 });
 
 // Start Server
