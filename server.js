@@ -45,7 +45,10 @@ app.use("/api/matrix", matrixRoutes);
 app.use("/api/leads", leadRoutes);
 app.use("/api/job-requests", jobRequestRoutes);
 app.use("/api/todos", todoRoutes);
+<<<<<<< HEAD
 app.use("/api/startup", startupRoutes);
+=======
+>>>>>>> 02d60fc68a021466810c524dc838319414c6078d
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -59,4 +62,3 @@ const HOST = "0.0.0.0"; // Bind to all network interfaces
 app.listen(PORT, HOST, () => {
   console.log(`Server is running on http://${HOST}:${PORT}`);
 });
-
