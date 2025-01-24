@@ -1,5 +1,7 @@
 const express = require("express");
 const cors = require("cors");
+const https = require("https");
+const fs = require("fs");
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const teamRoutes = require("./routes/teamRoutes");
@@ -15,7 +17,7 @@ require("dotenv").config();
 const app = express();
 
 // Middleware
-app.use(express.json()); // Replacing body-parser with Express's built-in middleware
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Configure CORS based on environment
@@ -52,9 +54,35 @@ app.use((err, req, res, next) => {
   res.status(500).send("Something went wrong!");
 });
 
-// Start Server
-const PORT = process.env.PORT || 5000;
-const HOST = "0.0.0.0"; // Bind to all network interfaces
-app.listen(PORT, HOST, () => {
-  console.log(`Server is running on http://${HOST}:${PORT}`);
-});
+// HTTPS Setup (Production Only)
+if (process.env.NODE_ENV === "production") {
+  const SSL_KEY_PATH =
+    "/etc/letsencrypt/live/app.incubationmasters.com/privkey.pem";
+  const SSL_CERT_PATH =
+    "/etc/letsencrypt/live/app.incubationmasters.com/fullchain.pem";
+
+  if (fs.existsSync(SSL_KEY_PATH) && fs.existsSync(SSL_CERT_PATH)) {
+    const httpsOptions = {
+      key: fs.readFileSync(SSL_KEY_PATH),
+      cert: fs.readFileSync(SSL_CERT_PATH),
+    };
+
+    const PORT = process.env.PORT || 5000;
+    const HOST = "0.0.0.0";
+
+    https.createServer(httpsOptions, app).listen(PORT, HOST, () => {
+      console.log(`Server is running securely on https://${HOST}:${PORT}`);
+    });
+  } else {
+    console.error("SSL certificates not found. Please check your paths.");
+    process.exit(1);
+  }
+} else {
+  // Fallback to HTTP for Development
+  const PORT = process.env.PORT || 5000;
+  const HOST = "0.0.0.0";
+
+  app.listen(PORT, HOST, () => {
+    console.log(`Server is running on http://${HOST}:${PORT}`);
+  });
+}
