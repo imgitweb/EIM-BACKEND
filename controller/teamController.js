@@ -2,27 +2,74 @@ const Team = require("../models/teamModel");
 
 const create = async (req, res) => {
   try {
-    if (!req.body.email || !req.body.member_name) {
+    const {
+      email,
+      member_name,
+      mobile,
+      designation,
+      job_type,
+      joining_date,
+      salary,
+      startup_id,
+    } = req.body;
+
+    // Validate required fields
+    if (
+      !email ||
+      !member_name ||
+      !mobile ||
+      !designation ||
+      !job_type ||
+      !joining_date ||
+      !salary ||
+      !startup_id
+    ) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    const newTeam = new Team(req.body);
-    const { email } = newTeam;
+    // Validate mobile number format
+    const isValidMobile = /^\d{10}$/.test(mobile);
+    if (!isValidMobile) {
+      return res.status(400).json({
+        message: "Invalid mobile number format. Must be a 10-digit number.",
+      });
+    }
 
+    // Check if a team member already exists with the given email
     console.log("Checking if team exists with email:", email);
-
     const teamExist = await Team.findOne({ email });
     if (teamExist) {
-      return res.status(400).json({ message: "User already exists" });
+      return res
+        .status(400)
+        .json({ message: "User with this email already exists." });
     }
+
+    // Create a new team member
+    const newTeam = new Team({
+      member_name,
+      email,
+      mobile,
+      designation,
+      job_type,
+      joining_date,
+      salary,
+      startup_id,
+    });
 
     console.log("Saving new team data:", newTeam);
 
+    // Save to the database
     const saveData = await newTeam.save();
-    res.status(200).json(saveData);
+    res
+      .status(201)
+      .json({ message: "Team member created successfully!", data: saveData });
   } catch (error) {
     console.error("Error during team creation:", error);
-    res.status(500).json({ errorMessage: error.message, stack: error.stack });
+    res.status(500).json({
+      message: "An error occurred while creating the team member.",
+      error: error.message,
+      stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
+    });
   }
 };
 
