@@ -48,7 +48,10 @@ app.use("/api/leads", leadRoutes);
 app.use("/api/job-requests", jobRequestRoutes);
 app.use("/api/todos", todoRoutes);
 app.use("/api/startup", startupRoutes);
+<<<<<<< HEAD
 
+=======
+>>>>>>> 58081b13d181e1e08531210068217186e0cf7217
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
