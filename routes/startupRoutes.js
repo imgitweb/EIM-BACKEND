@@ -8,4 +8,10 @@ router.get(
   startupController.getUsersByIndustry
 );
 
+router.get("/getStartupInfo/:id", startupController.getStartupById);
+router.get(
+  "/cardexchange/:startupId1/:startupId2",
+  startupController.sendStartupExchangeEmail
+);
+
 module.exports = router;

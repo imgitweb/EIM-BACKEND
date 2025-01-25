@@ -47,6 +47,7 @@ app.use("/api/matrix", matrixRoutes);
 app.use("/api/leads", leadRoutes);
 app.use("/api/job-requests", jobRequestRoutes);
 app.use("/api/todos", todoRoutes);
+app.use("/api/startup", startupRoutes);
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
