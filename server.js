@@ -12,6 +12,7 @@ const leadRoutes = require("./routes/leadRoutes");
 const jobRequestRoutes = require("./routes/jobRequestRoutes");
 const todoRoutes = require("./routes/todoRoutes");
 const startupRoutes = require("./routes/startupRoutes");
+const pathToUnicorn = require("./routes/pathToUnicorn");
 require("dotenv").config();
 
 const app = express();
@@ -48,6 +49,10 @@ app.use("/api/leads", leadRoutes);
 app.use("/api/job-requests", jobRequestRoutes);
 app.use("/api/todos", todoRoutes);
 app.use("/api/startup", startupRoutes);
+<<<<<<< HEAD
+=======
+app.use("/api/unicorn", pathToUnicorn);
+>>>>>>> cfd2a55a2780e25080c9cf714b036d4095628e7b
 
 // Error handling middleware
 app.use((err, req, res, next) => {
