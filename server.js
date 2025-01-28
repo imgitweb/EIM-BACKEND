@@ -1,4 +1,6 @@
 const express = require("express");
+const multer = require("multer");
+const path = require("path");
 const cors = require("cors");
 const https = require("https");
 const fs = require("fs");
@@ -13,6 +15,7 @@ const jobRequestRoutes = require("./routes/jobRequestRoutes");
 const todoRoutes = require("./routes/todoRoutes");
 const startupRoutes = require("./routes/startupRoutes");
 const pathToUnicorn = require("./routes/pathToUnicorn");
+const resourceRoutes = require("./routes/resourceRoutes");
 require("dotenv").config();
 
 const app = express();
@@ -39,6 +42,17 @@ app.use(
 // Connect to Database
 connectDB();
 
+// Multer setup for file upload
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/template");
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));
+  },
+});
+const upload = multer({ storage: storage });
+
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/team", teamRoutes);
@@ -50,6 +64,8 @@ app.use("/api/job-requests", jobRequestRoutes);
 app.use("/api/todos", todoRoutes);
 app.use("/api/startup", startupRoutes);
 app.use("/api/unicorn", pathToUnicorn);
+app.use("/uploads", express.static("uploads"));
+app.use("/api/resource", resourceRoutes(upload));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
