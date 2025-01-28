@@ -48,7 +48,7 @@ exports.getStartupById = async (req, res) => {
     const otherStartups = await User.find({
       industry: startup.industry,
       _id: { $ne: startup._id }, // Exclude the current startup
-    }).limit(3); // Limit to 3 startups
+    }).limit(4); // Limit to 3 startups
 
     console.log("Other Startups in the same industry:", otherStartups);
 
