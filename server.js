@@ -67,11 +67,9 @@ app.use("/api/startup", startupRoutes);
 app.use("/api/unicorn", pathToUnicorn);
 app.use("/uploads", express.static("uploads"));
 app.use("/api/resource", resourceRoutes(upload));
-<<<<<<< HEAD
 app.use("/api/unicorn", pathToUnicorn);
 =======
 app.use("/api/messages", messageRoutes);
->>>>>>> eba824ae43094a38d112df6afaaaacb60bf8df5c
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
