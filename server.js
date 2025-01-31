@@ -28,8 +28,13 @@ app.use(express.urlencoded({ extended: true }));
 // Configure CORS based on environment
 const allowedOrigins =
   process.env.NODE_ENV === "production"
+<<<<<<< HEAD
     ? ["https://app.incubationmasters.com"] // Production origin
     : ["http://localhost:3000", "http://localhost:3001","http://localhost:5173"]; // Development origins
+=======
+    ? ["https://app.incubationmasters.com", "https://incubationmasters.com"] // Production origin
+    : ["http://localhost:3000", "http://localhost:3001"]; // Development origins
+>>>>>>> 0df95910b83543af54a3407d3b09a593cfed7b97
 
 app.use(
   cors({
