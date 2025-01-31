@@ -29,7 +29,7 @@ app.use(express.urlencoded({ extended: true }));
 const allowedOrigins =
   process.env.NODE_ENV === "production"
     ? ["https://app.incubationmasters.com"] // Production origin
-    : ["http://localhost:3000", "http://localhost:3001"]; // Development origins
+    : ["http://localhost:3000", "http://localhost:3001","http://localhost:5173"]; // Development origins
 
 app.use(
   cors({
