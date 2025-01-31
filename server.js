@@ -62,14 +62,10 @@ app.use("/api/matrix", matrixRoutes);
 app.use("/api/leads", leadRoutes);
 app.use("/api/job-requests", jobRequestRoutes);
 app.use("/api/todos", todoRoutes);
-app.use("/api/startup", startupRoutes);
-<<<<<<< HEAD
-=======
+app.use("/api/startup", startupRoutes); 
 app.use("/api/unicorn", pathToUnicorn);
 app.use("/uploads", express.static("uploads"));
 app.use("/api/resource", resourceRoutes(upload));
->>>>>>> 7f6c502f54f005d90aa9d30415ff9acc5993eea8
-
 app.use("/api/unicorn", pathToUnicorn);
 // Error handling middleware
 app.use((err, req, res, next) => {
