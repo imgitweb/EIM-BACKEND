@@ -68,7 +68,6 @@ app.use("/api/unicorn", pathToUnicorn);
 app.use("/uploads", express.static("uploads"));
 app.use("/api/resource", resourceRoutes(upload));
 app.use("/api/unicorn", pathToUnicorn);
-=======
 app.use("/api/messages", messageRoutes);
 // Error handling middleware
 app.use((err, req, res, next) => {
