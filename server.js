@@ -17,6 +17,7 @@ const startupRoutes = require("./routes/startupRoutes");
 const pathToUnicorn = require("./routes/pathToUnicorn");
 const resourceRoutes = require("./routes/resourceRoutes");
 const messageRoutes = require("./routes/messageRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 require("dotenv").config();
 
 const app = express();
@@ -69,6 +70,8 @@ app.use("/uploads", express.static("uploads"));
 app.use("/api/resource", resourceRoutes(upload));
 app.use("/api/unicorn", pathToUnicorn);
 app.use("/api/messages", messageRoutes);
+app.use("/api/admin", adminRoutes);
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
