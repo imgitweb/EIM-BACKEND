@@ -14,7 +14,7 @@ exports.addInvestor = async (req, res) => {
         } = req.body;
 
         // Create image URL
-        const companyLogo = `/uploads/investors/${req.file.filename}`;
+        const companyLogo = `uploads/investors/${req.file.filename}`;
 
         const investor = new Investor({
             companyName,
@@ -52,7 +52,7 @@ exports.addInvestor = async (req, res) => {
 exports.getInvestors = async (req, res) => {
     try {
         const { sort, industry, idealFor } = req.query;
-        let query = {};
+        let query = { isDeleted: false }; // Explicitly set isDeleted filter
 
         // Add filters if provided
         if (industry) {
@@ -73,7 +73,7 @@ exports.getInvestors = async (req, res) => {
 
         const investors = await Investor.find(query)
             .sort(sortObj)
-            .select('-__v'); // Exclude version key
+            .select('-__v -isDeleted -deletedAt'); // Exclude unnecessary fields
 
         res.status(200).json({
             success: true,
@@ -92,8 +92,10 @@ exports.getInvestors = async (req, res) => {
 // Get single investor by ID
 exports.getInvestor = async (req, res) => {
     try {
-        const investor = await Investor.findById(req.params.id)
-            .select('-__v');
+        const investor = await Investor.findOne({
+            _id: req.params.id,
+            isDeleted: false
+        }).select('-__v -isDeleted -deletedAt');
 
         if (!investor) {
             return res.status(404).json({
@@ -108,6 +110,119 @@ exports.getInvestor = async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching investor:', error);
+        if (error.name === 'CastError') {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid investor ID'
+            });
+        }
+        res.status(500).json({
+            success: false,
+            error: 'Server Error'
+        });
+    }
+};
+
+
+// Update investor
+exports.updateInvestor = async (req, res) => {
+    try {
+        let updateData = { ...req.body };
+
+        // If idealFor or industry are provided, convert to lowercase
+        if (updateData.idealFor) {
+            updateData.idealFor = updateData.idealFor.toLowerCase();
+        }
+        if (updateData.industry) {
+            updateData.industry = updateData.industry.toLowerCase();
+        }
+
+        // If a new logo was uploaded, add it to the update data
+        if (req.file) {
+            updateData.companyLogo = `/uploads/investors/${req.file.filename}`;
+        }
+
+        const investor = await Investor.findOneAndUpdate(
+            {
+                _id: req.params.id,
+                isDeleted: false // Only update if not deleted
+            },
+            updateData,
+            {
+                new: true,
+                runValidators: true
+            }
+        ).select('-__v -isDeleted -deletedAt');
+
+        if (!investor) {
+            return res.status(404).json({
+                success: false,
+                error: 'Investor not found'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: investor
+        });
+    } catch (error) {
+        console.error('Error updating investor:', error);
+        if (error.code === 11000) {
+            return res.status(400).json({
+                success: false,
+                error: 'An investor with this email already exists'
+            });
+        }
+        if (error.name === 'CastError') {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid investor ID'
+            });
+        }
+        res.status(500).json({
+            success: false,
+            error: 'Server Error'
+        });
+    }
+};
+
+exports.deleteInvestor = async (req, res) => {
+    try {
+        const investor = await Investor.findOneAndUpdate(
+            {
+                _id: req.params.id,
+                isDeleted: false // Only update if not already deleted
+            },
+            {
+                isDeleted: true,
+                deletedAt: new Date()
+            },
+            {
+                new: true,
+                runValidators: true
+            }
+        );
+
+        if (!investor) {
+            return res.status(404).json({
+                success: false,
+                error: 'Investor not found or already deleted'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Investor successfully deleted',
+            data: {}
+        });
+    } catch (error) {
+        console.error('Error deleting investor:', error);
+        if (error.name === 'CastError') {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid investor ID'
+            });
+        }
         res.status(500).json({
             success: false,
             error: 'Server Error'
