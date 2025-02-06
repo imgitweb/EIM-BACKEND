@@ -49,10 +49,10 @@ connectDB();
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     // Check the route or purpose and set appropriate destination
-    if (req.originalUrl.includes('/api/investors')) {
-      cb(null, 'uploads/investors'); // For investor company logos
+    if (req.originalUrl.includes("/api/investors")) {
+      cb(null, "uploads/investors"); // For investor company logos
     } else {
-      cb(null, 'uploads/template'); // Your existing template path
+      cb(null, "uploads/template"); // Your existing template path
     }
   },
   filename: (req, file, cb) => {
@@ -61,12 +61,12 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-  if (req.originalUrl.includes('/api/investors')) {
+  if (req.originalUrl.includes("/api/investors")) {
     // For investor routes, only allow images
-    if (file.mimetype.startsWith('image/')) {
+    if (file.mimetype.startsWith("image/")) {
       cb(null, true);
     } else {
-      cb(new Error('Not an image! Please upload an image file.'), false);
+      cb(new Error("Not an image! Please upload an image file."), false);
     }
   } else {
     // Your existing file filter logic for templates if any
@@ -78,8 +78,8 @@ const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
-  }
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
 });
 
 // Routes
@@ -93,11 +93,11 @@ app.use("/api/job-requests", jobRequestRoutes);
 app.use("/api/todos", todoRoutes);
 app.use("/api/startup", startupRoutes);
 app.use("/api/unicorn", pathToUnicorn);
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/resource", resourceRoutes(upload));
 app.use("/api/messages", messageRoutes);
 app.use("/api/admin", adminRoutes);
-app.use('/api/investors', investorRoutes(upload));
+app.use("/api/investors", investorRoutes(upload));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
