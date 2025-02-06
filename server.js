@@ -19,6 +19,9 @@ const resourceRoutes = require("./routes/resourceRoutes");
 const messageRoutes = require("./routes/messageRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const investorRoutes = require("./routes/investorRoutes");
+const mentorRoutes = require("./routes/mentorRoutes");
+const categoryRoutes = require("./routes/categoryRoutes");
+const templateRoute = require("./routes/templateRoute");
 require("dotenv").config();
 
 const app = express();
@@ -51,7 +54,15 @@ const storage = multer.diskStorage({
     // Check the route or purpose and set appropriate destination
     if (req.originalUrl.includes('/api/investors')) {
       cb(null, 'uploads/investors'); // For investor company logos
-    } else {
+    } else if(req.originalUrl.includes('/api/mentors')){
+      cb(null, 'uploads/mentors'); // For mentor images
+    }else if(req.originalUrl.includes('/api/categories')){
+      cb(null, 'uploads/categories'); // Your existing category path
+    }
+    else if(req.originalUrl.includes('/api/templates')) {
+      cb(null, 'uploads/templates'); // Your templates file path
+    }
+    else {
       cb(null, 'uploads/template'); // Your existing template path
     }
   },
@@ -98,6 +109,9 @@ app.use("/api/resource", resourceRoutes(upload));
 app.use("/api/messages", messageRoutes);
 app.use("/api/admin", adminRoutes);
 app.use('/api/investors', investorRoutes(upload));
+app.use('/api/mentors', mentorRoutes(upload));
+app.use('/api/templates', templateRoute(upload));
+app.use('/api/categories', categoryRoutes(upload));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
