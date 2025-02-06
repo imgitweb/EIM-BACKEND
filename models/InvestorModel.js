@@ -53,24 +53,34 @@ const investorSchema = new mongoose.Schema({
   // Angel Investor specific fields
   investorName: {
     type: String,
-    required: function() { return this.investorType === 'angel'; }
+    required: function () { return this.investorType === 'angel'; }
   },
   // VC specific fields
   firmName: {
     type: String,
-    required: function() { return this.investorType === 'vc'; }
+    required: function () { return this.investorType === 'vc'; }
   },
   firmLogo: {
     type: String,
-    required: function() { return this.investorType === 'vc'; }
+    required: function () { return this.investorType === 'vc'; }
   },
   pointOfContact: {
     type: String,
-    required: function() { return this.investorType === 'vc'; }
+    required: function () { return this.investorType === 'vc'; }
   },
   isDeleted: {
     type: Boolean,
     default: false
+  },
+  skills: {
+    type: [String],
+    default: [],
+    validate: {
+      validator: function (v) {
+        return v.length <= 20; // Maximum 20 skills allowed
+      },
+      message: 'Cannot have more than 20 skills'
+    }
   },
   createdAt: {
     type: Date,
@@ -79,7 +89,7 @@ const investorSchema = new mongoose.Schema({
 });
 
 // Middleware to filter deleted documents
-investorSchema.pre(['find', 'findOne', 'findById'], function() {
+investorSchema.pre(['find', 'findOne', 'findById'], function () {
   this.where({ isDeleted: false });
 });
 

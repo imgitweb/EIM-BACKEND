@@ -1,11 +1,31 @@
 // controllers/investorController.js
 const Investor = require('../models/InvestorModel');
 
+
+function safeParseJSON(str) {
+    try {
+        return JSON.parse(str);
+    } catch (e) {
+        console.error('Error parsing JSON:', e);
+        return [];
+    }
+}
+// controllers/investorController.js
 exports.addInvestor = async (req, res) => {
     try {
-        const investorData = { ...req.body };
-        
-        // Create image URL for VC firms
+        console.log('Received body:', req.body);
+
+        // Safely parse the skills array from the form data
+        const skills = safeParseJSON(req.body.skills || '[]');
+        console.log('Parsed skills:', skills);
+
+        const investorData = {
+            ...req.body,
+            skills: skills
+        };
+
+        console.log('Final investor data:', investorData);
+
         if (req.file && req.body.investorType === 'vc') {
             investorData.firmLogo = `uploads/investors/${req.file.filename}`;
         }
@@ -18,6 +38,7 @@ exports.addInvestor = async (req, res) => {
             data: investor
         });
     } catch (error) {
+        console.error('Detailed error:', error);
         if (error.code === 11000) {
             return res.status(400).json({
                 success: false,
@@ -27,7 +48,7 @@ exports.addInvestor = async (req, res) => {
 
         res.status(500).json({
             success: false,
-            error: 'Server Error'
+            error: error.message || 'Server Error'
         });
     }
 };
@@ -94,7 +115,7 @@ exports.getAngelInvestors = async (req, res) => {
 
         const investors = await Investor.find(query)
             .sort(sortObj)
-            .select('-__v -isDeleted -deletedAt');
+            .select('-__v -isDeleted -deletedAt'); // Make sure 'skills' isn't being excluded
 
         res.status(200).json({
             success: true,
@@ -114,7 +135,7 @@ exports.getAngelInvestors = async (req, res) => {
 exports.getVCInvestors = async (req, res) => {
     try {
         const { sort, industry, stage } = req.query;
-        let query = { 
+        let query = {
             isDeleted: false,
             investorType: 'vc'
         };
@@ -126,8 +147,8 @@ exports.getVCInvestors = async (req, res) => {
             query.stage = stage.toLowerCase();
         }
 
-        let sortObj = sort ? 
-            { [sort.split(':')[0]]: sort.split(':')[1] === 'desc' ? -1 : 1 } : 
+        let sortObj = sort ?
+            { [sort.split(':')[0]]: sort.split(':')[1] === 'desc' ? -1 : 1 } :
             { createdAt: -1 };
 
         const investors = await Investor.find(query)
@@ -183,7 +204,16 @@ exports.getInvestor = async (req, res) => {
 
 exports.updateInvestor = async (req, res) => {
     try {
-        let updateData = { ...req.body };
+        console.log('Received body:', req.body);
+
+        // Safely parse skills if they're being updated
+        let skills = safeParseJSON(req.body.skills || '[]');
+         console.log('Parsed skills:', skills);
+
+        let updateData = {
+            ...req.body,
+            skills: skills
+        };
 
         // If a new logo was uploaded for VC
         if (req.file && updateData.investorType === 'vc') {
@@ -229,7 +259,7 @@ exports.updateInvestor = async (req, res) => {
         }
         res.status(500).json({
             success: false,
-            error: 'Server Error'
+            error: error.message || 'Server Error'
         });
     }
 };
