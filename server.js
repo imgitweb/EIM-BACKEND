@@ -19,6 +19,9 @@ const resourceRoutes = require("./routes/resourceRoutes");
 const messageRoutes = require("./routes/messageRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const investorRoutes = require("./routes/investorRoutes");
+const mentorRoutes = require("./routes/mentorRoutes");
+const categoryRoutes = require("./routes/categoryRoutes");
+const templateRoute = require("./routes/templateRoute");
 require("dotenv").config();
 
 const app = express();
@@ -45,31 +48,45 @@ app.use(
 // Connect to Database
 connectDB();
 
-// Updated Multer setup for multiple file upload purposes
+// Multer Configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    // Check the route or purpose and set appropriate destination
-    if (req.originalUrl.includes('/api/investors')) {
-      cb(null, 'uploads/investors'); // For investor company logos
+    // Determine the upload directory based on the route
+    let uploadDir = "uploads";
+
+    if (req.originalUrl.includes("/api/investors")) {
+      uploadDir = "uploads/investors";
     } else {
-      cb(null, 'uploads/template'); // Your existing template path
+      uploadDir = "uploads/template";
     }
+
+    // Create directory if it doesn't exist
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+
+    cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
+    // Create unique filename with original extension
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
   },
 });
 
 const fileFilter = (req, file, cb) => {
-  if (req.originalUrl.includes('/api/investors')) {
-    // For investor routes, only allow images
-    if (file.mimetype.startsWith('image/')) {
+  if (
+    req.originalUrl.includes("/api/investors") ||
+    req.originalUrl.includes("/api/cofounders")
+  ) {
+    // For investor and co-founder routes, only allow images
+    if (file.mimetype.startsWith("image/")) {
       cb(null, true);
     } else {
-      cb(new Error('Not an image! Please upload an image file.'), false);
+      cb(new Error("Not an image! Please upload an image file."), false);
     }
   } else {
-    // Your existing file filter logic for templates if any
+    // For other routes, allow all file types
     cb(null, true);
   }
 };
@@ -78,9 +95,13 @@ const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
-  }
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
 });
+
+// Serve static files from the uploads directory
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+const coFounderRoutes = require("./routes/coFounderRoutes");
 
 // Routes
 app.use("/api/auth", authRoutes);
@@ -93,12 +114,11 @@ app.use("/api/job-requests", jobRequestRoutes);
 app.use("/api/todos", todoRoutes);
 app.use("/api/startup", startupRoutes); 
 app.use("/api/unicorn", pathToUnicorn);
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use("/api/resource", resourceRoutes(upload));
 app.use("/api/unicorn", pathToUnicorn);
 app.use("/api/messages", messageRoutes);
 app.use("/api/admin", adminRoutes);
-app.use('/api/investors', investorRoutes(upload));
+app.use("/api/investors", investorRoutes(upload));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
