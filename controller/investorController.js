@@ -1,32 +1,16 @@
+// controllers/investorController.js
 const Investor = require('../models/InvestorModel');
 
-// Add new investor
 exports.addInvestor = async (req, res) => {
     try {
-        const {
-            companyName,
-            founderName,
-            email,
-            website,
-            aboutUs,
-            idealFor,
-            industry
-        } = req.body;
+        const investorData = { ...req.body };
+        
+        // Create image URL for VC firms
+        if (req.file && req.body.investorType === 'vc') {
+            investorData.firmLogo = `uploads/investors/${req.file.filename}`;
+        }
 
-        // Create image URL
-        const companyLogo = `uploads/investors/${req.file.filename}`;
-
-        const investor = new Investor({
-            companyName,
-            founderName,
-            companyLogo,
-            email,
-            website,
-            aboutUs,
-            idealFor,
-            industry
-        });
-
+        const investor = new Investor(investorData);
         await investor.save();
 
         res.status(201).json({
@@ -34,7 +18,7 @@ exports.addInvestor = async (req, res) => {
             data: investor
         });
     } catch (error) {
-        if (error.code === 11000) { // Duplicate key error
+        if (error.code === 11000) {
             return res.status(400).json({
                 success: false,
                 error: 'An investor with this email already exists'
@@ -48,18 +32,17 @@ exports.addInvestor = async (req, res) => {
     }
 };
 
-// Get all investors
 exports.getInvestors = async (req, res) => {
     try {
-        const { sort, industry, idealFor } = req.query;
-        let query = { isDeleted: false }; // Explicitly set isDeleted filter
+        const { sort, industry, stage } = req.query;
+        let query = { isDeleted: false };
 
         // Add filters if provided
-        if (industry) {
+        if (industry && industry !== 'industry-agnostic') {
             query.industry = industry.toLowerCase();
         }
-        if (idealFor) {
-            query.idealFor = idealFor.toLowerCase();
+        if (stage && stage !== 'stage-agnostic') {
+            query.stage = stage.toLowerCase();
         }
 
         // Build sort object
@@ -73,7 +56,7 @@ exports.getInvestors = async (req, res) => {
 
         const investors = await Investor.find(query)
             .sort(sortObj)
-            .select('-__v -isDeleted -deletedAt'); // Exclude unnecessary fields
+            .select('-__v -isDeleted -deletedAt');
 
         res.status(200).json({
             success: true,
@@ -89,7 +72,82 @@ exports.getInvestors = async (req, res) => {
     }
 };
 
-// Get single investor by ID
+// Get all angel investors
+exports.getAngelInvestors = async (req, res) => {
+    try {
+        const { sort, industry, stage } = req.query;
+        let query = { 
+            isDeleted: false,
+            investorType: 'angel'
+        };
+
+        if (industry && industry !== 'industry-agnostic') {
+            query.industry = industry.toLowerCase();
+        }
+        if (stage && stage !== 'stage-agnostic') {
+            query.stage = stage.toLowerCase();
+        }
+
+        let sortObj = sort ? 
+            { [sort.split(':')[0]]: sort.split(':')[1] === 'desc' ? -1 : 1 } : 
+            { createdAt: -1 };
+
+        const investors = await Investor.find(query)
+            .sort(sortObj)
+            .select('-__v -isDeleted -deletedAt');
+
+        res.status(200).json({
+            success: true,
+            count: investors.length,
+            data: investors
+        });
+    } catch (error) {
+        console.error('Error fetching angel investors:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Server Error'
+        });
+    }
+};
+
+// Get all VC investors
+exports.getVCInvestors = async (req, res) => {
+    try {
+        const { sort, industry, stage } = req.query;
+        let query = { 
+            isDeleted: false,
+            investorType: 'vc'
+        };
+
+        if (industry && industry !== 'industry-agnostic') {
+            query.industry = industry.toLowerCase();
+        }
+        if (stage && stage !== 'stage-agnostic') {
+            query.stage = stage.toLowerCase();
+        }
+
+        let sortObj = sort ? 
+            { [sort.split(':')[0]]: sort.split(':')[1] === 'desc' ? -1 : 1 } : 
+            { createdAt: -1 };
+
+        const investors = await Investor.find(query)
+            .sort(sortObj)
+            .select('-__v -isDeleted -deletedAt');
+
+        res.status(200).json({
+            success: true,
+            count: investors.length,
+            data: investors
+        });
+    } catch (error) {
+        console.error('Error fetching VC investors:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Server Error'
+        });
+    }
+};
+
 exports.getInvestor = async (req, res) => {
     try {
         const investor = await Investor.findOne({
@@ -123,29 +181,19 @@ exports.getInvestor = async (req, res) => {
     }
 };
 
-
-// Update investor
 exports.updateInvestor = async (req, res) => {
     try {
         let updateData = { ...req.body };
 
-        // If idealFor or industry are provided, convert to lowercase
-        if (updateData.idealFor) {
-            updateData.idealFor = updateData.idealFor.toLowerCase();
-        }
-        if (updateData.industry) {
-            updateData.industry = updateData.industry.toLowerCase();
-        }
-
-        // If a new logo was uploaded, add it to the update data
-        if (req.file) {
-            updateData.companyLogo = `/uploads/investors/${req.file.filename}`;
+        // If a new logo was uploaded for VC
+        if (req.file && updateData.investorType === 'vc') {
+            updateData.firmLogo = `uploads/investors/${req.file.filename}`;
         }
 
         const investor = await Investor.findOneAndUpdate(
             {
                 _id: req.params.id,
-                isDeleted: false // Only update if not deleted
+                isDeleted: false
             },
             updateData,
             {
@@ -191,7 +239,7 @@ exports.deleteInvestor = async (req, res) => {
         const investor = await Investor.findOneAndUpdate(
             {
                 _id: req.params.id,
-                isDeleted: false // Only update if not already deleted
+                isDeleted: false
             },
             {
                 isDeleted: true,

@@ -5,7 +5,7 @@ const { addCoFounder, getAllCoFounders, updateCofounder, deleteCofounder } = req
 
 module.exports = (upload) => {
     router.post('/', upload.single('profilePhoto'), addCoFounder);
-    router.get('/', getAllCoFounders);
+    router.get('/', getAllCoFounders);  
     router.put('/:id', updateCofounder);
     router.delete('/:id', deleteCofounder);
     return router;
