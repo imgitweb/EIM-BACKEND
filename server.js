@@ -19,6 +19,9 @@ const resourceRoutes = require("./routes/resourceRoutes");
 const messageRoutes = require("./routes/messageRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const investorRoutes = require("./routes/investorRoutes");
+const mentorRoutes = require("./routes/mentorRoutes");
+const categoryRoutes = require("./routes/categoryRoutes");
+const templateRoute = require("./routes/templateRoute");
 require("dotenv").config();
 
 const app = express();
@@ -48,36 +51,36 @@ connectDB();
 // Multer Configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-<<<<<<< HEAD
-    // Check the route or purpose and set appropriate destination
+    // Determine the upload directory based on the route
+    let uploadDir = "uploads";
+
     if (req.originalUrl.includes("/api/investors")) {
-      cb(null, "uploads/investors"); // For investor company logos
+      uploadDir = "uploads/investors";
     } else {
-      cb(null, "uploads/template"); // Your existing template path
-=======
-    let dir = 'uploads'; // Default directory
-    if (req.originalUrl.includes('/api/investors')) {
-      dir = 'uploads/investors'; // For investor routes
-    } else if (req.originalUrl.includes('/api/cofounders')) {
-      dir = 'uploads/cofounders'; // For co-founder routes
+      uploadDir = "uploads/template";
     }
 
-    // Create the directory if it doesn't exist
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
->>>>>>> 7ef138b63eeeb433a21eef203b00c80698a4e64b
+    // Create directory if it doesn't exist
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
     }
-    cb(null, dir);
+
+    cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname)); // Unique filename
+    // Create unique filename with original extension
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
   },
 });
 
 const fileFilter = (req, file, cb) => {
-  if (req.originalUrl.includes('/api/investors') || req.originalUrl.includes('/api/cofounders')) {
+  if (
+    req.originalUrl.includes("/api/investors") ||
+    req.originalUrl.includes("/api/cofounders")
+  ) {
     // For investor and co-founder routes, only allow images
-    if (file.mimetype.startsWith('image/')) {
+    if (file.mimetype.startsWith("image/")) {
       cb(null, true);
     } else {
       cb(new Error("Not an image! Please upload an image file."), false);
@@ -97,8 +100,8 @@ const upload = multer({
 });
 
 // Serve static files from the uploads directory
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-const coFounderRoutes = require('./routes/coFounderRoutes');
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+const coFounderRoutes = require("./routes/coFounderRoutes");
 
 // Routes
 app.use("/api/auth", authRoutes);
@@ -115,7 +118,6 @@ app.use("/api/resource", resourceRoutes(upload));
 app.use("/api/messages", messageRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/investors", investorRoutes(upload));
-app.use("/api/cofounders", coFounderRoutes(upload));// Pass the upload middleware to co-founder routes
 
 // Error handling middleware
 app.use((err, req, res, next) => {
