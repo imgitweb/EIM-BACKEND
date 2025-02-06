@@ -1,20 +1,12 @@
 const mongoose = require('mongoose');
 
 const investorSchema = new mongoose.Schema({
-  companyName: {
+  investorType: {
     type: String,
     required: true,
-    trim: true
+    enum: ['angel', 'vc']
   },
-  founderName: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  companyLogo: {
-    type: String,  // URL to the stored image
-    required: true
-  },
+  // Common fields
   email: {
     type: String,
     required: true,
@@ -22,19 +14,24 @@ const investorSchema = new mongoose.Schema({
     trim: true,
     lowercase: true
   },
-  website: {
+  linkedinProfile: {
     type: String,
     required: true,
     trim: true
   },
-  aboutUs: {
-    type: String,
-    required: true
-  },
-  idealFor: {
+  contactNumber: {
     type: String,
     required: true,
-    enum: ['pre-seed', 'seed', 'early', 'growth']
+    trim: true
+  },
+  website: {
+    type: String,
+    trim: true
+  },
+  stage: {
+    type: String,
+    required: true,
+    enum: ['seed', 'pre-seed', 'early', 'growth', 'stage-agnostic']
   },
   industry: {
     type: String,
@@ -43,19 +40,57 @@ const investorSchema = new mongoose.Schema({
       'ai/ml',
       'agritech',
       'consumer',
-      'digital entertainment',
+      'digital-entertainment',
       'edtech',
       'fintech',
       'healthtech',
       'media',
       'mobility',
-      'saas'
+      'saas',
+      'industry-agnostic'
     ]
+  },
+  // Angel Investor specific fields
+  investorName: {
+    type: String,
+    required: function () { return this.investorType === 'angel'; }
+  },
+  // VC specific fields
+  firmName: {
+    type: String,
+    required: function () { return this.investorType === 'vc'; }
+  },
+  firmLogo: {
+    type: String,
+    required: function () { return this.investorType === 'vc'; }
+  },
+  pointOfContact: {
+    type: String,
+    required: function () { return this.investorType === 'vc'; }
+  },
+  isDeleted: {
+    type: Boolean,
+    default: false
+  },
+  skills: {
+    type: [String],
+    default: [],
+    validate: {
+      validator: function (v) {
+        return v.length <= 20; // Maximum 20 skills allowed
+      },
+      message: 'Cannot have more than 20 skills'
+    }
   },
   createdAt: {
     type: Date,
     default: Date.now
   }
+});
+
+// Middleware to filter deleted documents
+investorSchema.pre(['find', 'findOne', 'findById'], function () {
+  this.where({ isDeleted: false });
 });
 
 module.exports = mongoose.model('Investor', investorSchema);
