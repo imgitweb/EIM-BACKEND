@@ -119,7 +119,9 @@ app.use("/api/unicorn", pathToUnicorn);
 app.use("/api/messages", messageRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/investors", investorRoutes(upload));
-
+app.use("/api/templates", templateRoute(upload));
+app.use("/api/mentors", mentorRoutes(upload));
+app.use("/api/categories", categoryRoutes(upload));
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
