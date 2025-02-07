@@ -4,8 +4,6 @@ const path = require("path");
 
 // creating a new mentor
 exports.addMentor = async (req, res) => {
-  console.log("$body", req.body);
-  console.log("hitted--------------------------->")
   try {
     // Destructure data from the request body
     const {
@@ -16,42 +14,64 @@ exports.addMentor = async (req, res) => {
       higherEducation,
       skills,
       languages,
-      availableTime,
       rating,
       category,
+      gender,
+      institute,
+      email,
+      mo_number,
+      country,
+      city,
+      linkedin,
+      specializationIn
     } = req.body;
 
     // Validate all required fields
-    if (!name || !designation || !totalExp || !aboutUs || !higherEducation || !skills || !languages || !availableTime || !rating || !category) {
-      return res.status(400).json({ message: 'All fields are required.' });
+    if (
+      !name ||
+      !designation ||
+      !totalExp ||
+      !aboutUs ||
+      !higherEducation ||
+      !skills ||
+      !languages ||
+      !rating ||
+      !category ||
+      !gender ||
+      !institute ||
+      !email ||
+      !mo_number ||
+      !country ||
+      !city ||
+      !linkedin ||
+      !specializationIn
+    ) {
+      return res.status(400).json({ message: "All fields are required." });
     }
 
     // Check if the mentor already exists based on the unique combination of fields
     const existingMentor = await Mentor.findOne({
-      name,
-      designation,
-      totalExp,
-      aboutUs,
-      higherEducation,
-      skills,
+      email,
     });
 
     console.log(existingMentor);
     if (existingMentor) {
       // If a mentor exists with the same details, delete the uploaded file if present
       if (req.file) {
-        fs.unlinkSync(path.join(__dirname, "..", "uploads", "mentors", req.file.filename));
+        fs.unlinkSync(
+          path.join(__dirname, "..", "uploads", "mentors", req.file.filename)
+        );
       }
       return res.status(409).json({
         success: false,
-        message: "Mentor already exists",
+        message: "Mentor with this email already exists",
         data: existingMentor,
       });
     }
 
     // If no mentor exists, proceed with adding a new mentor
     if (!req.file) {
-      return res.status(400).json({ message: 'Image file is required.' });
+      return res.status(400).json({ message: "Image file is required." });
     }
 
     const image = `/uploads/mentors/${req.file.filename}`;
@@ -66,13 +86,20 @@ exports.addMentor = async (req, res) => {
       higherEducation,
       skills,
       languages,
-      availableTime,
       rating,
       category,
+      gender,
+      institute,
+      email,
+      mo_number,
+      country,
+      city,
+      linkedin,
+      specializationIn,
       image,
     });
 
-    console.log("saving new mentor data:", newMentor);
+    // console.log("saving new mentor data:", newMentor);
     await newMentor.save(); // Save the new mentor to the database
 
     res.status(201).json({
@@ -93,7 +120,6 @@ exports.addMentor = async (req, res) => {
 
 // get all mentors
 exports.getAllMentors = async (req, res) => {
-
   const { category } = req.query; // Get the category from query params
   try {
     let query = { isDeleted: false };
@@ -125,7 +151,6 @@ exports.getAllMentors = async (req, res) => {
   }
 };
 
-
 // delete mentor
 
 exports.deleteMentor = async (req, res) => {
@@ -149,7 +174,7 @@ exports.deleteMentor = async (req, res) => {
     return res.status(200).json({
       message: "Mentor deleted successfully",
       success: true,
-      data : mentor
+      data: mentor,
     });
   } catch (err) {
     console.error(err);
