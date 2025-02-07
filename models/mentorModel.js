@@ -20,14 +20,14 @@ const mentorSchema = new mongoose.Schema({
         required : true
     },
     skills :{
-        type : String,
+        type : [String],
         required : true,
-        trim : true
+        // trim : true
     },
     languages :{
-        type : String,
+        type : [String],
         required : true,
-        trim : true
+        // trim : true
     },
     aboutUs :{
         type : String,
@@ -35,11 +35,6 @@ const mentorSchema = new mongoose.Schema({
         trim : true
     },
     higherEducation : {
-        type : String,
-        required : true,
-        trim : true
-    },
-    availableTime :{
         type : String,
         required : true,
         trim : true
@@ -54,6 +49,48 @@ const mentorSchema = new mongoose.Schema({
         type : String,
         required : true,
         enum :['technical','non technical','subject expert']
+    },
+    gender : {
+        type : String,
+        required : true,
+        enum : ['male', 'female','other'],
+    },
+    institute :{
+        type : String,
+        required : true,
+        trim : true
+    },
+    email : {
+        type : String,
+        required : true,
+        trim : true,
+        lowercase: true,
+        unique: true
+    },
+    mo_number : {
+        type : String,
+        required : true,
+        trim : true
+    },
+    country : {
+        type : String,
+        required : true,
+        trim : true
+    },
+    city : {
+        type : String,
+        required : true,
+        trim : true
+    },
+    linkedin : {   
+        type : String,
+        required : true,
+        trim : true
+    },
+    specializationIn : {
+        type : String,
+        required : true,
+        trim : true
     },
     isDeleted : {
         type: Boolean,

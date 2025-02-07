@@ -22,6 +22,7 @@ const investorRoutes = require("./routes/investorRoutes");
 const mentorRoutes = require("./routes/mentorRoutes");
 const categoryRoutes = require("./routes/categoryRoutes");
 const templateRoute = require("./routes/templateRoute");
+const shaktiSangamRoutes = require("./routes/shaktiSangamRoutes");
 require("dotenv").config();
 
 const app = express();
@@ -51,26 +52,21 @@ connectDB();
 // Multer Configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    // Determine the upload directory based on the route
-    let uploadDir = "uploads";
-
+    // Check the route or purpose and set appropriate destination
     if (req.originalUrl.includes("/api/investors")) {
-      uploadDir = "uploads/investors";
+      cb(null, "uploads/investors"); // For investor company logos
+    } else if (req.originalUrl.includes("/api/mentors")) {
+      cb(null, "uploads/mentors"); // For mentor images
+    } else if (req.originalUrl.includes("/api/categories")) {
+      cb(null, "uploads/categories"); // Your existing category path
+    } else if (req.originalUrl.includes("/api/templates")) {
+      cb(null, "uploads/templates"); // Your templates file path
     } else {
-      uploadDir = "uploads/template";
+      cb(null, "uploads/template"); // Your existing template path
     }
-
-    // Create directory if it doesn't exist
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-
-    cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    // Create unique filename with original extension
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
+    cb(null, Date.now() + path.extname(file.originalname));
   },
 });
 
@@ -122,6 +118,7 @@ app.use("/api/investors", investorRoutes(upload));
 app.use("/api/templates", templateRoute(upload));
 app.use("/api/mentors", mentorRoutes(upload));
 app.use("/api/categories", categoryRoutes(upload));
+app.use("/api/shaktiSangam", shaktiSangamRoutes);
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);

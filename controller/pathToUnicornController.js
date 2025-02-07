@@ -92,7 +92,7 @@ const getMilestones = async (req, res) => {
     - Is this startup revenue generating yet: "Yes"
     - Last Year's revenue in USD: "100 USD"
     - Number of paid customers as of now: "2"
-
+    
 
     Return exactly 12 milestones in this specific JSON format:
     {
