@@ -22,6 +22,7 @@ const investorRoutes = require("./routes/investorRoutes");
 const mentorRoutes = require("./routes/mentorRoutes");
 const categoryRoutes = require("./routes/categoryRoutes");
 const templateRoute = require("./routes/templateRoute");
+const shaktiSangamRoutes = require("./routes/shaktiSangamRoutes");
 require("dotenv").config();
 
 const app = express();
@@ -118,7 +119,10 @@ app.use("/api/resource", resourceRoutes(upload));
 app.use("/api/messages", messageRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/investors", investorRoutes(upload));
-
+app.use("/api/templates", templateRoute(upload));
+app.use("/api/mentors", mentorRoutes(upload));
+app.use("/api/categories", categoryRoutes(upload));
+app.use("/api/shaktiSangam", shaktiSangamRoutes);
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
