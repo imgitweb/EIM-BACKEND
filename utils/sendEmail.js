@@ -14,7 +14,7 @@ const sendEmail = async (recipientEmail, userName) => {
 
   // Setup email data
   const mailOptions = {
-    from: process.env.EMAIL_USER, // Sender address
+    from: `"Team Shakti Sangam, 2025" <${process.env.EMAIL_USER}>`,
     to: recipientEmail, // Receiver's email address
     subject:
       "Thanks for the registration, we will confirm your participation soon.",
@@ -23,10 +23,10 @@ const sendEmail = async (recipientEmail, userName) => {
       `Thanks for your participation. This is only a confirmation of your registration.\n` +
       `We will get back to you with the confirmation email shortly if you are shortlisted to attend the event.\n\n` +
       `Meanwhile, please follow the social media handles of Shakti Sangam 2025:\n` +
-      `- Facebook: https://facebook.com/ShaktiSangam\n` +
-      `- LinkedIn: https://linkedin.com/ShaktiSangam\n` +
-      `- Twitter: https://twitter.com/ShaktiSangam\n` +
-      `- Instagram: https://instagram.com/ShaktiSangam\n\n` +
+      `- Facebook: http://facebook.com/clubsherise\n` +
+      `- LinkedIn: https://www.linkedin.com/company/shaktisangam\n` +
+      `- Twitter: https://x.com/ClubSheRise\n` +
+      `- Instagram: https://www.instagram.com/club.sherise/\n\n` +
       `Thank you,\n` +
       `Team Shakti Sangam 2025`,
     html: `<p>Hello ${userName},</p>
@@ -34,10 +34,10 @@ const sendEmail = async (recipientEmail, userName) => {
            <p>We will get back to you with the confirmation email shortly if you are shortlisted to attend the event.</p>
            <p>Meanwhile, please follow the social media handles of Shakti Sangam 2025:</p>
            <ul>
-             <li><a href="https://facebook.com/ShaktiSangam">Facebook</a></li>
-             <li><a href="https://linkedin.com/ShaktiSangam">LinkedIn</a></li>
-             <li><a href="https://twitter.com/ShaktiSangam">Twitter</a></li>
-             <li><a href="https://instagram.com/ShaktiSangam">Instagram</a></li>
+             <li><a href="http://facebook.com/clubsherise">Facebook</a></li>
+             <li><a href="https://www.linkedin.com/company/shaktisangam">LinkedIn</a></li>
+             <li><a href="https://x.com/ClubSheRise">Twitter</a></li>
+             <li><a href="https://www.instagram.com/club.sherise/">Instagram</a></li>
            </ul>
            <p>Thank you,<br/>Team Shakti Sangam 2025</p>`,
   };
