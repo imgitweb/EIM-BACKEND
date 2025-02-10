@@ -1,5 +1,6 @@
-require("dotenv").config();
+const Milestone = require("../models/milestone");
 const axios = require("axios");
+require("dotenv").config();
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
@@ -9,9 +10,8 @@ if (!OPENAI_API_KEY) {
   );
 }
 
-const getAIGeneratedMilestones = async (prompt, maxTokens = 3500) => {
+const pathToUnicornController = async (prompt, maxTokens = 4000) => {
   const url = "https://api.openai.com/v1/chat/completions";
-
   try {
     const response = await axios.post(
       url,
@@ -20,8 +20,9 @@ const getAIGeneratedMilestones = async (prompt, maxTokens = 3500) => {
         messages: [
           {
             role: "system",
-            content:
-              "You are a startup planning assistant. Generate exactly 12 milestones in a JSON format where each milestone (1-12) is its own separate top-level key. Each response must be properly formatted JSON that can be parsed.",
+            content: `You are a startup planning assistant. 
+            Generate exactly 12 milestones in **strictly valid JSON** format. 
+            Ensure the output is a complete and properly formatted JSON object.  Do not include any explanatory text outside the JSON object.  The entire response should be parsable JSON.`,
           },
           {
             role: "user",
@@ -39,62 +40,110 @@ const getAIGeneratedMilestones = async (prompt, maxTokens = 3500) => {
       }
     );
 
-    // Parse the response to ensure it's valid JSON
-    const content = response.data.choices[0].message.content;
-    return JSON.parse(content);
+    let content = response.data.choices[0].message.content.trim();
+
+    // 1. Check for empty response
+    if (!content) {
+      throw new Error("OpenAI returned an empty response.");
+    }
+
+    // 2. Remove any backticks or code fences that LLMs sometimes add
+    content = content.replace(/^`*|`*$/g, ""); //Removes backticks from start and end
+    content = content.replace(/^json\n|json$/g, ""); //Removes "json" identifier if present
+
+    // 3. Remove any leading/trailing whitespace again (just in case)
+    content = content.trim();
+
+    // 4. Robust JSON parsing with error handling:
+    try {
+      const parsedData = JSON.parse(content);
+      return parsedData;
+    } catch (jsonError) {
+      console.error("Invalid JSON received:", content); // Log the raw content for debugging
+      console.error("JSON parsing error:", jsonError); // Log the specific JSON parsing error
+      throw new Error(
+        "OpenAI returned invalid JSON format: " + jsonError.message
+      ); // More informative error
+    }
   } catch (error) {
     console.error(
       "Error fetching data from OpenAI:",
-      error.response?.data || error.message
+      error.response?.data || error.message || error // Log all error details
     );
-    throw new Error("Failed to fetch milestones from OpenAI.");
+    throw new Error("Failed to fetch milestones from OpenAI: " + error.message); // Include original error message
   }
 };
 
 const getMilestones = async (req, res) => {
-  const {
-    startDate,
-    initialDurationMonths,
-    durationIncrement,
-    industry,
-    businessModel,
-    targetAudience,
-  } = req.body || {};
+  try {
+    const reqBody = req.body || {};
+    const {
+      industry,
+      businessModel,
+      tam,
+      som,
+      startDate,
+      revenue,
+      customers,
+      pitch,
+      problem,
+      solution,
+      founder1,
+      founder2,
+      country,
+      revenueStatus,
+      startup_id,
+    } = reqBody;
 
-  if (
-    !startDate ||
-    !initialDurationMonths ||
-    !durationIncrement ||
-    !industry ||
-    !businessModel ||
-    !targetAudience
-  ) {
-    return res.status(400).json({
-      success: false,
-      message: "Missing required parameters.",
-    });
-  }
+    const requiredParams = [
+      industry,
+      businessModel,
+      tam,
+      som,
+      startDate,
+      revenue,
+      customers,
+      pitch,
+      problem,
+      solution,
+      founder1,
+      founder2,
+      country,
+      revenueStatus,
+      startup_id,
+    ];
 
-  const prompt = `
-    Create a detailed milestone based plan divided into 12 milestones which will dictate in detail how the startup with following parameters will become a unicorn. Also give us a date exactly when the starutp will become a unicorn. The milestone should be detailed and each milestone will have set of activities,
-     targetted revenue, valuation, founders learning required, go to market strategy and expansion strategies,  key activities, suggested actions and resources should be in detailed,  startup roadmap with the following specifications:
-    - Industry: "Automobiles"
-    - Startup Elevator Pitch: "We are creating an aggregator platform for car repairing service"
-    - Problem we are solving: "sdfsdfsdf"
-    - Our proposed Solution: "sdfsdfsd"
-    - Business Model: "B2C"
-    - TAM of this startup: "4 Billion USD"
-    - SOM of this startup: "1 billion USD"
-    - Start Date: 06-02-2025
-    - Founder1 Background: "Electric Engineer with 5 years of industry experience"
-    - Fouders2 Background: "Marketing Expert with 3 years of experience" 
-    - Startup Current operating country: "India"
-    - Is this startup revenue generating yet: "Yes"
-    - Last Year's revenue in USD: "100 USD"
-    - Number of paid customers as of now: "2"
-    
+    if (requiredParams.some((param) => param === undefined)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing required parameters." });
+    }
 
-    Return exactly 12 milestones in this specific JSON format:
+    // Check if milestones already exist for this startup
+    const existingMilestone = await Milestone.findOne({ startup_id });
+    if (existingMilestone) {
+      return res.status(200).json({ success: true, data: existingMilestone });
+    }
+
+    const prompt = `
+      Create a detailed milestone-based plan divided into 12 milestones to help the startup reach unicorn status. 
+      Include details such as activities, revenue, valuation, founders' learning, go-to-market strategy, expansion strategy, key actions, and resources.
+      - Industry: ${industry}
+      - Startup Elevator Pitch: ${pitch}
+      - Problem: ${problem}
+      - Solution: ${solution}
+      - Business Model: ${businessModel}
+      - TAM: ${tam}
+      - SOM: ${som}
+      - Start Date: ${startDate}
+      - Founder1: ${founder1}
+      - Founder2: ${founder2}
+      - Country: ${country}
+      - Revenue Status: ${revenueStatus}
+      - Revenue: ${revenue}
+      - Customers: ${customers}
+      
+      Return exactly 12 milestones in this specific JSON format:
     {
       "1": {
         "timeline": {
@@ -147,22 +196,34 @@ const getMilestones = async (req, res) => {
     5. All dates are properly calculated from the start date
     6. All fields are filled with relevant content
     7. The response is valid JSON that can be parsed
-  `;
+    `;
 
-  try {
     const maxTokens = 3500;
-    const milestones = await getAIGeneratedMilestones(prompt, maxTokens);
+    const milestones = await pathToUnicornController(prompt, maxTokens);
 
-    // Verify we have exactly 12 milestones
-    const milestoneKeys = Object.keys(milestones);
-    if (milestoneKeys.length !== 12) {
-      throw new Error("Invalid number of milestones generated");
-    }
-
-    res.status(200).json({
-      success: true,
-      data: milestones,
+    // Save to MongoDB
+    const milestoneDoc = new Milestone({
+      startup_id,
+      industry,
+      businessModel,
+      tam,
+      som,
+      startDate,
+      revenue,
+      customers,
+      pitch,
+      problem,
+      solution,
+      founder1,
+      founder2,
+      country,
+      revenueStatus,
+      milestones,
     });
+
+    await milestoneDoc.save();
+
+    res.status(201).json({ success: true, data: milestoneDoc });
   } catch (error) {
     console.error("Error generating milestones:", error.message);
     res.status(500).json({
@@ -172,5 +233,34 @@ const getMilestones = async (req, res) => {
     });
   }
 };
+const getMilestoneByStartupId = async (req, res) => {
+  try {
+    const { startup_id } = req.params;
 
-module.exports = { getAIGeneratedMilestones, getMilestones };
+    if (!startup_id) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Startup ID is required." });
+    }
+
+    const milestone = await Milestone.findOne({ startup_id });
+
+    if (!milestone) {
+      return res.status(404).json({
+        success: false,
+        message: "Milestones not found for this startup.",
+      });
+    }
+
+    res.status(200).json({ success: true, data: milestone });
+  } catch (error) {
+    console.error("Error fetching milestones:", error.message);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch milestones.",
+      error: error.message,
+    });
+  }
+};
+
+module.exports = { getMilestones, getMilestoneByStartupId };

@@ -1,8 +1,15 @@
 const express = require("express");
-const router = express.Router();
-const pathToUnicornController = require("./../controller/pathToUnicornController");
+const {
+  getMilestoneByStartupId,
+  getMilestones,
+} = require("../controller/pathToUnicornController");
 
-// Route to get users by industry
-router.post("/generate-milestones", pathToUnicornController.getMilestones);
+const router = express.Router();
+
+// Get milestone by startup_id
+router.get("/:startup_id", getMilestoneByStartupId);
+
+// Generate milestones (existing API)
+router.post("/generate-milestones", getMilestones);
 
 module.exports = router;
