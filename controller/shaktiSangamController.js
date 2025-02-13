@@ -33,4 +33,12 @@ const registerShaktiSangam = async (req, res) => {
   }
 };
 
-module.exports = { registerShaktiSangam };
+const getAllShaktiSangam = async (req, res) => {
+  try {
+    const data = await ShaktiSangam.find();
+    res.status(200).json(data);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching data", error });
+  }
+};
+module.exports = { registerShaktiSangam, getAllShaktiSangam };
