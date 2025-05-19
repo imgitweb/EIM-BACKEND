@@ -1,0 +1,70 @@
+{
+  "plans": [
+    {
+      "id": "alpha",
+      "name": "Alpha",
+      "price": "Free",
+      "duration": "30 days",
+      "description": "Alpha Quadrant – 30 days entrepreneurship program",
+      "features": [
+        "Week 1 - Introduction to Entrepreneurship",
+        "Week 2 - Business Idea Validation",
+        "Week 3 - First Cut of Business Model",
+        "Week 4 - Finalizing Numbers and Decision Making"
+      ],
+      "isActive": true,
+      "billingInterval": "one-time"
+    },
+    {
+      "id": "beta",
+      "name": "Beta",
+      "price": 499,
+      "duration": "1 year",
+      "description": "Beta Quadrant – 1 year entrepreneurship program",
+      "features": [
+        "All Alpha features",
+        "Advanced business model canvas",
+        "One-on-one mentoring sessions",
+        "Access to investor network",
+        "Pitch deck review and feedback"
+      ],
+      "isActive": true,
+      "billingInterval": "one-time"
+    },
+    {
+      "id": "gamma",
+      "name": "Gamma",
+      "price": 999,
+      "duration": "1 year",
+      "description": "Gamma Quadrant – Premium entrepreneurship program",
+      "features": [
+        "All Beta features",
+        "Priority access to events",
+        "Detailed market analysis",
+        "Strategic business planning",
+        "Exclusive investor meetups",
+        "Marketing and PR support"
+      ],
+      "isActive": true,
+      "billingInterval": "one-time"
+    },
+    {
+      "id": "sigma",
+      "name": "Sigma",
+      "price": 1499,
+      "duration": "2 years",
+      "description": "Sima Quadrant – Elite entrepreneurship program",
+      "features": [
+        "All Gamma features",
+        "Global startup ecosystem access",
+        "Advanced AI-powered business insights",
+        "Dedicated funding strategist",
+        "International expansion support",
+        "VIP networking events",
+        "Comprehensive legal and financial consulting"
+      ],
+      "isActive": true,
+      "billingInterval": "one-time"
+    }
+  ]
+}
