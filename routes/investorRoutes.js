@@ -1,6 +1,5 @@
-<<<<<<< HEAD
 // routes/investorRoutes.js
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 const {
   addInvestor,
@@ -9,68 +8,30 @@ const {
   updateInvestor,
   deleteInvestor,
   getAngelInvestors,
-  getVCInvestors
-} = require('../controller/investorController');
+  getVCInvestors,
+} = require("../controller/investorController");
 
 module.exports = (upload) => {
   // The file upload field name changes based on investor type
   // For angels, no file upload needed
   // For VCs, we use firmLogo instead of companyLogo
-  router.post('/', upload.single('firmLogo'), addInvestor);
-  
+  router.post("/", upload.single("firmLogo"), addInvestor);
+
   // Get all investors (optional query params can filter by type)
-  router.get('/', getInvestors);
-  
+  router.get("/", getInvestors);
+
   // New routes for specific investor types
-  router.get('/angel', getAngelInvestors);
-  router.get('/vc', getVCInvestors);
-  
+  router.get("/angel", getAngelInvestors);
+  router.get("/vc", getVCInvestors);
+
   // Get specific investor by ID
-  router.get('/:id', getInvestor);
-  
+  router.get("/:id", getInvestor);
+
   // Update investor - handle file upload for VC firms
-  router.put('/:id', upload.single('firmLogo'), updateInvestor);
-  
+  router.put("/:id", upload.single("firmLogo"), updateInvestor);
+
   // Delete investor
-  router.delete('/:id', deleteInvestor);
+  router.delete("/:id", deleteInvestor);
 
   return router;
-=======
-// routes/investorRoutes.js
-const express = require('express');
-const router = express.Router();
-const {
-  addInvestor,
-  getInvestors,
-  getInvestor,
-  updateInvestor,
-  deleteInvestor,
-  getAngelInvestors,
-  getVCInvestors
-} = require('../controller/investorController');
-
-module.exports = (upload) => {
-  // The file upload field name changes based on investor type
-  // For angels, no file upload needed
-  // For VCs, we use firmLogo instead of companyLogo
-  router.post('/', upload.single('firmLogo'), addInvestor);
-  
-  // Get all investors (optional query params can filter by type)
-  router.get('/', getInvestors);
-  
-  // New routes for specific investor types
-  router.get('/angel', getAngelInvestors);
-  router.get('/vc', getVCInvestors);
-  
-  // Get specific investor by ID
-  router.get('/:id', getInvestor);
-  
-  // Update investor - handle file upload for VC firms
-  router.put('/:id', upload.single('firmLogo'), updateInvestor);
-  
-  // Delete investor
-  router.delete('/:id', deleteInvestor);
-
-  return router;
->>>>>>> ee7c4e0a3e33160cc4ec5e4b485aae5dce824f21
 };
