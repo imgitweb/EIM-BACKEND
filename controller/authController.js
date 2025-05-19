@@ -1,6 +1,6 @@
 const User = require("../models/userModel");
 const md5 = require("md5");
-
+const jwt = require("jsonwebtoken");
 // Signup API
 const signup = async (req, res) => {
   try {
@@ -89,20 +89,18 @@ const login = async (req, res) => {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
+    const token = jwt.sign(
+      { id: user._id, email_id: user.email_id },
+      process.env.JWT_SECRET || "default_jwt_secret",
+      { expiresIn: "24h" }
+    );
+
+    const { password: pwt, ...userWithoutPassword } = user._doc;
+
     res.status(200).json({
       message: "Login successful",
-      user: {
-        id: user._id,
-        startup_name: user.startup_name,
-        email_id: user.email_id,
-        mobile_no: user.mobile_no,
-        country_name: user.country_name,
-        industry: user.industry,
-        stage: user.stage,
-        city_name: user.city_name,
-        startup_idea: user.startup_idea,
-        usertype: user.usertype,
-      },
+      user: userWithoutPassword,
+      token: token,
     });
   } catch (error) {
     console.error("Login Error:", error.message);

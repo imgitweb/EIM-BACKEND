@@ -108,7 +108,7 @@ exports.createStartup = async (req, res) => {
 
     const startup = new StartupModel(startupData);
     await startup.save();
-
+    const { password: pwd, ...startupDataWithoutPassword } = startup.toObject();
     // Generate JWT token for authentication
     const token = jwt.sign(
       { id: startup._id, email: startup.email },
@@ -119,7 +119,7 @@ exports.createStartup = async (req, res) => {
     res.status(201).json({
       success: true,
       startupId: startup._id,
-      email: startup.email,
+      startup: startupDataWithoutPassword,
       token,
     });
   } catch (error) {
