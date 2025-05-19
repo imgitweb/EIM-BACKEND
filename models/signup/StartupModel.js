@@ -90,6 +90,7 @@ const startupSchema = new mongoose.Schema(
         "Idea Stage",
         "Prototype",
         "Early Traction",
+        "Product-Market Fit",
         "Scaling",
         "Growth",
         "Mature",

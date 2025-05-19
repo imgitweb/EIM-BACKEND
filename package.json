@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server.js"
   },
   "keywords": [],
   "author": "",
@@ -27,6 +28,7 @@
     "mongoose": "^8.9.3",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.10.0",
+    "nodemon": "^3.1.10",
     "pm2": "^5.4.3",
     "stripe": "^18.1.0"
   }

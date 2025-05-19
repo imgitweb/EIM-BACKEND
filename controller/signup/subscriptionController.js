@@ -1,20 +1,10 @@
+// Modified subscriptionController.js to bypass Stripe for all plans
 const { validationResult } = require("express-validator");
-const Stripe = require("stripe");
 const fs = require("fs");
 const path = require("path");
 const StartupModel = require("../../models/signup/StartupModel");
 const SubscriptionModel = require("../../models/signup/SubscriptionModel");
 const PaymentModel = require("../../models/signup/PaymentModel");
-
-// Initialize Stripe with proper error handling
-const getStripeInstance = () => {
-  const stripeKey = process.env.STRIPE_SECRET_KEY;
-  if (!stripeKey) {
-    console.error("Missing Stripe secret key");
-    throw new Error("Stripe configuration error");
-  }
-  return new Stripe(stripeKey);
-};
 
 // Load plans with error handling
 const getPlans = () => {
@@ -38,16 +28,16 @@ exports.createSubscription = async (req, res) => {
   }
 
   try {
-    const stripe = getStripeInstance();
     const plans = getPlans();
 
-    const { startupId, planId, paymentIntentId } = req.body;
+    const { startupId, planId, paymentIntentId, bypassStripe } = req.body;
 
     // Debug: Log request payload
     console.log("Create Subscription Request:", {
       startupId,
       planId,
       paymentIntentId,
+      bypassStripe,
     });
 
     // Validate inputs
@@ -69,8 +59,8 @@ exports.createSubscription = async (req, res) => {
       return res.status(404).json({ error: "Startup not found" });
     }
 
-    // For paid plans, verify that startup is verified
-    if (plan.price !== "Free" && !startup.isVerified) {
+    // Skip all Stripe verification if bypassStripe flag is set or it's a free plan
+    if (!bypassStripe && plan.price !== "Free" && !startup.isVerified) {
       return res
         .status(403)
         .json({ error: "Email verification required before subscription" });
@@ -110,30 +100,8 @@ exports.createSubscription = async (req, res) => {
       status: "active",
     };
 
-    // For paid plans, verify payment
-    if (plan.price !== "Free" && paymentIntentId) {
-      try {
-        const paymentIntent = await stripe.paymentIntents.retrieve(
-          paymentIntentId
-        );
-        if (paymentIntent.status !== "succeeded") {
-          return res.status(400).json({
-            error: "Payment not successful",
-            paymentStatus: paymentIntent.status,
-          });
-        }
-        // Verify payment metadata
-        if (
-          paymentIntent.metadata.startupId !== startupId ||
-          paymentIntent.metadata.planId !== planId
-        ) {
-          return res.status(400).json({ error: "Payment details mismatch" });
-        }
-      } catch (stripeError) {
-        console.error("Stripe Payment Verification Error:", stripeError);
-        return res.status(400).json({ error: "Payment verification failed" });
-      }
-    } else if (plan.price !== "Free" && !paymentIntentId) {
+    // No need to validate payment if bypassStripe flag is set or it's a free plan
+    if (!bypassStripe && plan.price !== "Free" && !paymentIntentId) {
       return res
         .status(400)
         .json({ error: "Payment information required for paid plans" });
@@ -165,6 +133,7 @@ exports.createSubscription = async (req, res) => {
       status: "succeeded",
       stripePaymentIntentId: paymentIntentId || null,
       date: new Date(),
+      bypassStripe: bypassStripe || false,
     };
 
     const payment = new PaymentModel(paymentData);
@@ -221,7 +190,6 @@ exports.getSubscriptions = async (req, res) => {
 
 exports.cancelSubscription = async (req, res) => {
   try {
-    const stripe = getStripeInstance();
     const { id } = req.params;
 
     if (!id) {
@@ -249,14 +217,6 @@ exports.cancelSubscription = async (req, res) => {
     }
 
     await subscription.cancel();
-
-    if (subscription.stripeSubscriptionId) {
-      try {
-        await stripe.paymentIntents.cancel(subscription.stripeSubscriptionId);
-      } catch (stripeError) {
-        console.error("Stripe Cancellation Error:", stripeError);
-      }
-    }
 
     startup.selectedPlan = "alpha";
     await startup.save();

@@ -14,10 +14,11 @@ exports.sendOtp = async (req, res) => {
     if (!/\S+@\S+\.\S+/.test(email)) {
       return res.status(400).json({ error: "Invalid email address" });
     }
-    const startup = await StartupModel.findOne({ email });
-    if (!startup) {
-      return res.status(404).json({ error: "Email already exits" });
-    }
+
+    // const startup = await StartupModel.findOne({ email });
+    // if (!startup) {
+    //   return res.status(404).json({ error: "Email already exits" });
+    // }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
