@@ -17,7 +17,6 @@ router.post(
   startupController.createStartup
 );
 
-router.post("/startups/google", csrfProtection, startupController.googleSignup);
 router.post("/otp/send", otpController.sendOtp);
 router.post("/otp/verify", csrfProtection, otpController.verifyOtp);
 router.post(

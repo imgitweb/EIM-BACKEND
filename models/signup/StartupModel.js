@@ -5,12 +5,12 @@ const startupSchema = new mongoose.Schema(
   {
     firstName: {
       type: String,
-      required: [true, "First name is required"],
+      required: true,
       trim: true,
     },
     lastName: {
       type: String,
-      required: [true, "Last name is required"],
+      required: true,
       trim: true,
     },
     email: {
@@ -18,18 +18,10 @@ const startupSchema = new mongoose.Schema(
       required: [true, "Email is required"],
       unique: true,
       trim: true,
-      lowercase: true,
-      match: [/\S+@\S+\.\S+/, "Please provide a valid email address"],
     },
     password: {
       type: String,
-      required: [true, "Password is required"],
-      minlength: [8, "Password must be at least 8 characters"],
-      match: [
-        /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/,
-        "Password must include uppercase, number, and special character",
-      ],
-      select: false,
+      required: false,
     },
     isVerified: {
       type: Boolean,
@@ -57,60 +49,46 @@ const startupSchema = new mongoose.Schema(
     },
     contactPersonName: {
       type: String,
-      required: [true, "Contact person name is required"],
+      required: true,
       trim: true,
     },
     country: {
       type: String,
-      required: [true, "Country is required"],
+      required: true,
       trim: true,
     },
     state: {
       type: String,
-      required: [true, "State/Province is required"],
+      required: true,
       trim: true,
     },
     industry: {
       type: String,
-      required: [true, "Industry is required"],
+      required: true,
       trim: true,
     },
     website: {
       type: String,
+      required: true,
       trim: true,
-      match: [
-        /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/,
-        "Please provide a valid URL",
-      ],
     },
     startupStage: {
       type: String,
-      required: [true, "Startup stage is required"],
-      enum: [
-        "Idea Stage",
-        "Prototype",
-        "Early Traction",
-        "Product-Market Fit",
-        "Scaling",
-        "Growth",
-        "Mature",
-      ],
+      required: true,
     },
     contactNumber: {
       type: String,
-      required: [true, "Contact number is required"],
+      required: true,
       trim: true,
-      match: [/^\+?[0-9]{10,15}$/, "Please provide a valid contact number"],
     },
     elevatorPitch: {
       type: String,
-      required: [true, "Elevator pitch is required"],
+      required: true,
       trim: true,
-      maxlength: [200, "Elevator pitch must be 200 characters or less"],
     },
     logoUrl: {
       type: String,
-      required: [true, "Logo URL is required"],
+      required: true,
     },
   },
   { timestamps: true }

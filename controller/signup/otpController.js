@@ -15,10 +15,15 @@ exports.sendOtp = async (req, res) => {
       return res.status(400).json({ error: "Invalid email address" });
     }
 
-    // const startup = await StartupModel.findOne({ email });
-    // if (!startup) {
-    //   return res.status(404).json({ error: "Email already exits" });
-    // }
+    const existingStartup = await StartupModel.findOne({
+      email,
+    });
+
+    if (existingStartup) {
+      if (existingStartup.email === email) {
+        return res.status(409).json({ error: "Email already registered" });
+      }
+    }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 

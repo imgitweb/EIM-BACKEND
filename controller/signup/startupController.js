@@ -4,6 +4,7 @@ const path = require("path");
 const crypto = require("crypto");
 const StartupModel = require("../../models/signup/StartupModel");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 
 // Load plans with error handling
 const getPlans = () => {
@@ -66,7 +67,8 @@ exports.createStartup = async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({ error: "Email and password are required" });
     }
-
+    const saltRounds = 10;
+    const bpassword = await bcrypt.hash(password, saltRounds);
     // Handle logo file if present
     const logoUrl = req.file ? `/uploads/${req.file.filename}` : "";
 
@@ -88,7 +90,7 @@ exports.createStartup = async (req, res) => {
       firstName,
       lastName,
       email,
-      password, // Note: Assuming password hashing is handled in the model's pre-save hook
+      password: bpassword, // Note: Assuming password hashing is handled in the model's pre-save hook
       selectedPlan: validPlanIds.includes(selectedPlan)
         ? selectedPlan
         : "alpha",
@@ -125,74 +127,6 @@ exports.createStartup = async (req, res) => {
   } catch (error) {
     console.error("Create Startup Error:", error);
     res.status(500).json({ error: "Failed to create startup" });
-  }
-};
-
-exports.googleSignup = async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-
-  try {
-    const { email, googleId, firstName, lastName } = req.body;
-
-    if (!email || !googleId) {
-      return res
-        .status(400)
-        .json({ error: "Email and Google ID are required" });
-    }
-
-    // Check for existing startup with this Google ID or email
-    let startup = await StartupModel.findOne({
-      $or: [{ email }, { googleId }],
-    });
-
-    if (startup) {
-      // Generate token for existing user
-      const token = jwt.sign(
-        { id: startup._id, email: startup.email },
-        process.env.JWT_SECRET || "default_jwt_secret",
-        { expiresIn: "24h" }
-      );
-
-      return res.status(200).json({
-        success: true,
-        startupId: startup._id,
-        email: startup.email,
-        token,
-        isNewUser: false,
-      });
-    }
-
-    // Create new startup for Google signup
-    startup = new StartupModel({
-      firstName: firstName || "",
-      lastName: lastName || "",
-      email,
-      googleId,
-      isGoogleAuth: true,
-    });
-
-    await startup.save();
-
-    // Generate JWT token
-    const token = jwt.sign(
-      { id: startup._id, email: startup.email },
-      process.env.JWT_SECRET || "default_jwt_secret",
-      { expiresIn: "24h" }
-    );
-
-    res.status(201).json({
-      success: true,
-      startupId: startup._id,
-      email: startup.email,
-      token,
-      isNewUser: true,
-    });
-  } catch (error) {
-    console.error("Google Signup Error:", error);
-    res.status(500).json({ error: "Failed to process Google signup" });
   }
 };
 
