@@ -1,9 +1,39 @@
 const User = require("../models/signup/StartupModel");
-const md5 = require("md5");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
-// Google Login API
+// Google signup API
+const googleSignup = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    // Validate email
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+    // Check if user exists with given email
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found. Please sign up first.",
+        exists: false,
+      });
+    }
+
+    return res.status(200).json({
+      message: "User exists",
+      exists: true,
+    });
+  } catch (error) {
+    console.error("Email check error:", error.message);
+    return res.status(500).json({
+      message: "Server error",
+      error: error.message,
+      success: false,
+    });
+  }
+};
+
 // Google Login API
 const googleLogin = async (req, res) => {
   try {
@@ -113,11 +143,13 @@ const login = async (req, res) => {
 
     // Authenticate user
     const user = await User.findOne({ email });
+    console.log(user);
     if (!user) {
-      return res.status(400).json({ message: "Invalid email or password" });
+      return res.status(400).json({ message: "user not found !" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
+
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
@@ -143,4 +175,4 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = { googleLogin, login };
+module.exports = { googleLogin, login, googleSignup, googleSignup };

@@ -94,17 +94,4 @@ const startupSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Pre-save hook to hash password
-startupSchema.pre("save", async function (next) {
-  if (this.isModified("password") && this.password) {
-    this.password = await bcrypt.hash(this.password, 10);
-  }
-  next();
-});
-
-// Method to compare passwords
-startupSchema.methods.matchPassword = async function (enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password);
-};
-
 module.exports = mongoose.model("StartupModel", startupSchema);
