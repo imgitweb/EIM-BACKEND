@@ -5,6 +5,11 @@ const cors = require("cors");
 const https = require("https");
 const fs = require("fs");
 const connectDB = require("./config/db");
+require("dotenv").config();
+const session = require("express-session");
+
+const app = express();
+// Routes
 const authRoutes = require("./routes/authRoutes");
 const teamRoutes = require("./routes/teamRoutes");
 const companyRoutes = require("./routes/companyRoutes");
@@ -23,47 +28,80 @@ const mentorRoutes = require("./routes/mentorRoutes");
 const categoryRoutes = require("./routes/categoryRoutes");
 const templateRoute = require("./routes/templateRoute");
 const shaktiSangamRoutes = require("./routes/shaktiSangamRoutes");
-require("dotenv").config();
+const userLogsRoutes = require("./routes/userLogs");
+const apiRoutes = require("./routes/api");
+const coFounderRoutes = require("./routes/coFounderRoutes");
 
-const app = express();
+// Connect to database
+connectDB();
 
-// Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// CORS configuration
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:3001",
+  "http://localhost:3002",
+  "http://127.0.0.1:3000",
+  "http://127.0.0.1:5000",
+  "http://localhost:5000",
+];
 
+<<<<<<< HEAD
 // Configure CORS based on environment
 const allowedOrigins =
   process.env.NODE_ENV === "production"
     ? ["https://app.incubationmasters.com", "https://incubationmasters.com","http://localhost:3000","https://admin.incubationmasters.com","https://www.incubationmasters.com"] // Production origin
     : ["http://localhost:3000", "http://localhost:3001","http://localhost:5173"]; // Development origin
+=======
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl requests)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token"],
+  credentials: true,
+};
+>>>>>>> 11ae20c48f6235e41ad56781223aab0b5392a45b
 
+// Session middleware
 app.use(
-  cors({
-    origin: allowedOrigins,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
+  session({
+    secret: process.env.JWT_SECRET || "your-secret-key", // use env secret in production
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: false, // set to true if using HTTPS
+      sameSite: "lax", // or "none" if using HTTPS cross-origin
+    },
   })
 );
 
-// Connect to Database
-connectDB();
+// Apply CORS middleware - FIXED: only use the proper corsOptions
+app.use(cors(corsOptions));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Multer Configuration
+// Multer configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    // Check the route or purpose and set appropriate destination
-    if (req.originalUrl.includes("/api/investors")) {
-      cb(null, "uploads/investors"); // For investor company logos
-    } else if (req.originalUrl.includes("/api/mentors")) {
-      cb(null, "uploads/mentors"); // For mentor images
-    } else if (req.originalUrl.includes("/api/categories")) {
-      cb(null, "uploads/categories"); // Your existing category path
-    } else if (req.originalUrl.includes("/api/templates")) {
-      cb(null, "uploads/templates"); // Your templates file path
-    } else {
-      cb(null, "uploads/template"); // Your existing template path
+    const url = req.originalUrl;
+    let folder = "uploads/template";
+
+    if (url.includes("/api/investors")) folder = "uploads/investors";
+    else if (url.includes("/api/mentors")) folder = "uploads/mentors";
+    else if (url.includes("/api/categories")) folder = "uploads/categories";
+    else if (url.includes("/api/templates")) folder = "uploads/templates";
+
+    if (!fs.existsSync(folder)) {
+      fs.mkdirSync(folder, { recursive: true });
     }
+
+    cb(null, folder);
   },
   filename: (req, file, cb) => {
     cb(null, Date.now() + path.extname(file.originalname));
@@ -75,29 +113,34 @@ const fileFilter = (req, file, cb) => {
     req.originalUrl.includes("/api/investors") ||
     req.originalUrl.includes("/api/cofounders")
   ) {
-    // For investor and co-founder routes, only allow images
-    if (file.mimetype.startsWith("image/")) {
-      cb(null, true);
-    } else {
-      cb(new Error("Not an image! Please upload an image file."), false);
-    }
-  } else {
-    // For other routes, allow all file types
-    cb(null, true);
+    return file.mimetype.startsWith("image/")
+      ? cb(null, true)
+      : cb(new Error("Not an image! Please upload an image file."), false);
   }
+  cb(null, true);
 };
 
-const upload = multer({
-  storage: storage,
-  fileFilter: fileFilter,
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
-  },
+app.get("/", (req, res) => {
+  res.json({
+    message: "Incubation Masters API",
+    status: "OK",
+    timestamp: new Date().toISOString(),
+    endpoints: [
+      "/api/v1/startups",
+      "/api/v1/csrf-token",
+      // Add other key routes here
+    ],
+  });
 });
 
-// Serve static files from the uploads directory
+const upload = multer({
+  storage,
+  fileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+});
+
+// Static files
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-const coFounderRoutes = require("./routes/coFounderRoutes");
 
 // Routes
 app.use("/api/auth", authRoutes);
@@ -119,13 +162,20 @@ app.use("/api/templates", templateRoute(upload));
 app.use("/api/mentors", mentorRoutes(upload));
 app.use("/api/categories", categoryRoutes(upload));
 app.use("/api/shaktiSangam", shaktiSangamRoutes);
-// Error handling middleware
+app.use("/api/logs", userLogsRoutes);
+app.use("/api/v1", apiRoutes);
+app.use("/api/cofounders", coFounderRoutes); // Missing route from original code
+
+// Error handler
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).send("Something went wrong!");
+  console.error("Server Error:", err.stack);
+  res.status(500).json({ error: "Internal Server Error" });
 });
 
-// HTTPS Setup (Production Only)
+// HTTPS server setup (production)
+const PORT = process.env.PORT || 5000;
+const HOST = "0.0.0.0";
+
 if (process.env.NODE_ENV === "production") {
   const SSL_KEY_PATH =
     "/etc/letsencrypt/live/app.incubationmasters.com/privkey.pem";
@@ -138,22 +188,15 @@ if (process.env.NODE_ENV === "production") {
       cert: fs.readFileSync(SSL_CERT_PATH),
     };
 
-    const PORT = process.env.PORT || 5000;
-    const HOST = "0.0.0.0";
-
     https.createServer(httpsOptions, app).listen(PORT, HOST, () => {
-      console.log(`Server is running securely on https://${HOST}:${PORT}`);
+      console.log(`Secure server running at https://${HOST}:${PORT}`);
     });
   } else {
-    console.error("SSL certificates not found. Please check your paths.");
+    console.error("SSL certificates missing.");
     process.exit(1);
   }
 } else {
-  // Fallback to HTTP for Development
-  const PORT = process.env.PORT || 5000;
-  const HOST = "0.0.0.0";
-
   app.listen(PORT, HOST, () => {
-    console.log(`Server is running on http://${HOST}:${PORT}`);
+    console.log(`Server running at http://${HOST}:${PORT}`);
   });
 }

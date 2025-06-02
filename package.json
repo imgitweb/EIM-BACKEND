@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server.js"
   },
   "keywords": [],
   "author": "",
@@ -15,9 +16,12 @@
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.3",
     "cors": "^2.8.5",
+    "crypto": "^1.0.1",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "express-session": "^1.18.1",
+    "express-validator": "^7.2.1",
+    "google-auth-library": "^9.15.1",
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
     "md5": "^2.3.0",
@@ -25,6 +29,8 @@
     "mongoose": "^8.9.3",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.10.0",
-    "pm2": "^5.4.3"
+    "nodemon": "^3.1.10",
+    "pm2": "^5.4.3",
+    "stripe": "^18.1.0"
   }
 }
