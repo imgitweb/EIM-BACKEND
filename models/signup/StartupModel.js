@@ -5,12 +5,12 @@ const startupSchema = new mongoose.Schema(
   {
     firstName: {
       type: String,
-      required: true,
+
       trim: true,
     },
     lastName: {
       type: String,
-      required: true,
+
       trim: true,
     },
     email: {
@@ -49,46 +49,44 @@ const startupSchema = new mongoose.Schema(
     },
     contactPersonName: {
       type: String,
-      required: true,
+
       trim: true,
     },
     country: {
       type: String,
-      required: true,
+
       trim: true,
     },
     state: {
       type: String,
-      required: true,
+
       trim: true,
     },
     industry: {
       type: String,
-      required: true,
+
       trim: true,
     },
     website: {
       type: String,
-      required: true,
+
       trim: true,
     },
     startupStage: {
       type: String,
-      required: true,
     },
     contactNumber: {
       type: String,
-      required: true,
+
       trim: true,
     },
     elevatorPitch: {
       type: String,
-      required: true,
+
       trim: true,
     },
     logoUrl: {
       type: String,
-      required: true,
     },
   },
   { timestamps: true }

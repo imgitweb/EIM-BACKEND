@@ -70,7 +70,7 @@ exports.createStartup = async (req, res) => {
     const saltRounds = 10;
     const bpassword = await bcrypt.hash(password, saltRounds);
     // Handle logo file if present
-    const logoUrl = req.file ? `/uploads/${req.file.filename}` : "";
+    // const logoUrl = req.file ? `/uploads/${req.file.filename}` : "";
 
     // Check for existing startup
     const existingStartup = await StartupModel.findOne({
@@ -106,7 +106,7 @@ exports.createStartup = async (req, res) => {
     if (startupStage) startupData.startupStage = startupStage;
     if (contactNumber) startupData.contactNumber = contactNumber;
     if (elevatorPitch) startupData.elevatorPitch = elevatorPitch;
-    if (logoUrl) startupData.logoUrl = logoUrl;
+    // if (logoUrl) startupData.logoUrl = logoUrl;
 
     const startup = new StartupModel(startupData);
     await startup.save();
