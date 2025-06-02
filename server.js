@@ -7,6 +7,7 @@ const fs = require("fs");
 const connectDB = require("./config/db");
 require("dotenv").config();
 const session = require("express-session");
+const seedMentorData = require("./seeding/mentorSeed");
 
 const app = express();
 // Routes
@@ -34,6 +35,9 @@ const coFounderRoutes = require("./routes/coFounderRoutes");
 
 // Connect to database
 connectDB();
+
+// Seed mentor data if needed
+seedMentorData()
 
 // CORS configuration
 const allowedOrigins = [
