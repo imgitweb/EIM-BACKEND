@@ -7,10 +7,10 @@ const fs = require("fs");
 const connectDB = require("./config/db");
 require("dotenv").config();
 const session = require("express-session");
-const seedMentorData = require("./seeding/mentorSeed");
-
+const MongoStore = require("connect-mongo");
 
 const app = express();
+
 // Routes
 const authRoutes = require("./routes/authRoutes");
 const teamRoutes = require("./routes/teamRoutes");
@@ -39,12 +39,6 @@ const seedCategoryData = require("./seeding/seedCategoryData");
 // Connect to database
 connectDB();
 
-// Seed mentor data if needed
-seedMentorData()
-seedInvestorData();
-// Seed category data if needed
-seedCategoryData();
-
 // CORS configuration
 const allowedOrigins = [
   "http://localhost:3000",
@@ -53,13 +47,10 @@ const allowedOrigins = [
   "http://127.0.0.1:3000",
   "http://127.0.0.1:5000",
   "http://localhost:5000",
-  "http://0.0.0.0:5000",
-  "https://admin.incubationmasters.com"
 ];
 
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps, curl requests)
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -71,21 +62,7 @@ const corsOptions = {
   credentials: true,
 };
 
-// Session middleware
-app.use(
-  session({
-    secret: process.env.JWT_SECRET || "your-secret-key", // use env secret in production
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      httpOnly: true,
-      secure: false, // set to true if using HTTPS
-      sameSite: "lax", // or "none" if using HTTPS cross-origin
-    },
-  })
-);
-
-// Apply CORS middleware - FIXED: only use the proper corsOptions
+// Apply middlewares
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -124,23 +101,20 @@ const fileFilter = (req, file, cb) => {
   cb(null, true);
 };
 
+const upload = multer({
+  storage,
+  fileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
+
+// Health check route
 app.get("/", (req, res) => {
   res.json({
     message: "Incubation Masters API",
     status: "OK",
     timestamp: new Date().toISOString(),
-    endpoints: [
-      "/api/v1/startups",
-      "/api/v1/csrf-token",
-      // Add other key routes here
-    ],
+    endpoints: ["/api/v1/startups", "/api/v1/csrf-token"],
   });
-});
-
-const upload = multer({
-  storage,
-  fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
 });
 
 // Static files
@@ -167,15 +141,27 @@ app.use("/api/categories", categoryRoutes(upload));
 app.use("/api/shaktiSangam", shaktiSangamRoutes);
 app.use("/api/logs", userLogsRoutes);
 app.use("/api/v1", apiRoutes);
-app.use("/api/cofounders", coFounderRoutes); // Missing route from original code
+app.use("/api/cofounders", coFounderRoutes(upload)); // Fixed: added upload
 
-// Error handler
+// Multer error handler
 app.use((err, req, res, next) => {
-  console.error("Server Error:", err.stack);
-  res.status(500).json({ error: "Internal Server Error" });
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({ error: `Multer Error: ${err.message}` });
+  } else if (err.message === "Not an image! Please upload an image file.") {
+    return res.status(400).json({ error: err.message });
+  }
+  next(err);
 });
 
-// HTTPS server setup (production)
+// General error handler
+app.use((err, req, res, next) => {
+  console.error("Server Error:", err.stack);
+  res
+    .status(err.status || 500)
+    .json({ error: err.message || "Internal Server Error" });
+});
+
+// HTTPS server setup
 const PORT = process.env.PORT || 5000;
 const HOST = "0.0.0.0";
 
@@ -190,13 +176,14 @@ if (process.env.NODE_ENV === "production") {
       key: fs.readFileSync(SSL_KEY_PATH),
       cert: fs.readFileSync(SSL_CERT_PATH),
     };
-
     https.createServer(httpsOptions, app).listen(PORT, HOST, () => {
       console.log(`Secure server running at https://${HOST}:${PORT}`);
     });
   } else {
-    console.error("SSL certificates missing.");
-    process.exit(1);
+    console.warn("SSL certificates missing. Falling back to HTTP.");
+    app.listen(PORT, HOST, () => {
+      console.log(`Server running at http://${HOST}:${PORT}`);
+    });
   }
 } else {
   app.listen(PORT, HOST, () => {

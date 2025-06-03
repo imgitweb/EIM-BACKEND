@@ -6,6 +6,11 @@ const paymentController = require("../controller/signup/paymentController");
 const subscriptionController = require("../controller/signup/subscriptionController");
 const { upload } = require("../middleware/multer");
 const { csrfProtection } = require("../middleware/csrf");
+const {
+  googleLogin,
+  login,
+  googleSignup,
+} = require("../controller/authController");
 
 // Routes
 router.get("/csrf-token", startupController.getCsrfToken);
@@ -16,8 +21,7 @@ router.post(
   csrfProtection,
   startupController.createStartup
 );
-
-router.post("/startups/google", csrfProtection, startupController.googleSignup);
+router.post("auth-check", googleSignup);
 router.post("/otp/send", otpController.sendOtp);
 router.post("/otp/verify", csrfProtection, otpController.verifyOtp);
 router.post(

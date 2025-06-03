@@ -1,4 +1,4 @@
-const User = require("./../models/userModel"); // Import User model
+const User = require("./../models/signup/StartupModel"); // Import User model
 const mongoose = require("mongoose");
 const nodemailer = require("nodemailer");
 // Controller function to get 3 more users with the same industry
