@@ -9,6 +9,7 @@ require("dotenv").config();
 const session = require("express-session");
 const seedMentorData = require("./seeding/mentorSeed");
 
+
 const app = express();
 // Routes
 const authRoutes = require("./routes/authRoutes");
@@ -32,12 +33,17 @@ const shaktiSangamRoutes = require("./routes/shaktiSangamRoutes");
 const userLogsRoutes = require("./routes/userLogs");
 const apiRoutes = require("./routes/api");
 const coFounderRoutes = require("./routes/coFounderRoutes");
+const seedInvestorData = require("./seeding/seedInvestorData");
+const seedCategoryData = require("./seeding/seedCategoryData");
 
 // Connect to database
 connectDB();
 
 // Seed mentor data if needed
 seedMentorData()
+seedInvestorData();
+// Seed category data if needed
+seedCategoryData();
 
 // CORS configuration
 const allowedOrigins = [
@@ -47,6 +53,8 @@ const allowedOrigins = [
   "http://127.0.0.1:3000",
   "http://127.0.0.1:5000",
   "http://localhost:5000",
+  "http://0.0.0.0:5000",
+  "https://admin.incubationmasters.com"
 ];
 
 const corsOptions = {

@@ -8,6 +8,8 @@ exports.addTemplate = async (req, res) => {
     const { template_name, template_description, category_id, category_name } =
       req.body;
 
+    // console.log("req.body", req.body);
+
     // Validate all required fields
     if (!template_name || !template_description || !category_name) {
       return res.status(400).json({ message: "All fields are required." });

@@ -45,9 +45,11 @@ const investorSchema = new mongoose.Schema({
       "fintech",
       "healthtech",
       "media",
+      "tech",
       "mobility",
       "saas",
       "industry-agnostic",
+      "deep tech"
     ],
   },
   // Angel Investor specific fields

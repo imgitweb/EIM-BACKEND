@@ -10,6 +10,8 @@ exports.addCategory = async (req, res) => {
         category_description,
     } = req.body;
 
+    // console.log("req.body", req.body);
+
     // Validate all required fields
     if (!category_name || !category_description) {
       return res.status(400).json({ message: 'All fields are required.' });

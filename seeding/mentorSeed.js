@@ -9,7 +9,7 @@ const seedMentorData = async () => {
     const data = JSON.parse(fs.readFileSync(filePath, "utf8"));
     // Prepare and normalize mentor data
     const mentors = data.map((mentor) => ({
-      image: mentor.image || "https://via.placeholder.com/150", // fallback image
+      image: mentor.image || "https://images.unsplash.com/photo-1639149888905-fb39731f2e6c?q=80&w=1528&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", // fallback image
       name: mentor.name,
       designation: mentor.designation,
       totalExp: mentor.totalExp || 0,
