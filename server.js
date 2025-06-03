@@ -7,6 +7,8 @@ const fs = require("fs");
 const connectDB = require("./config/db");
 require("dotenv").config();
 const session = require("express-session");
+const seedMentorData = require("./seeding/mentorSeed");
+
 const MongoStore = require("connect-mongo");
 
 const app = express();
@@ -39,15 +41,47 @@ const seedCategoryData = require("./seeding/seedCategoryData");
 // Connect to database
 connectDB();
 
+// Seed mentor data if needed
+seedMentorData()
+seedInvestorData();
+// Seed category data if needed
+seedCategoryData();
+
 // CORS configuration
-const allowedOrigins = [
-  "http://localhost:3000",
-  "http://localhost:3001",
-  "http://localhost:3002",
-  "http://127.0.0.1:3000",
-  "http://127.0.0.1:5000",
-  "http://localhost:5000",
-];
+
+// Session middleware with MongoDB store
+app.use(
+  session({
+    secret: process.env.JWT_SECRET || "your-secret-key",
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({
+      mongoUrl: process.env.MONGO_URI,
+      ttl: 14 * 24 * 60 * 60, // 14 days
+    }),
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    },
+  })
+);
+
+// CORS configuration
+const allowedOrigins =
+  process.env.NODE_ENV === "production"
+    ? [
+        "https://app.incubationmasters.com",
+        "https://incubationmasters.com",
+        "http://localhost:3000",
+        "https://admin.incubationmasters.com",
+        "https://www.incubationmasters.com",
+      ]
+    : [
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "http://localhost:5173",
+      ];
 
 const corsOptions = {
   origin: function (origin, callback) {

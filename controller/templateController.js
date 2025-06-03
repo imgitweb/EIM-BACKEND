@@ -11,7 +11,7 @@ exports.addTemplate = async (req, res) => {
     // console.log("req.body", req.body);
 
     // Validate all required fields
-    if (!template_name || !template_description || !category_name) {
+    if (!template_name || !template_description) {
       return res.status(400).json({ message: "All fields are required." });
     }
 
@@ -81,6 +81,7 @@ exports.addTemplate = async (req, res) => {
       data: newTemplate,
     });
   } catch (error) {
+    console.error("Error adding template:", error);
     return res.status(500).json({
       status: 500,
       message: "Internal server error",
