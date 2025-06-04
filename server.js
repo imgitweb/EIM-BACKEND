@@ -34,24 +34,12 @@ const coFounderRoutes = require("./routes/coFounderRoutes");
 
 // Connect to database
 connectDB();
-
-// CORS configuration
-const allowedOrigins = [
-  "http://localhost:3000",
-  "http://localhost:3001",
-  "http://localhost:3002",
-  "http://127.0.0.1:3000",
-  "http://127.0.0.1:5000",
-  "http://localhost:5000",
-];
-
-<<<<<<< HEAD
 // Configure CORS based on environment
 const allowedOrigins =
   process.env.NODE_ENV === "production"
     ? ["https://app.incubationmasters.com", "https://incubationmasters.com","http://localhost:3000","https://admin.incubationmasters.com","https://www.incubationmasters.com"] // Production origin
     : ["http://localhost:3000", "http://localhost:3001","http://localhost:5173"]; // Development origin
-=======
+
 const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps, curl requests)
@@ -65,7 +53,7 @@ const corsOptions = {
   allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token"],
   credentials: true,
 };
->>>>>>> 11ae20c48f6235e41ad56781223aab0b5392a45b
+
 
 // Session middleware
 app.use(
