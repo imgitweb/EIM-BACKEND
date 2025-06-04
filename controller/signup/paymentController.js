@@ -41,7 +41,10 @@ const getPlans = () => {
 exports.createPaymentIntent = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    return res.status(400).json({
+      success: false,
+      errors: errors.array(),
+    });
   }
 
   try {
@@ -50,41 +53,57 @@ exports.createPaymentIntent = async (req, res) => {
 
     const { email, planId } = req.body;
 
+    console.log("Payment Intent Request:", { email, planId });
+
     if (!email || !planId) {
-      return res.status(400).json({ error: "Email and plan ID are required" });
+      return res.status(400).json({
+        success: false,
+        error: "Email and plan ID are required",
+      });
     }
 
     const plan = plans.find((p) => p.id === planId);
     if (!plan) {
-      return res.status(400.0).json({ error: "Invalid plan" });
+      return res.status(400).json({
+        success: false,
+        error: "Invalid plan",
+      });
     }
 
     console.log("Selected Plan:", plan);
 
     // Handle free plan case
-    const amount =
-      plan.price === "Free" || plan.price === 0 || plan.price === "0"
-        ? 0
-        : typeof plan.price === "number"
-        ? plan.price * 100
-        : null;
+    let amount = 0;
+
+    if (plan.price !== "Free" && plan.price !== "0" && plan.price !== 0) {
+      const parsed = Number(plan.price);
+      if (isNaN(parsed)) {
+        return res.status(400).json({
+          success: false,
+          error: "Invalid plan price format",
+        });
+      }
+      amount = parsed * 100; // ✅ Convert to cents here
+    }
 
     console.log("Calculated Amount:", amount);
 
-    if (amount === null) {
-      return res.status(400).json({ error: "Invalid plan price format" });
-    }
-
     if (amount === 0) {
-      return res
-        .status(200)
-        .json({ clientSecret: null, message: "Free plan selected" });
+      return res.status(200).json({
+        success: true,
+        isFree: true,
+        clientSecret: null,
+        message: "Free plan selected",
+      });
     }
 
     // Find startup and create/update Stripe customer
     let startup = await StartupModel.findOne({ email });
     if (!startup) {
-      return res.status(404).json({ error: "Startup not found" });
+      return res.status(404).json({
+        success: false,
+        error: "Startup not found",
+      });
     }
 
     // Create or retrieve Stripe customer
@@ -97,9 +116,11 @@ exports.createPaymentIntent = async (req, res) => {
       await startup.save();
     }
 
+    console.log("Creating payment intent with amount:", amount);
+
     // Create payment intent
     const paymentIntent = await stripe.paymentIntents.create({
-      amount,
+      amount: amount, // Amount in cents
       currency: "usd",
       customer: startup.stripeCustomerId,
       metadata: {
@@ -109,12 +130,24 @@ exports.createPaymentIntent = async (req, res) => {
       automatic_payment_methods: { enabled: true },
     });
 
+    console.log("Payment intent created:", {
+      id: paymentIntent.id,
+      status: paymentIntent.status,
+      amount: paymentIntent.amount,
+    });
+
     res.status(200).json({
+      success: true,
       clientSecret: paymentIntent.client_secret,
       paymentIntentId: paymentIntent.id,
+      status: paymentIntent.status,
+      message: "Payment intent created successfully",
     });
   } catch (error) {
     console.error("Payment Intent Error:", error);
-    res.status(500).json({ error: error.message || "Payment service error" });
+    res.status(500).json({
+      success: false,
+      error: error.message || "Payment service error",
+    });
   }
 };

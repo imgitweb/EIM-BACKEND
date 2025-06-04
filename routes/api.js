@@ -38,7 +38,7 @@ router.post(
 router.post("/auth-check", googleSignup);
 
 router.post(
-  "/payments/create-intent",
+  "/payments/create-payment-intent",
   csrfProtection,
   paymentController.createPaymentIntent
 );
