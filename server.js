@@ -9,6 +9,7 @@ require("dotenv").config();
 const session = require("express-session");
 const seedMentorData = require("./seeding/mentorSeed");
 
+const MongoStore = require("connect-mongo");
 const helmet = require("helmet");
 
 const app = express();
@@ -89,13 +90,64 @@ const corsOptions = {
   },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token"],
-  credentials: true,
+  credentials: true, // THIS IS CRITICAL
 };
 
-// Apply middlewares
+// Apply middlewares in correct order
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// SESSION MIDDLEWARE - MOVE THIS BEFORE DEBUG MIDDLEWARE
+app.use(
+  session({
+    name: "sessionId",
+    secret: process.env.JWT_SECRET || "your-secret-key",
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({
+      mongoUrl: process.env.MONGO_URI,
+      collectionName: "sessions",
+    }),
+    cookie: {
+      httpOnly: true,
+      secure: false, // MUST be false for localhost
+      sameSite: "lax", // Changed from "none" to "lax" for localhost
+      maxAge: 1000 * 60 * 30, // 30 minutes (reduced from 1 day)
+    },
+  })
+);
+
+// DEBUG MIDDLEWARE - NOW SESSIONS WILL BE AVAILABLE
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url} - Session ID: ${req.sessionID}`);
+  console.log("Session Data:", req.session);
+  console.log("Cookies:", req.headers.cookie);
+  next();
+});
+
+// Routes
+const authRoutes = require("./routes/authRoutes");
+const teamRoutes = require("./routes/teamRoutes");
+const companyRoutes = require("./routes/companyRoutes");
+const documentRoutes = require("./routes/documentRoutes");
+const matrixRoutes = require("./routes/matrixRoutes");
+const leadRoutes = require("./routes/leadRoutes");
+const jobRequestRoutes = require("./routes/jobRequestRoutes");
+const todoRoutes = require("./routes/todoRoutes");
+const startupRoutes = require("./routes/startupRoutes");
+const pathToUnicorn = require("./routes/pathToUnicorn");
+const resourceRoutes = require("./routes/resourceRoutes");
+const messageRoutes = require("./routes/messageRoutes");
+const adminRoutes = require("./routes/adminRoutes");
+const investorRoutes = require("./routes/investorRoutes");
+const mentorRoutes = require("./routes/mentorRoutes");
+const categoryRoutes = require("./routes/categoryRoutes");
+const templateRoute = require("./routes/templateRoute");
+const shaktiSangamRoutes = require("./routes/shaktiSangamRoutes");
+const userLogsRoutes = require("./routes/userLogs");
+const apiRoutes = require("./routes/api");
+const coFounderRoutes = require("./routes/coFounderRoutes");
 
 // Multer configuration
 const storage = multer.diskStorage({
@@ -171,7 +223,7 @@ app.use("/api/categories", categoryRoutes(upload));
 app.use("/api/shaktiSangam", shaktiSangamRoutes);
 app.use("/api/logs", userLogsRoutes);
 app.use("/api/v1", apiRoutes);
-app.use("/api/cofounders", coFounderRoutes(upload)); // Fixed: added upload
+app.use("/api/cofounders", coFounderRoutes(upload));
 
 // Multer error handler
 app.use((err, req, res, next) => {
