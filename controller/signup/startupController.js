@@ -149,19 +149,48 @@ exports.getStartupProfile = async (req, res) => {
 
 exports.getCsrfToken = (req, res) => {
   try {
-    // Generate a unique CSRF token
-    const csrfToken = crypto.randomBytes(32).toString("hex");
-    // Ensure req.session exists
+    console.log("=== CSRF TOKEN GENERATION ===");
+    console.log("Session ID:", req.sessionID);
+    console.log("Session exists:", !!req.session);
+
     if (!req.session) {
-      req.session = {};
+      return res.status(500).json({
+        success: false,
+        error: "Session not initialized",
+      });
     }
-    // Store the token in the session
-    req.session.csrfToken = csrfToken;
-    // Send the token back to the client
-    res.status(200).json({ csrfToken });
-    console.log(csrfToken);
+
+    const csrfToken = crypto.randomBytes(32).toString("hex");
+
+    // Store CSRF token using same structure as OTP (which works)
+    req.session.csrf = {
+      token: csrfToken,
+      expires: Date.now() + 30 * 60 * 1000, // 30 minutes
+      sessionId: req.sessionID,
+    };
+
+    console.log("CSRF token generated:", csrfToken);
+
+    req.session.save((err) => {
+      if (err) {
+        console.error("Session save error:", err);
+        return res.status(500).json({
+          success: false,
+          error: "Failed to save session",
+        });
+      }
+
+      console.log("CSRF session saved successfully");
+      res.status(200).json({
+        success: true,
+        csrfToken: csrfToken,
+      });
+    });
   } catch (error) {
     console.error("CSRF Token Generation Error:", error);
-    res.status(500).json({ error: "Failed to generate CSRF token" });
+    res.status(500).json({
+      success: false,
+      error: "Failed to generate CSRF token",
+    });
   }
 };
