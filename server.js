@@ -9,9 +9,10 @@ require("dotenv").config();
 const session = require("express-session");
 const seedMentorData = require("./seeding/mentorSeed");
 
-const MongoStore = require("connect-mongo");
+const helmet = require("helmet");
 
 const app = express();
+app.use(helmet());
 
 // Routes
 const authRoutes = require("./routes/authRoutes");
@@ -49,16 +50,11 @@ seedCategoryData();
 
 // CORS configuration
 
-// Session middleware with MongoDB store
 app.use(
   session({
     secret: process.env.JWT_SECRET || "your-secret-key",
     resave: false,
     saveUninitialized: false,
-    store: MongoStore.create({
-      mongoUrl: process.env.MONGO_URI,
-      ttl: 14 * 24 * 60 * 60, // 14 days
-    }),
     cookie: {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

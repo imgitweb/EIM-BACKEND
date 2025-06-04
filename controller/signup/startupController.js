@@ -146,21 +146,20 @@ exports.getStartupProfile = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch startup profile" });
   }
 };
+
 exports.getCsrfToken = (req, res) => {
   try {
     // Generate a unique CSRF token
     const csrfToken = crypto.randomBytes(32).toString("hex");
-
     // Ensure req.session exists
     if (!req.session) {
       req.session = {};
     }
-
     // Store the token in the session
     req.session.csrfToken = csrfToken;
-
     // Send the token back to the client
     res.status(200).json({ csrfToken });
+    console.log(csrfToken);
   } catch (error) {
     console.error("CSRF Token Generation Error:", error);
     res.status(500).json({ error: "Failed to generate CSRF token" });
