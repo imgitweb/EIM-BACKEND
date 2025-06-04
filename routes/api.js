@@ -1,3 +1,5 @@
+// routes/signup.js
+
 const express = require("express");
 const router = express.Router();
 const startupController = require("../controller/signup/startupController");
@@ -12,32 +14,41 @@ const {
   googleSignup,
 } = require("../controller/authController");
 
-// Routes
+// Routes that DON'T need CSRF protection
 router.get("/csrf-token", startupController.getCsrfToken);
 router.get("/plans", startupController.getPlans);
+router.get(
+  "/subscriptions/:startupId",
+  subscriptionController.getSubscriptions
+);
+
+// OTP send doesn't need CSRF (it's the first step)
+router.post("/otp/send", otpController.sendOtp);
+
+// Routes that DO need CSRF protection
+router.post("/otp/verify", csrfProtection, otpController.verifyOtp);
+
 router.post(
   "/startups",
-  upload.single("logo"),
   csrfProtection,
+  upload.single("logo"),
   startupController.createStartup
 );
-router.post("auth-check", googleSignup);
-router.post("/otp/send", otpController.sendOtp);
-router.post("/otp/verify", csrfProtection, otpController.verifyOtp);
+
+router.post("/auth-check", googleSignup);
+
 router.post(
   "/payments/create-intent",
   csrfProtection,
   paymentController.createPaymentIntent
 );
+
 router.post(
   "/subscriptions",
   csrfProtection,
   subscriptionController.createSubscription
 );
-router.get(
-  "/subscriptions/:startupId",
-  subscriptionController.getSubscriptions
-);
+
 router.put(
   "/subscriptions/:id/cancel",
   csrfProtection,

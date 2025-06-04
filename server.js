@@ -7,8 +7,77 @@ const fs = require("fs");
 const connectDB = require("./config/db");
 require("dotenv").config();
 const session = require("express-session");
+const MongoStore = require("connect-mongo");
+const helmet = require("helmet");
 
 const app = express();
+app.use(helmet());
+
+// Connect to database FIRST
+connectDB();
+
+// CORS configuration - MUST come before session
+const allowedOrigins =
+  process.env.NODE_ENV === "production"
+    ? [
+        "https://app.incubationmasters.com",
+        "https://incubationmasters.com",
+        "http://localhost:3000",
+        "https://admin.incubationmasters.com",
+        "https://www.incubationmasters.com",
+      ]
+    : [
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "http://localhost:5173",
+      ];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token"],
+  credentials: true, // THIS IS CRITICAL
+};
+
+// Apply middlewares in correct order
+app.use(cors(corsOptions));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// SESSION MIDDLEWARE - MOVE THIS BEFORE DEBUG MIDDLEWARE
+app.use(
+  session({
+    name: "sessionId",
+    secret: process.env.JWT_SECRET || "your-secret-key",
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({
+      mongoUrl: process.env.MONGO_URI,
+      collectionName: "sessions",
+    }),
+    cookie: {
+      httpOnly: true,
+      secure: false, // MUST be false for localhost
+      sameSite: "lax", // Changed from "none" to "lax" for localhost
+      maxAge: 1000 * 60 * 30, // 30 minutes (reduced from 1 day)
+    },
+  })
+);
+
+// DEBUG MIDDLEWARE - NOW SESSIONS WILL BE AVAILABLE
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url} - Session ID: ${req.sessionID}`);
+  console.log("Session Data:", req.session);
+  console.log("Cookies:", req.headers.cookie);
+  next();
+});
+
 // Routes
 const authRoutes = require("./routes/authRoutes");
 const teamRoutes = require("./routes/teamRoutes");
@@ -31,7 +100,6 @@ const shaktiSangamRoutes = require("./routes/shaktiSangamRoutes");
 const userLogsRoutes = require("./routes/userLogs");
 const apiRoutes = require("./routes/api");
 const coFounderRoutes = require("./routes/coFounderRoutes");
-
 // Connect to database
 connectDB();
 // Configure CORS based on environment
@@ -73,7 +141,6 @@ app.use(
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
 // Multer configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -108,23 +175,20 @@ const fileFilter = (req, file, cb) => {
   cb(null, true);
 };
 
+const upload = multer({
+  storage,
+  fileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
+
+// Health check route
 app.get("/", (req, res) => {
   res.json({
     message: "Incubation Masters API",
     status: "OK",
     timestamp: new Date().toISOString(),
-    endpoints: [
-      "/api/v1/startups",
-      "/api/v1/csrf-token",
-      // Add other key routes here
-    ],
+    endpoints: ["/api/v1/startups", "/api/v1/csrf-token"],
   });
-});
-
-const upload = multer({
-  storage,
-  fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
 });
 
 // Static files
@@ -152,15 +216,27 @@ app.use("/api/categories", categoryRoutes(upload));
 app.use("/api/shaktiSangam", shaktiSangamRoutes);
 app.use("/api/logs", userLogsRoutes);
 app.use("/api/v1", apiRoutes);
-app.use("/api/cofounders", coFounderRoutes); // Missing route from original code
+app.use("/api/cofounders", coFounderRoutes(upload));
 
-// Error handler
+// Multer error handler
 app.use((err, req, res, next) => {
-  console.error("Server Error:", err.stack);
-  res.status(500).json({ error: "Internal Server Error" });
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({ error: `Multer Error: ${err.message}` });
+  } else if (err.message === "Not an image! Please upload an image file.") {
+    return res.status(400).json({ error: err.message });
+  }
+  next(err);
 });
 
-// HTTPS server setup (production)
+// General error handler
+app.use((err, req, res, next) => {
+  console.error("Server Error:", err.stack);
+  res
+    .status(err.status || 500)
+    .json({ error: err.message || "Internal Server Error" });
+});
+
+// HTTPS server setup
 const PORT = process.env.PORT || 5000;
 const HOST = "0.0.0.0";
 
@@ -175,13 +251,14 @@ if (process.env.NODE_ENV === "production") {
       key: fs.readFileSync(SSL_KEY_PATH),
       cert: fs.readFileSync(SSL_CERT_PATH),
     };
-
     https.createServer(httpsOptions, app).listen(PORT, HOST, () => {
       console.log(`Secure server running at https://${HOST}:${PORT}`);
     });
   } else {
-    console.error("SSL certificates missing.");
-    process.exit(1);
+    console.warn("SSL certificates missing. Falling back to HTTP.");
+    app.listen(PORT, HOST, () => {
+      console.log(`Server running at http://${HOST}:${PORT}`);
+    });
   }
 } else {
   app.listen(PORT, HOST, () => {
