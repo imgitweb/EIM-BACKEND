@@ -12,7 +12,7 @@ exports.sendOtp = async (req, res) => {
 
   try {
     const { email } = req.body;
-    console.log("Sending OTP to:", email);
+    // console.log("Sending OTP to:", email);
 
     // Validate email format
     if (!/\S+@\S+\.\S+/.test(email)) {
@@ -99,10 +99,10 @@ exports.verifyOtp = async (req, res) => {
   try {
     const { email, otp } = req.body;
 
-    console.log("Verifying OTP for:", email);
-    console.log("Received OTP:", otp);
-    console.log("Session exists:", !!req.session);
-    console.log("Session OTP:", req.session?.otp);
+    // console.log("Verifying OTP for:", email);
+    // console.log("Received OTP:", otp);
+    // console.log("Session exists:", !!req.session);
+    // console.log("Session OTP:", req.session?.otp);
 
     // Check if session and OTP exist
     if (!req.session) {
