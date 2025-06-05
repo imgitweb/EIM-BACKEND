@@ -33,6 +33,7 @@ const allowedOrigins =
         "https://app.incubationmasters.com",
         "https://incubationmasters.com",
         "http://localhost:3000",
+        "http://localhost:3001",
         "https://admin.incubationmasters.com",
         "https://www.incubationmasters.com",
       ]

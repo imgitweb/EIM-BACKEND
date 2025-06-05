@@ -7,7 +7,7 @@ const milestoneSchema = new mongoose.Schema({
   tam: { type: String, required: true },
   som: { type: String, required: true },
   startDate: { type: Date, required: true },
-  revenue: { type: String, required: true },
+  revenue: { type: String },
   customers: { type: String, required: true },
   pitch: { type: String, required: true },
   problem: { type: String, required: true },
