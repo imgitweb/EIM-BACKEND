@@ -3,7 +3,7 @@
     {
       "id": "alpha",
       "name": "Alpha",
-      "price": "free",
+      "price": 0,
       "duration": "30 days",
       "description": "Alpha Quadrant – 30 days entrepreneurship program",
       "features": [
@@ -18,7 +18,7 @@
     {
       "id": "beta",
       "name": "Beta",
-      "price": "101",
+      "price": 101,
       "duration": "90 Days",
       "description": "Beta Quadrant – 1 year entrepreneurship program",
       "features": [
@@ -34,7 +34,7 @@
     {
       "id": "gamma",
       "name": "Gamma",
-      "price": "225",
+      "price": 225,
       "duration": "90 Days",
       "description": "Gamma Quadrant – Premium entrepreneurship program",
       "features": [
@@ -51,7 +51,7 @@
     {
       "id": "sigma",
       "name": "Sigma",
-      "price": "454",
+      "price": 454,
       "duration": "90 Days",
       "description": "Sima Quadrant – Elite entrepreneurship program",
       "features": [
