@@ -8,6 +8,8 @@ const connectDB = require("./config/db");
 require("dotenv").config();
 const session = require("express-session");
 const seedMentorData = require("./seeding/mentorSeed");
+const seedInvestorData = require("./seeding/seedCategoryData");
+const seedCategoryData = require("./seeding/seedCategoryData");
 
 const MongoStore = require("connect-mongo");
 const helmet = require("helmet");
@@ -15,32 +17,7 @@ const helmet = require("helmet");
 const app = express();
 app.use(helmet());
 
-// Routes
-const authRoutes = require("./routes/authRoutes");
-const teamRoutes = require("./routes/teamRoutes");
-const companyRoutes = require("./routes/companyRoutes");
-const documentRoutes = require("./routes/documentRoutes");
-const matrixRoutes = require("./routes/matrixRoutes");
-const leadRoutes = require("./routes/leadRoutes");
-const jobRequestRoutes = require("./routes/jobRequestRoutes");
-const todoRoutes = require("./routes/todoRoutes");
-const startupRoutes = require("./routes/startupRoutes");
-const pathToUnicorn = require("./routes/pathToUnicorn");
-const resourceRoutes = require("./routes/resourceRoutes");
-const messageRoutes = require("./routes/messageRoutes");
-const adminRoutes = require("./routes/adminRoutes");
-const investorRoutes = require("./routes/investorRoutes");
-const mentorRoutes = require("./routes/mentorRoutes");
-const categoryRoutes = require("./routes/categoryRoutes");
-const templateRoute = require("./routes/templateRoute");
-const shaktiSangamRoutes = require("./routes/shaktiSangamRoutes");
-const userLogsRoutes = require("./routes/userLogs");
-const apiRoutes = require("./routes/api");
-const coFounderRoutes = require("./routes/coFounderRoutes");
-const seedInvestorData = require("./seeding/seedInvestorData");
-const seedCategoryData = require("./seeding/seedCategoryData");
-
-// Connect to database
+// Connect to database FIRST
 connectDB();
 
 // Seed mentor data if needed
@@ -49,22 +26,7 @@ seedInvestorData();
 // Seed category data if needed
 seedCategoryData();
 
-// CORS configuration
-
-app.use(
-  session({
-    secret: process.env.JWT_SECRET || "your-secret-key",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    },
-  })
-);
-
-// CORS configuration
+// CORS configuration - MUST come before session
 const allowedOrigins =
   process.env.NODE_ENV === "production"
     ? [
