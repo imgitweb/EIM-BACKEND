@@ -245,6 +245,8 @@ const getMilestoneByStartupId = async (req, res) => {
 
     const milestone = await Milestone.findOne({ startup_id });
 
+    console.log("Milestone fetched for startup_id:", startup_id , milestone);
+
     if (!milestone) {
       return res.status(404).json({
         success: false,
