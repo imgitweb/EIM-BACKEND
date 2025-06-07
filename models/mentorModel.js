@@ -48,7 +48,7 @@ const mentorSchema = new mongoose.Schema({
     category :{
         type : String,
         required : true,
-        enum :['technical','non technical','subject expert']
+        enum :["Tech","tech", "Non Technical", "Subject Expert" ,"Business Strategy","Funding","Legal","Finance","Marketing","marketing", "Subject Matter Expert","subject matter expert" ]
     },
     gender : {
         type : String,

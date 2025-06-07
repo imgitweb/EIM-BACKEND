@@ -7,6 +7,10 @@ const fs = require("fs");
 const connectDB = require("./config/db");
 require("dotenv").config();
 const session = require("express-session");
+const seedMentorData = require("./seeding/mentorSeed");
+const seedInvestorData = require("./seeding/seedCategoryData");
+const seedCategoryData = require("./seeding/seedCategoryData");
+
 const MongoStore = require("connect-mongo");
 const helmet = require("helmet");
 
@@ -16,6 +20,12 @@ app.use(helmet());
 // Connect to database FIRST
 connectDB();
 
+// Seed mentor data if needed
+seedMentorData()
+seedInvestorData();
+// Seed category data if needed
+seedCategoryData();
+
 // CORS configuration - MUST come before session
 const allowedOrigins =
   process.env.NODE_ENV === "production"
@@ -23,6 +33,7 @@ const allowedOrigins =
         "https://app.incubationmasters.com",
         "https://incubationmasters.com",
         "http://localhost:3000",
+        "http://localhost:3001",
         "https://admin.incubationmasters.com",
         "https://www.incubationmasters.com",
       ]

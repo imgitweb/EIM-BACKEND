@@ -1,0 +1,42 @@
+[
+  {
+    "category_name": "Agreements",
+    "category_description": "Legal documents and contracts for startups.",
+    "category_logo": "https://example.com/logos/fintech.png"
+  },
+  {
+    "category_name": "Business Validation",
+    "category_description": "Tools and resources for validating business ideas.",
+    "category_logo": "https://example.com/logos/healthtech.png"
+  },
+  {
+    "category_name": "Company Formation",
+    "category_description": "Guides and services for forming a new company.",
+    "category_logo": "https://example.com/logos/edtech.png"
+  },
+  {
+    "category_name": "Financial Planning",
+    "category_description": "Strategies and tools for financial management.",
+    "category_logo": "https://example.com/logos/saas.png"
+  },
+  {
+    "category_name": "Funding",
+    "category_description": "Resources for securing funding and investment.",
+    "category_logo": "https://example.com/logos/ecommerce.png"
+  },
+  {
+    "category_name": "HR",
+    "category_description": "Human resources management and employee relations.",
+    "category_logo": "https://example.com/logos/ecommerce.png"
+  },
+  {
+    "category_name": "Project Management",
+    "category_description": "Tools and methodologies for managing projects effectively.",
+    "category_logo": "https://example.com/logos/ecommerce.png"
+  },
+  {
+    "category_name": "Sales and Marketing",
+    "category_description": "Strategies and tools for sales and marketing.",
+    "category_logo": "https://example.com/logos/ecommerce.png"
+  }
+]

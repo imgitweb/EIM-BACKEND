@@ -1,10 +1,10 @@
 exports.csrfProtection = (req, res, next) => {
   if (["POST", "PUT", "DELETE", "PATCH"].includes(req.method)) {
-    console.log("=== CSRF PROTECTION ===");
-    console.log("Method:", req.method);
-    console.log("URL:", req.url);
-    console.log("Session CSRF object:", req.session?.csrf);
-    console.log("Request CSRF token:", req.headers["x-csrf-token"]);
+    // console.log("=== CSRF PROTECTION ===");
+    // console.log("Method:", req.method);
+    // console.log("URL:", req.url);
+    // console.log("Session CSRF object:", req.session?.csrf);
+    // console.log("Request CSRF token:", req.headers["x-csrf-token"]);
 
     if (!req.session) {
       return res.status(400).json({
