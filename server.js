@@ -111,47 +111,7 @@ const shaktiSangamRoutes = require("./routes/shaktiSangamRoutes");
 const userLogsRoutes = require("./routes/userLogs");
 const apiRoutes = require("./routes/api");
 const coFounderRoutes = require("./routes/coFounderRoutes");
-// Connect to database
-connectDB();
-// Configure CORS based on environment
-const allowedOrigins =
-  process.env.NODE_ENV === "production"
-    ? ["https://app.incubationmasters.com", "https://incubationmasters.com","http://localhost:3000","https://admin.incubationmasters.com","https://www.incubationmasters.com"] // Production origin
-    : ["http://localhost:3000", "http://localhost:3001","http://localhost:5173"]; // Development origin
 
-const corsOptions = {
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps, curl requests)
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token"],
-  credentials: true,
-};
-
-
-// Session middleware
-app.use(
-  session({
-    secret: process.env.JWT_SECRET || "your-secret-key", // use env secret in production
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      httpOnly: true,
-      secure: false, // set to true if using HTTPS
-      sameSite: "lax", // or "none" if using HTTPS cross-origin
-    },
-  })
-);
-
-// Apply CORS middleware - FIXED: only use the proper corsOptions
-app.use(cors(corsOptions));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 // Multer configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -214,10 +174,9 @@ app.use("/api/matrix", matrixRoutes);
 app.use("/api/leads", leadRoutes);
 app.use("/api/job-requests", jobRequestRoutes);
 app.use("/api/todos", todoRoutes);
-app.use("/api/startup", startupRoutes); 
+app.use("/api/startup", startupRoutes);
 app.use("/api/unicorn", pathToUnicorn);
 app.use("/api/resource", resourceRoutes(upload));
-app.use("/api/unicorn", pathToUnicorn);
 app.use("/api/messages", messageRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/investors", investorRoutes(upload));
@@ -276,3 +235,4 @@ if (process.env.NODE_ENV === "production") {
     console.log(`Server running at http://${HOST}:${PORT}`);
   });
 }
+
