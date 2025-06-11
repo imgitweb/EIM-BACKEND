@@ -74,7 +74,7 @@ app.use(
     }),
     cookie: {
       httpOnly: true,
-      secure: false, // MUST be false for localhost
+      secure: true, // MUST be false for localhost
       sameSite: "lax", // Changed from "none" to "lax" for localhost
       maxAge: 1000 * 60 * 30, // 30 minutes (reduced from 1 day)
     },
