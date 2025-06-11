@@ -74,9 +74,9 @@ app.use(
     }),
     cookie: {
       httpOnly: true,
-      secure: true, // MUST be false for localhost
-      sameSite: "lax", // Changed from "none" to "lax" for localhost
-      maxAge: 1000 * 60 * 30, // 30 minutes (reduced from 1 day)
+      secure: process.env.NODE_ENV === "production", 
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
     },
   })
 );
