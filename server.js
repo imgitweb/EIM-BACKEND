@@ -15,7 +15,6 @@ const MongoStore = require("connect-mongo");
 const helmet = require("helmet");
 
 const app = express();
-app.use(helmet());
 
 // Connect to database FIRST
 connectDB();
@@ -26,38 +25,41 @@ seedInvestorData();
 // Seed category data if needed
 seedCategoryData();
 
-// CORS configuration - MUST come before session
-const allowedOrigins =
-  process.env.NODE_ENV === "production"
-    ? [
-        "https://app.incubationmasters.com",
-        "https://incubationmasters.com",
-        "http://localhost:3000",
-        "http://localhost:3001",
-        "https://admin.incubationmasters.com",
-        "https://www.incubationmasters.com",
-      ]
-    : [
-        "http://localhost:3000",
-        "http://localhost:3001",
-        "http://localhost:5173",
-      ];
+// CORS configuration - MUST come before other middleware
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:3001",
+  "http://localhost:3002",
+  "http://localhost:5173",
+  "https://app.incubationmasters.com",
+  "https://incubationmasters.com",
+  "https://admin.incubationmasters.com",
+  "https://www.incubationmasters.com"
+];
 
 const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
     }
+    return callback(null, true);
   },
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token"],
-  credentials: true, // THIS IS CRITICAL
+  credentials: true,
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 };
 
-// Apply middlewares in correct order
+// Apply CORS before other middleware
 app.use(cors(corsOptions));
+
+// Then apply other middleware
+app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -75,7 +77,7 @@ app.use(
     cookie: {
       httpOnly: true,
       secure: false, // MUST be false for localhost
-      sameSite: "lax", // Changed from "none" to "lax" for localhost
+      sameSite: process.env.NODE_ENV ? 'none' : 'lax', // Changed from "none" to "lax" for localhost
       maxAge: 1000 * 60 * 30, // 30 minutes (reduced from 1 day)
     },
   })
