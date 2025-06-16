@@ -6,11 +6,7 @@ const bcrypt = require("bcrypt");
 const googleSignup = async (req, res) => {
   try {
     const { email } = req.body;
-    console.log(
-      "Incoming Google Signup Request body size:",
-      req.body 
-     
-    );
+    console.log("Incoming Google Signup Request body size:", req.body);
 
     // Validate email
     if (!email) {
@@ -19,9 +15,7 @@ const googleSignup = async (req, res) => {
     // Check if user exists with given email
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(
-        200,
-      ).json({
+      return res.status(200).json({
         message: "User not found. Please sign up first.",
         exists: false,
       });
