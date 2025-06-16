@@ -21,7 +21,7 @@ app.use(helmet());
 connectDB();
 
 // Seed mentor data if needed
-seedMentorData()
+seedMentorData();
 seedInvestorData();
 // Seed category data if needed
 seedCategoryData();
@@ -74,7 +74,7 @@ app.use(
     }),
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", 
+      secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     },
@@ -185,7 +185,7 @@ app.use("/api/mentors", mentorRoutes(upload));
 app.use("/api/categories", categoryRoutes(upload));
 app.use("/api/shaktiSangam", shaktiSangamRoutes);
 app.use("/api/logs", userLogsRoutes);
-app.use("/api/v1", apiRoutes);
+app.use("/api", apiRoutes);
 app.use("/api/cofounders", coFounderRoutes(upload));
 
 // Multer error handler
