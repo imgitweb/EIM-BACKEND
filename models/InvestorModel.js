@@ -49,7 +49,7 @@ const investorSchema = new mongoose.Schema({
       "mobility",
       "saas",
       "industry-agnostic",
-      "deep tech"
+      "deep tech",
     ],
   },
   // Angel Investor specific fields
@@ -96,11 +96,6 @@ const investorSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-});
-
-// Middleware to filter deleted documents
-investorSchema.pre(["find", "findOne", "findById"], function () {
-  this.where({ isDeleted: false });
 });
 
 module.exports = mongoose.model("Investor", investorSchema);
