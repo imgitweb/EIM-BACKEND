@@ -52,6 +52,7 @@ const allowedOrigins =
         "https://app.incubationmasters.com:5000",
         "https://incubationmasters.com",
         "http://localhost:3000",
+        "http://localhost:3002",
         "http://localhost:3001",
         "https://admin.incubationmasters.com",
         "https://www.incubationmasters.com",
@@ -59,6 +60,7 @@ const allowedOrigins =
     : [
         "http://localhost:3000",
         "http://localhost:5000",
+        "http://localhost:3002",
         "http://localhost:3001",
         "http://localhost:5173",
       ];
@@ -79,9 +81,7 @@ const corsOptions = {
   optionsSuccessStatus: 204,
 };
 
-app.options("*", cors());
-app.use(cors(corsOptions));
-
+app.use("*", cors(corsOptions));
 // Middleware
 app.use(helmet());
 app.use(cookieParser());
