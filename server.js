@@ -61,7 +61,7 @@ const allowedOrigins =
         "http://localhost:3000",
         "http://localhost:5000",
         "http://localhost:3002",
-        "http://localhost:3001",
+        "http://localhost:3001/",
         "http://localhost:5173",
       ];
 
@@ -87,6 +87,8 @@ app.use(helmet());
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
 
 app.use(
   session({
@@ -123,6 +125,7 @@ const storage = multer.diskStorage({
     else if (url.includes("/api/mentors")) folder = "uploads/mentors";
     else if (url.includes("/api/categories")) folder = "uploads/categories";
     else if (url.includes("/api/templates")) folder = "uploads/templates";
+    else if (url.includes("/api/startup")) folder = "uploads"; // ✅ ADD THIS
 
     if (!fs.existsSync(folder)) fs.mkdirSync(folder, { recursive: true });
     cb(null, folder);
@@ -160,7 +163,7 @@ app.get("/", (req, res) => {
   });
 });
 
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/team", teamRoutes);

@@ -2,9 +2,10 @@ const { validationResult } = require("express-validator");
 const fs = require("fs");
 const path = require("path");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-const StartupModel = require("../../models/signup/StartupModel");
+// const StartupModel = require("../../models/signup/StartupModel");
 const SubscriptionModel = require("../../models/signup/SubscriptionModel");
 const PaymentModel = require("../../models/signup/PaymentModel");
+const StartupModel = require("../../models/signup/StartupModel");
 
 // Load plans with error handling
 const getPlans = () => {
@@ -490,6 +491,8 @@ exports.getSubscriptions = async (req, res) => {
   try {
     const { startupId } = req.params;
 
+    console.log("Get Subscriptions Request:", { startupId });
+
     if (!startupId) {
       return res.status(400).json({
         success: false,
@@ -498,6 +501,7 @@ exports.getSubscriptions = async (req, res) => {
     }
 
     const startup = await StartupModel.findById(startupId);
+    // console.log("Startup Found:", startup);
     if (!startup) {
       return res.status(404).json({
         success: false,
@@ -514,7 +518,7 @@ exports.getSubscriptions = async (req, res) => {
       subscriptions,
     });
   } catch (error) {
-    console.error("Get Subscriptions Error:", error);
+    console.error("Get Subscriptions Error:----------------------", error);
     res.status(500).json({
       success: false,
       error: "Failed to fetch subscriptions",
