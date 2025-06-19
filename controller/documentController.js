@@ -47,8 +47,8 @@ const getDocumentById = async (req, res) => {
     const { startup_id } = req.params; // Get startup_id from URL parameters
     const documentDetails = await Document.findOne({ startup_id }); // Find by startup_id
     console.log(documentDetails);
-    if (!documentDetails || documentDetails.length === 0) {
-      return res.status(404).json({ message: "Document Details Not Found" }); // 404 for not found
+  if (!documentDetails) {
+      return res.status(404).json({ message: "Document not found" }); // 404 if not found
     }
     res.status(200).json(documentDetails); // Send team details
   } catch (error) {
