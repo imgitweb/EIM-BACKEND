@@ -37,6 +37,7 @@ const shaktiSangamRoutes = require("./routes/shaktiSangamRoutes");
 const userLogsRoutes = require("./routes/userLogs");
 const apiRoutes = require("./routes/api");
 const coFounderRoutes = require("./routes/coFounderRoutes");
+const openaiRoutes = require("./routes/openaiRoutes");
 
 const app = express();
 connectDB();
@@ -80,7 +81,7 @@ const corsOptions = {
   credentials: true,
   optionsSuccessStatus: 204,
 };
-
+app.use(cors());
 app.use("*", cors(corsOptions));
 // Middleware
 app.use(helmet());
@@ -182,6 +183,7 @@ app.use("/api/categories", categoryRoutes(upload));
 app.use("/api/shaktiSangam", shaktiSangamRoutes);
 app.use("/api/logs", userLogsRoutes);
 app.use("/api", apiRoutes);
+app.use("/api/legal", openaiRoutes);
 app.use("/api/cofounders", coFounderRoutes(upload));
 
 // Error Handling

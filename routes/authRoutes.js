@@ -4,6 +4,7 @@ const {
   googleLogin,
   login,
   googleSignup,
+  getPlans,
 } = require("../controller/authController");
 
 const router = express.Router();
@@ -15,5 +16,6 @@ const upload = multer(); // Default storage (used for form-data parsing)
 
 router.post("/google-login", upload.none(), googleLogin);
 router.post("/login", upload.none(), login);
+router.get("/plan", getPlans);
 
 module.exports = router;

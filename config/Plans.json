@@ -3,7 +3,7 @@
     {
       "id": "alpha",
       "name": "Alpha",
-      "price": 0,
+      "price": "Free",
       "duration": "30 days",
       "description": "Alpha Quadrant – 30 days entrepreneurship program",
       "features": [

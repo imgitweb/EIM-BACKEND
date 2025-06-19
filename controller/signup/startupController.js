@@ -24,7 +24,7 @@ const getPlans = () => {
 exports.getPlans = (req, res) => {
   try {
     const plans = getPlans();
-    if (!plans || plans.length === 0) {
+    if (!plans || plans.length === 0 || plans.length === "Free") {
       return res
         .status(500)
         .json({ error: "Plans configuration not available" });

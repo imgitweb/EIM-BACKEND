@@ -1,6 +1,8 @@
 const User = require("../models/signup/StartupModel");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const fs = require("fs");
+const path = require("path");
 
 // Google signup API
 const googleSignup = async (req, res) => {
@@ -176,4 +178,51 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = { googleLogin, login, googleSignup, googleSignup };
+// Helper function to read plans from JSON
+const getPlansFromFile = () => {
+  try {
+    const plansPath = path.join(__dirname, "./../config/Plans.json");
+    if (!fs.existsSync(plansPath)) {
+      throw new Error("Plans configuration file not found");
+    }
+    const plansData = JSON.parse(fs.readFileSync(plansPath, "utf8"));
+    return plansData.plans || []; // fallback to empty array
+  } catch (error) {
+    console.error("Failed to load plans:", error);
+    return [];
+  }
+};
+
+// Controller function to handle plan request
+const getPlans = async (req, res) => {
+  try {
+    const { selectPlan } = req.query;
+    console.log(req.query);
+
+    const plans = getPlansFromFile();
+
+    if (!plans.length) {
+      return res
+        .status(500)
+        .json({ error: "Plans configuration not available" });
+    }
+
+    if (!selectPlan) {
+      return res.status(400).json({ error: "No plan selected." });
+    }
+
+    // ✅ Find the selected plan
+    const selectedPlan = plans.find((plan) => plan.name === selectPlan);
+
+    if (!selectedPlan) {
+      return res.status(404).json({ error: "Selected plan not found." });
+    }
+
+    return res.status(200).json({ selectedPlan });
+  } catch (error) {
+    console.error("Get Plans Error:", error);
+    return res.status(500).json({ error: "Failed to fetch plans" });
+  }
+};
+
+module.exports = { googleLogin, login, googleSignup, getPlans };
