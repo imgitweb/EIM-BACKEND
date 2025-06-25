@@ -3,8 +3,10 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const StartupModel = require("../../models/signup/StartupModel");
+const saveMilestoneDataToDB = require("../../models/alphaPath");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const { mileStonePrompt, callOpenAI } = require("../milistoneController");
 
 // Load plans with error handling
 const getPlans = () => {
@@ -118,6 +120,23 @@ exports.createStartup = async (req, res) => {
       { expiresIn: "24h" }
     );
 
+    const data = {
+      startupName: startupName, // No fallback
+      country: country, // No fallback
+    };
+    const milestoneData = await callOpenAI(data);
+
+    if (milestoneData.error) {
+      console.error("Milestone generation failed:", milestoneData.debug);
+      // Proceed with startup creation even if milestones fail
+    } else {
+      try {
+        await saveMilestoneDataToDB(milestoneData); // replace with actual DB function
+        console.log("Milestone data saved successfully.");
+      } catch (dbError) {
+        console.error("Error saving milestone data to the database:", dbError);
+      }
+    }
     res.status(201).json({
       success: true,
       startupId: startup._id,
@@ -156,8 +175,11 @@ exports.updateStartupProfile = async (req, res) => {
     } = req.body;
 
     // Reject password or plan updates if attempted
-    if ('password' in req.body || 'selectedPlan' in req.body) {
-      console.warn("Attempted to update restricted fields for startup:", startupId);
+    if ("password" in req.body || "selectedPlan" in req.body) {
+      console.warn(
+        "Attempted to update restricted fields for startup:",
+        startupId
+      );
     }
 
     // Update only profile-related fields
@@ -193,8 +215,6 @@ exports.updateStartupProfile = async (req, res) => {
     res.status(500).json({ error: "Failed to update startup profile" });
   }
 };
-
-
 
 exports.getStartupProfile = async (req, res) => {
   try {

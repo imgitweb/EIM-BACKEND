@@ -75,79 +75,38 @@ const getMilestones = async (req, res) => {
     });
   }
 
-  const prompt = `
-    Create a detailed milestone based plan divided into 12 milestones which will dictate in detail how the startup with following parameters will become a unicorn. Also give us a date exactly when the starutp will become a unicorn. The milestone should be detailed and each milestone will have set of activities,
-     targetted revenue, valuation, founders learning required, go to market strategy and expansion strategies,  key activities, suggested actions and resources should be in detailed,  startup roadmap with the following specifications:
-    - Industry: "Automobiles"
-    - Startup Elevator Pitch: "We are creating an aggregator platform for car repairing service"
-    - Problem we are solving: "sdfsdfsdf"
-    - Our proposed Solution: "sdfsdfsd"
-    - Business Model: "B2C"
-    - TAM of this startup: "4 Billion USD"
-    - SOM of this startup: "1 billion USD"
-    - Start Date: 06-02-2025
-    - Founder1 Background: "Electric Engineer with 5 years of industry experience"
-    - Fouders2 Background: "Marketing Expert with 3 years of experience" 
-    - Startup Current operating country: "India"
-    - Is this startup revenue generating yet: "Yes"
-    - Last Year's revenue in USD: "100 USD"
-    - Number of paid customers as of now: "2"
+  const prompt = `You are an expert in entrepreneurship curriculum design.
 
+I am creating a 4-week startup program. Each week is a milestone and should include:
 
-    Return exactly 12 milestones in this specific JSON format:
-    {
-      "1": {
-        "timeline": {
-          "startDate": "DD-MM-YYYY",
-          "endDate": "DD-MM-YYYY",
-          "durationMonths": number
-        },
-        
-        "goal": "string",
-        "keyActivities": ["string"],
-        "suggestedActions": ["string"],
-        "resources": {
-          "books": ["string"],
-          "tools": ["string"],
-          "references": ["string"]
-        },        
-        "kpis": ["string"],
-        "financialProjections": {
-          "usd": {
-            "revenue": number,
-            "investment": number,
-            "valuation" : number
-          },
-          "inr": {
-            "revenue": number,
-            "investment": number,
-             "valuation" : number
-          }
-        },          
-      "2": {
-        // Same structure as milestone 1
-      },
-      "3": {},
-      "4": {},
-      "5": {},
-      "6": {},
-      "7": {},
-      "8": {},
-      "9": {},
-      "10": {},
-      "11": {},
-      "12": {}
+1. A milestone title  
+2. A timeline (start date, end date, duration in months)  
+3. Four fixed categories:
+   - Core Skills
+   - Soft Skills
+   - Digital Fluency
+   - Networking
+
+Each category should contain 3 to 5 short, practical learning tasks tailored for early-stage entrepreneurs.
+
+Please generate JSON data for all 4 weeks in the following format:
+
+{
+  "milestone": {
+    "title": "Milestone Title",
+    "timeline": {
+      "startDate": "DD-MM-YYYY",
+      "endDate": "DD-MM-YYYY",
+      "durationMonths": number
+    },
+    "categories": {
+      "coreSkills": [...],
+      "softSkills": [...],
+      "digitalFluency": [...],
+      "networking": [...]
     }
-
-    Ensure:
-    1. Each milestone has a number key from 1 to 12
-    2. Exactly 12 milestones are included
-    3. Financial projections increase realistically
-    4. Each milestone builds upon previous ones
-    5. All dates are properly calculated from the start date
-    6. All fields are filled with relevant content
-    7. The response is valid JSON that can be parsed
-  `;
+  }
+}`;
 
   try {
     const maxTokens = 3500;
