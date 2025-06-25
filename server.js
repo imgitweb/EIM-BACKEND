@@ -10,6 +10,7 @@ const session = require("express-session");
 const seedMentorData = require("./seeding/mentorSeed");
 const seedInvestorData = require("./seeding/seedCategoryData");
 const seedCategoryData = require("./seeding/seedCategoryData");
+const salesFunnelRoutes = require("./routes/salesFunnel");
 
 const MongoStore = require("connect-mongo");
 const helmet = require("helmet");
@@ -25,24 +26,18 @@ seedInvestorData();
 // Seed category data if needed
 seedCategoryData();
 
-// CORS configuration - MUST come before session
-const allowedOrigins =
-  process.env.NODE_ENV === "production"
-    ? [
-        "https://app.incubationmasters.com",
-        "https://app.incubationmasters.com:5000",
-        "https://incubationmasters.com",
-        "http://localhost:3000",
-        "http://localhost:3001",
-        "https://admin.incubationmasters.com",
-        "https://www.incubationmasters.com",
-      ]
-    : [
-        "http://localhost:3000",
-        "http://localhost:5000",
-        "http://localhost:3001",
-        "http://localhost:5173",
-      ];
+
+// CORS configuration - MUST come before other middleware
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:3001",
+  "http://localhost:3002",
+  "http://localhost:5173",
+  "https://app.incubationmasters.com",
+  "https://incubationmasters.com",
+  "https://admin.incubationmasters.com",
+  "https://www.incubationmasters.com"
+];
 
 const corsOptions = {
   origin: function (origin, callback) {
@@ -118,6 +113,7 @@ const shaktiSangamRoutes = require("./routes/shaktiSangamRoutes");
 const userLogsRoutes = require("./routes/userLogs");
 const apiRoutes = require("./routes/api");
 const coFounderRoutes = require("./routes/coFounderRoutes");
+const  SalesFunnel = require("./routes/salesFunnel");
 
 // Multer configuration
 const storage = multer.diskStorage({
@@ -129,7 +125,7 @@ const storage = multer.diskStorage({
     else if (url.includes("/api/mentors")) folder = "uploads/mentors";
     else if (url.includes("/api/categories")) folder = "uploads/categories";
     else if (url.includes("/api/templates")) folder = "uploads/templates";
-
+    
     if (!fs.existsSync(folder)) {
       fs.mkdirSync(folder, { recursive: true });
     }
@@ -173,6 +169,7 @@ app.get("/", (req, res) => {
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Routes
+app.use("/api", salesFunnelRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/team", teamRoutes);
 app.use("/api/company", companyRoutes);
