@@ -90,6 +90,7 @@ const corsOptions = {
     );
   },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token"],
   credentials: true,
   optionsSuccessStatus: 204,
