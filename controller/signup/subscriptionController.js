@@ -165,20 +165,24 @@ exports.createSubscription = async (req, res) => {
       }
     }
 
-    // Calculate subscription duration
-    let durationDays;
-    switch (plan.duration) {
-      case "30 days":
-        durationDays = 30;
-        break;
-      case "90 days":
-        durationDays = 90;
-        break;
-      default:
-        durationDays = 30; // Fallback
-        console.warn(
-          `Unknown plan duration: ${plan.duration}, defaulting to 30 days`
-        );
+    let durationDays = 30; // Default duration
+
+    if (typeof plan?.duration === "string") {
+      switch (plan.duration.trim().toLowerCase()) {
+        case "30 days":
+          durationDays = 30;
+          break;
+        case "90 days":
+          durationDays = 90;
+          break;
+        default:
+          console.warn(
+            `Unknown plan duration: ${plan.duration}, defaulting to 30 days`
+          );
+          durationDays = 30;
+      }
+    } else {
+      console.warn("Missing or invalid plan.duration, defaulting to 30 days");
     }
 
     // Validate durationDays

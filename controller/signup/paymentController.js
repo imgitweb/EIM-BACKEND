@@ -74,21 +74,25 @@ exports.createPaymentIntent = async (req, res) => {
 
     // Handle free plan case
     let amount = 0;
+    const price =
+      typeof plan.price === "string"
+        ? plan.price.trim().toLowerCase()
+        : plan.price;
 
-    if (plan.price !== "Free" && plan.price !== "0" && plan.price !== 0) {
-      const parsed = Number(plan.price);
+    if (price !== "free" && price !== "0" && price !== 0) {
+      const parsed = parseInt(price);
       if (isNaN(parsed)) {
         return res.status(400).json({
           success: false,
           error: "Invalid plan price format",
         });
       }
-      amount = parsed * 100; // ✅ Convert to cents here
+      amount = parsed * 100; // Convert to cents
     }
 
     console.log("Calculated Amount:", amount);
 
-    if (amount === 0) {
+    if (amount === "free" || amount === 0) {
       return res.status(200).json({
         success: true,
         isFree: true,

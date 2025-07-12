@@ -238,10 +238,8 @@ const callOpenAI = async (data) => {
       console.log(`Calling OpenAI - Attempt ${attempt}/${MAX_ATTEMPTS}`);
 
       const prompt = mileStonePrompt(data);
-      const response = await callOpenAI.createCompletion({
+      const response = await OpenAI({
         prompt: prompt,
-        max_tokens: 2000, // Increased to handle larger output
-        temperature: 0.7,
       });
 
       let milestoneData;
