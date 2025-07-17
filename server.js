@@ -79,8 +79,8 @@ const corsOptions = {
   optionsSuccessStatus: 204,
 };
 
-app.options("*", cors());
-app.use(cors(corsOptions));
+
+app.use("*", cors(corsOptions));
 
 // Middleware
 app.use(helmet());
