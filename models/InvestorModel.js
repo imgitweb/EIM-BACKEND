@@ -55,28 +55,17 @@ const investorSchema = new mongoose.Schema({
   // Angel Investor specific fields
   investorName: {
     type: String,
-    required: function () {
-      return this.investorType === "angel";
-    },
+    required: true,
+    trim: true,
   },
-  // VC specific fields
-  firmName: {
-    type: String,
-    required: function () {
-      return this.investorType === "vc";
-    },
-  },
+
   firmLogo: {
     type: String,
-    required: function () {
-      return this.investorType === "vc";
-    },
+    trim: true,
   },
   pointOfContact: {
     type: String,
-    required: function () {
-      return this.investorType === "vc";
-    },
+    trim: true,
   },
   isDeleted: {
     type: Boolean,

@@ -26,7 +26,6 @@ exports.getStartupById = async (req, res) => {
   try {
     const startupId = req.params.id;
 
-    console.log("Startup ID Received:", startupId);
 
     // Validate the ObjectId format
     if (!mongoose.Types.ObjectId.isValid(startupId)) {
@@ -38,7 +37,6 @@ exports.getStartupById = async (req, res) => {
       _id: new mongoose.Types.ObjectId(startupId),
     });
 
-    console.log("Startup Found:", startup);
 
     if (!startup) {
       return res.status(404).json({ message: "Startup not found" });
@@ -50,7 +48,6 @@ exports.getStartupById = async (req, res) => {
       _id: { $ne: startup._id }, // Exclude the current startup
     }).limit(4); // Limit to 3 startups
 
-    console.log("Other Startups in the same industry:", otherStartups);
 
     // Respond with the found startup and other startups in the same industry
     res.status(200).json({
@@ -69,7 +66,6 @@ exports.sendStartupExchangeEmail = async (req, res) => {
     const startupId1 = req.params.startupId1;
     const startupId2 = req.params.startupId2;
 
-    console.log("Received startup IDs:", startupId1, startupId2);
 
     // Validate ObjectId format
     if (
@@ -89,8 +85,6 @@ exports.sendStartupExchangeEmail = async (req, res) => {
         .json({ message: "One or both startups not found" });
     }
 
-    console.log("Startup 1 Found:", startup1);
-    console.log("Startup 2 Found:", startup2);
 
     // Create the email transporter
     const transporter = nodemailer.createTransport({

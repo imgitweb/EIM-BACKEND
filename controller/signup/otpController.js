@@ -99,11 +99,6 @@ exports.verifyOtp = async (req, res) => {
   try {
     const { email, otp } = req.body;
 
-    // console.log("Verifying OTP for:", email);
-    // console.log("Received OTP:", otp);
-    // console.log("Session exists:", !!req.session);
-    // console.log("Session OTP:", req.session?.otp);
-
     // Check if session and OTP exist
     if (!req.session) {
       return res.status(400).json({

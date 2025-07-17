@@ -17,8 +17,7 @@ const {
 // Routes that DON'T need CSRF protection
 router.get("/csrf-token", startupController.getCsrfToken);
 router.get("/plans", startupController.getPlans);
-router.get(
-  "/subscriptions/:startupId",
+router.get("/subscriptions/:startupId",
   subscriptionController.getSubscriptions
 );
 
@@ -34,6 +33,8 @@ router.post(
   upload.single("logo"),
   startupController.createStartup
 );
+router.put('/profile/:id', upload.single('logo'),startupController.updateStartupProfile);
+
 
 router.post("/auth-check", googleSignup);
 

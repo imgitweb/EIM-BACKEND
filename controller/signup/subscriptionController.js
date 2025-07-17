@@ -2,9 +2,10 @@ const { validationResult } = require("express-validator");
 const fs = require("fs");
 const path = require("path");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-const StartupModel = require("../../models/signup/StartupModel");
+// const StartupModel = require("../../models/signup/StartupModel");
 const SubscriptionModel = require("../../models/signup/SubscriptionModel");
 const PaymentModel = require("../../models/signup/PaymentModel");
+const StartupModel = require("../../models/signup/StartupModel");
 
 // Load plans with error handling
 const getPlans = () => {
@@ -20,209 +21,6 @@ const getPlans = () => {
     return [];
   }
 };
-
-// Create Payment Intent for Stripe
-// exports.createPaymentIntent = async (req, res) => {
-//   const errors = validationResult(req);
-//   if (!errors.isEmpty()) {
-//     return res.status(400).json({
-//       success: false,
-//       errors: errors.array(),
-//     });
-//   }
-
-//   try {
-//     const { amount, currency, startupId, planId, cardDetails, email } =
-//       req.body;
-
-//     // Find startup
-//     const startup = await StartupModel.findById(startupId);
-//     if (!startup) {
-//       return res.status(404).json({
-//         success: false,
-//         error: "Startup not found",
-//       });
-//     }
-
-//     // Validate plan
-//     const plans = getPlans();
-//     const plan = plans.find((p) => p.id === planId);
-//     if (!plan) {
-//       return res.status(400).json({
-//         success: false,
-//         error: "Invalid plan selected",
-//       });
-//     }
-
-//     // Handle free plan
-//     const isFree = plan.price === "Free" || plan.price === 0;
-//     if (isFree) {
-//       return res.status(200).json({
-//         success: true,
-//         isFree: true,
-//         clientSecret: null,
-//         paymentIntentId: null,
-//         message: "Free plan selected",
-//       });
-//     }
-
-//     // Validate required fields for paid plans
-//     if (!amount || !currency || !startupId || !planId) {
-//       return res.status(400).json({
-//         success: false,
-//         error: "Missing required payment information",
-//       });
-//     }
-
-//     // Validate card details for paid plans
-//     if (
-//       !cardDetails ||
-//       !cardDetails.number ||
-//       !cardDetails.exp_month ||
-//       !cardDetails.exp_year ||
-//       !cardDetails.cvc ||
-//       !cardDetails.name
-//     ) {
-//       return res.status(400).json({
-//         success: false,
-//         error: "Complete card details are required",
-//       });
-//     }
-
-//     // Verify amount matches plan price
-//     const expectedAmount =
-//       typeof plan.price === "number" ? plan.price * 100 : 0;
-//     if (amount !== expectedAmount) {
-//       return res.status(400).json({
-//         success: false,
-//         error: "Amount mismatch with selected plan",
-//       });
-//     }
-
-//     try {
-//       // Create payment method
-//       const paymentMethod = await stripe.paymentMethods.create({
-//         type: "card",
-//         card: {
-//           number: cardDetails.number,
-//           exp_month: parseInt(cardDetails.exp_month),
-//           exp_year: parseInt(cardDetails.exp_year),
-//           cvc: cardDetails.cvc,
-//         },
-//         billing_details: {
-//           name: cardDetails.name,
-//           email: startup.email,
-//         },
-//       });
-
-//       // Create payment intent
-//       const paymentIntent = await stripe.paymentIntents.create({
-//         amount: amount,
-//         currency: currency,
-//         payment_method: paymentMethod.id,
-//         confirmation_method: "manual",
-//         confirm: true,
-//         return_url: `${process.env.FRONTEND_URL}/payment/success`,
-//         metadata: {
-//           startupId: startupId,
-//           planId: planId,
-//           startupName: startup.startupName || startup.name,
-//         },
-//       });
-
-//       // Handle payment result
-//       if (paymentIntent.status === "succeeded") {
-//         res.status(200).json({
-//           success: true,
-//           paymentIntentId: paymentIntent.id,
-//           status: paymentIntent.status,
-//           message: "Payment processed successfully",
-//         });
-//       } else if (paymentIntent.status === "requires_action") {
-//         res.status(200).json({
-//           success: true,
-//           requires_action: true,
-//           payment_intent: {
-//             id: paymentIntent.id,
-//             client_secret: paymentIntent.client_secret,
-//           },
-//           error: "Additional authentication required",
-//         });
-//       } else {
-//         res.status(402).json({
-//           success: false,
-//           error:
-//             "Payment failed. Please check your card details and try again.",
-//         });
-//       }
-//     } catch (stripeError) {
-//       console.error("Stripe Error:", stripeError);
-
-//       // Handle specific Stripe errors
-//       let errorMessage = "Payment processing failed";
-
-//       if (stripeError.type === "StripeCardError") {
-//         switch (stripeError.code) {
-//           case "card_declined":
-//             errorMessage =
-//               "Your card was declined. Please try a different card.";
-//             break;
-//           case "expired_card":
-//             errorMessage =
-//               "Your card has expired. Please use a different card.";
-//             break;
-//           case "incorrect_cvc":
-//             errorMessage =
-//               "The CVV code is incorrect. Please check and try again.";
-//             break;
-//           case "insufficient_funds":
-//             errorMessage =
-//               "Insufficient funds on your card. Please try a different card.";
-//             break;
-//           case "invalid_expiry_month":
-//           case "invalid_expiry_year":
-//             errorMessage = "Invalid expiry date. Please check and try again.";
-//             break;
-//           case "invalid_number":
-//             errorMessage = "Invalid card number. Please check and try again.";
-//             break;
-//           case "processing_error":
-//             errorMessage =
-//               "An error occurred while processing your card. Please try again.";
-//             break;
-//           default:
-//             errorMessage =
-//               stripeError.message ||
-//               "Payment failed. Please check your card details.";
-//         }
-//       } else if (stripeError.type === "StripeRateLimitError") {
-//         errorMessage = "Too many requests. Please wait a moment and try again.";
-//       } else if (stripeError.type === "StripeInvalidRequestError") {
-//         errorMessage =
-//           "Invalid payment request. Please check your information.";
-//       } else if (stripeError.type === "StripeAPIError") {
-//         errorMessage =
-//           "Payment service temporarily unavailable. Please try again later.";
-//       } else if (stripeError.type === "StripeConnectionError") {
-//         errorMessage =
-//           "Network error. Please check your connection and try again.";
-//       } else if (stripeError.type === "StripeAuthenticationError") {
-//         errorMessage = "Payment authentication failed. Please contact support.";
-//       }
-
-//       res.status(402).json({
-//         success: false,
-//         error: errorMessage,
-//       });
-//     }
-//   } catch (error) {
-//     console.error("Create Payment Intent Error:", error);
-//     res.status(500).json({
-//       success: false,
-//       error: "Internal server error. Please try again later.",
-//     });
-//   }
-// };
 
 // Create Subscription
 exports.createSubscription = async (req, res) => {
@@ -272,7 +70,7 @@ exports.createSubscription = async (req, res) => {
     }
 
     // Check if email verification is required for paid plans
-    const isFree = plan.price === "Free" || plan.price === 0;
+    const isFree = plan.price === "free" || plan.price === 0;
     // if (!isFree && !startup.emailVerified) {
     //   return res.status(403).json({
     //     success: false,
@@ -367,20 +165,24 @@ exports.createSubscription = async (req, res) => {
       }
     }
 
-    // Calculate subscription duration
-    let durationDays;
-    switch (plan.duration) {
-      case "30 days":
-        durationDays = 30;
-        break;
-      case "90 days":
-        durationDays = 90;
-        break;
-      default:
-        durationDays = 30; // Fallback
-        console.warn(
-          `Unknown plan duration: ${plan.duration}, defaulting to 30 days`
-        );
+    let durationDays = 30; // Default duration
+
+    if (typeof plan?.duration === "string") {
+      switch (plan.duration.trim().toLowerCase()) {
+        case "30 days":
+          durationDays = 30;
+          break;
+        case "90 days":
+          durationDays = 90;
+          break;
+        default:
+          console.warn(
+            `Unknown plan duration: ${plan.duration}, defaulting to 30 days`
+          );
+          durationDays = 30;
+      }
+    } else {
+      console.warn("Missing or invalid plan.duration, defaulting to 30 days");
     }
 
     // Validate durationDays
@@ -490,6 +292,8 @@ exports.getSubscriptions = async (req, res) => {
   try {
     const { startupId } = req.params;
 
+    console.log("Get Subscriptions Request:", { startupId });
+
     if (!startupId) {
       return res.status(400).json({
         success: false,
@@ -498,6 +302,7 @@ exports.getSubscriptions = async (req, res) => {
     }
 
     const startup = await StartupModel.findById(startupId);
+    // console.log("Startup Found:", startup);
     if (!startup) {
       return res.status(404).json({
         success: false,
@@ -514,7 +319,7 @@ exports.getSubscriptions = async (req, res) => {
       subscriptions,
     });
   } catch (error) {
-    console.error("Get Subscriptions Error:", error);
+    console.error("Get Subscriptions Error:----------------------", error);
     res.status(500).json({
       success: false,
       error: "Failed to fetch subscriptions",

@@ -1,3 +1,6 @@
+// ─────────────────────────────────────────────────────────────
+// ✅ Import Core Modules & Middleware
+// ─────────────────────────────────────────────────────────────
 const express = require("express");
 const multer = require("multer");
 const path = require("path");
@@ -10,56 +13,70 @@ const session = require("express-session");
 const MongoStore = require("connect-mongo");
 require("dotenv").config();
 
+// ─────────────────────────────────────────────────────────────
+// ✅ Import Custom Modules
+// ─────────────────────────────────────────────────────────────
 const connectDB = require("./config/db");
 const seedMentorData = require("./seeding/mentorSeed");
 const seedInvestorData = require("./seeding/seedInvestorData");
 const seedCategoryData = require("./seeding/seedCategoryData");
 
-// Route imports
-const authRoutes = require("./routes/authRoutes");
-const teamRoutes = require("./routes/teamRoutes");
-const companyRoutes = require("./routes/companyRoutes");
-const documentRoutes = require("./routes/documentRoutes");
-const matrixRoutes = require("./routes/matrixRoutes");
-const leadRoutes = require("./routes/leadRoutes");
-const jobRequestRoutes = require("./routes/jobRequestRoutes");
-const todoRoutes = require("./routes/todoRoutes");
-const startupRoutes = require("./routes/startupRoutes");
-const pathToUnicorn = require("./routes/pathToUnicorn");
-const resourceRoutes = require("./routes/resourceRoutes");
-const messageRoutes = require("./routes/messageRoutes");
-const adminRoutes = require("./routes/adminRoutes");
-const investorRoutes = require("./routes/investorRoutes");
-const mentorRoutes = require("./routes/mentorRoutes");
-const categoryRoutes = require("./routes/categoryRoutes");
-const templateRoute = require("./routes/templateRoute");
-const shaktiSangamRoutes = require("./routes/shaktiSangamRoutes");
-const userLogsRoutes = require("./routes/userLogs");
-const apiRoutes = require("./routes/api");
-const coFounderRoutes = require("./routes/coFounderRoutes");
+// ─────────────────────────────────────────────────────────────
+// ✅ Import Routes
+// ─────────────────────────────────────────────────────────────
+const routes = {
+  auth: require("./routes/authRoutes"),
+  team: require("./routes/teamRoutes"),
+  company: require("./routes/companyRoutes"),
+  document: require("./routes/documentRoutes"),
+  matrix: require("./routes/matrixRoutes"),
+  leads: require("./routes/leadRoutes"),
+  jobRequests: require("./routes/jobRequestRoutes"),
+  todos: require("./routes/todoRoutes"),
+  startup: require("./routes/startupRoutes"),
+  unicorn: require("./routes/pathToUnicorn"),
+  resources: require("./routes/resourceRoutes"),
+  messages: require("./routes/messageRoutes"),
+  admin: require("./routes/adminRoutes"),
+  investors: require("./routes/investorRoutes"),
+  templates: require("./routes/templateRoute"),
+  mentors: require("./routes/mentorRoutes"),
+  categories: require("./routes/categoryRoutes"),
+  shaktiSangam: require("./routes/shaktiSangamRoutes"),
+  logs: require("./routes/userLogs"),
+  api: require("./routes/api"),
+  legal: require("./routes/openaiRoutes"),
+  cofounders: require("./routes/coFounderRoutes"),
+};
 
+// ─────────────────────────────────────────────────────────────
+// ✅ App Initialization
+// ─────────────────────────────────────────────────────────────
 const app = express();
 connectDB();
 seedMentorData();
 seedInvestorData();
 seedCategoryData();
 
-// CORS Setup
+// ─────────────────────────────────────────────────────────────
+// ✅ CORS Setup
+// ─────────────────────────────────────────────────────────────
 const allowedOrigins =
   process.env.NODE_ENV === "production"
     ? [
         "https://app.incubationmasters.com",
         "https://app.incubationmasters.com:5000",
         "https://incubationmasters.com",
-        "http://localhost:3000",
-        "http://localhost:3001",
         "https://admin.incubationmasters.com",
         "https://www.incubationmasters.com",
+        "http://localhost:3000",
+        "http://localhost:3001",
       ]
     : [
         "http://localhost:3000",
-        "http://localhost:5000",
         "http://localhost:3001",
+        "http://localhost:3002",
+        "http://localhost:5000",
         "http://localhost:5173",
       ];
 
@@ -69,25 +86,35 @@ const corsOptions = {
       return callback(null, true);
     }
     return callback(
-      new Error("CORS policy does not allow access from this origin"),
-      false
+      new Error("CORS policy does not allow access from this origin")
     );
   },
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token"],
   credentials: true,
   optionsSuccessStatus: 204,
 };
 
+<<<<<<< HEAD
 
 app.use("*", cors(corsOptions));
+=======
+app.use(cors(corsOptions));
+>>>>>>> 1b9b11e3d88c5aa4dfedaac70722788f97046ca8
 
-// Middleware
+// ─────────────────────────────────────────────────────────────
+// ✅ Global Middleware
+// ─────────────────────────────────────────────────────────────
 app.use(helmet());
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
+// ─────────────────────────────────────────────────────────────
+// ✅ Session Configuration
+// ─────────────────────────────────────────────────────────────
 app.use(
   session({
     name: "sessionId",
@@ -102,18 +129,22 @@ app.use(
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-      maxAge: 24 * 60 * 60 * 1000,
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
     },
   })
 );
 
-// Logging
+// ─────────────────────────────────────────────────────────────
+// ✅ Request Logging
+// ─────────────────────────────────────────────────────────────
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.url} - Session ID: ${req.sessionID}`);
   next();
 });
 
-// Multer Configuration
+// ─────────────────────────────────────────────────────────────
+// ✅ Multer File Upload Configuration
+// ─────────────────────────────────────────────────────────────
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     let folder = "uploads/template";
@@ -123,6 +154,7 @@ const storage = multer.diskStorage({
     else if (url.includes("/api/mentors")) folder = "uploads/mentors";
     else if (url.includes("/api/categories")) folder = "uploads/categories";
     else if (url.includes("/api/templates")) folder = "uploads/templates";
+    else if (url.includes("/api/startup")) folder = "uploads";
 
     if (!fs.existsSync(folder)) fs.mkdirSync(folder, { recursive: true });
     cb(null, folder);
@@ -133,13 +165,11 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-  if (
+  const isImageRoute =
     req.originalUrl.includes("/api/investors") ||
-    req.originalUrl.includes("/api/cofounders")
-  ) {
-    return file.mimetype.startsWith("image/")
-      ? cb(null, true)
-      : cb(new Error("Not an image! Please upload an image file."), false);
+    req.originalUrl.includes("/api/cofounders");
+  if (isImageRoute && !file.mimetype.startsWith("image/")) {
+    return cb(new Error("Not an image! Please upload an image file."), false);
   }
   cb(null, true);
 };
@@ -147,44 +177,50 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 },
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
 });
 
-// Routes
+// ─────────────────────────────────────────────────────────────
+// ✅ Base Route
+// ─────────────────────────────────────────────────────────────
 app.get("/", (req, res) => {
   res.json({
     message: "Incubation Masters API",
     status: "OK",
     timestamp: new Date().toISOString(),
-    endpoints: ["/api/v1/startups", "/api/v1/csrf-token"],
+    endpoints: ["/api/startup", "/api/auth", "/api/templates", "..."],
   });
 });
 
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// ─────────────────────────────────────────────────────────────
+// ✅ Routes
+// ─────────────────────────────────────────────────────────────
+app.use("/api/auth", routes.auth);
+app.use("/api/team", routes.team);
+app.use("/api/company", routes.company);
+app.use("/api/document", routes.document);
+app.use("/api/matrix", routes.matrix);
+app.use("/api/leads", routes.leads);
+app.use("/api/job-requests", routes.jobRequests);
+app.use("/api/todos", routes.todos);
+app.use("/api/startup", routes.startup);
+app.use("/api/unicorn", routes.unicorn);
+app.use("/api/resource", routes.resources(upload));
+app.use("/api/messages", routes.messages);
+app.use("/api/admin", routes.admin);
+app.use("/api/investors", routes.investors(upload));
+app.use("/api/templates", routes.templates(upload));
+app.use("/api/mentors", routes.mentors(upload));
+app.use("/api/categories", routes.categories(upload));
+app.use("/api/shaktiSangam", routes.shaktiSangam);
+app.use("/api/logs", routes.logs);
+app.use("/api", routes.api);
+app.use("/api/legal", routes.legal);
+app.use("/api/cofounders", routes.cofounders(upload));
 
-app.use("/api/auth", authRoutes);
-app.use("/api/team", teamRoutes);
-app.use("/api/company", companyRoutes);
-app.use("/api/document", documentRoutes);
-app.use("/api/matrix", matrixRoutes);
-app.use("/api/leads", leadRoutes);
-app.use("/api/job-requests", jobRequestRoutes);
-app.use("/api/todos", todoRoutes);
-app.use("/api/startup", startupRoutes);
-app.use("/api/unicorn", pathToUnicorn);
-app.use("/api/resource", resourceRoutes(upload));
-app.use("/api/messages", messageRoutes);
-app.use("/api/admin", adminRoutes);
-app.use("/api/investors", investorRoutes(upload));
-app.use("/api/templates", templateRoute(upload));
-app.use("/api/mentors", mentorRoutes(upload));
-app.use("/api/categories", categoryRoutes(upload));
-app.use("/api/shaktiSangam", shaktiSangamRoutes);
-app.use("/api/logs", userLogsRoutes);
-app.use("/api", apiRoutes);
-app.use("/api/cofounders", coFounderRoutes(upload));
-
-// Error Handling
+// ─────────────────────────────────────────────────────────────
+// ✅ Error Handlers
+// ─────────────────────────────────────────────────────────────
 app.use((err, req, res, next) => {
   if (err instanceof multer.MulterError) {
     return res.status(400).json({ error: `Multer Error: ${err.message}` });
@@ -201,7 +237,9 @@ app.use((err, req, res, next) => {
     .json({ error: err.message || "Internal Server Error" });
 });
 
-// Server
+// ─────────────────────────────────────────────────────────────
+// ✅ Server Start (HTTPS in production)
+// ─────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
 const HOST = "0.0.0.0";
 
@@ -217,17 +255,17 @@ if (process.env.NODE_ENV === "production") {
       cert: fs.readFileSync(SSL_CERT_PATH),
     };
     https.createServer(httpsOptions, app).listen(PORT, HOST, () => {
-      console.log(`Secure server running at https://${HOST}:${PORT}`);
+      console.log(`🔒 HTTPS Server running at https://${HOST}:${PORT}`);
     });
   } else {
-    console.warn("SSL certificates missing. Falling back to HTTP.");
+    console.warn("⚠️ SSL certificates not found. Starting HTTP server...");
     app.listen(PORT, HOST, () => {
-      console.log(`Server running at http://${HOST}:${PORT}`);
+      console.log(`🌐 HTTP Server running at http://${HOST}:${PORT}`);
     });
   }
 } else {
   app.listen(PORT, HOST, () => {
-    console.log(`Server running at http://${HOST}:${PORT}`);
+    console.log(`🌐 Dev server running at http://${HOST}:${PORT}`);
   });
 }
 

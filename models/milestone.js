@@ -14,7 +14,7 @@ const milestoneSchema = new mongoose.Schema({
   solution: { type: String, required: true },
   founder1: { type: String, required: true },
   founder2: { type: String },
-  country: { type: String, required: true },
+  country: { type: String, required: true, default: "India" },
   revenueStatus: { type: String, required: true },
   milestones: { type: Object, required: true }, // Storing all milestones in a single object
   createdAt: { type: Date, default: Date.now },

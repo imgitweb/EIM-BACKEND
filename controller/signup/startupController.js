@@ -3,8 +3,10 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const StartupModel = require("../../models/signup/StartupModel");
+const saveMilestoneDataToDB = require("../../models/alphaPath");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const { mileStonePrompt, callOpenAI } = require("../milistoneController");
 
 // Load plans with error handling
 const getPlans = () => {
@@ -24,7 +26,7 @@ const getPlans = () => {
 exports.getPlans = (req, res) => {
   try {
     const plans = getPlans();
-    if (!plans || plans.length === 0) {
+    if (!plans || plans.length === 0 || plans.length === "Free") {
       return res
         .status(500)
         .json({ error: "Plans configuration not available" });
@@ -118,6 +120,23 @@ exports.createStartup = async (req, res) => {
       { expiresIn: "24h" }
     );
 
+    const data = {
+      startupName: startupName, // No fallback
+      country: country, // No fallback
+    };
+    const milestoneData = await callOpenAI(data);
+
+    if (milestoneData.error) {
+      console.error("Milestone generation failed:", milestoneData.debug);
+      // Proceed with startup creation even if milestones fail
+    } else {
+      try {
+        await saveMilestoneDataToDB(milestoneData); // replace with actual DB function
+        console.log("Milestone data saved successfully.");
+      } catch (dbError) {
+        console.error("Error saving milestone data to the database:", dbError);
+      }
+    }
     res.status(201).json({
       success: true,
       startupId: startup._id,
@@ -127,6 +146,73 @@ exports.createStartup = async (req, res) => {
   } catch (error) {
     console.error("Create Startup Error:", error);
     res.status(500).json({ error: "Failed to create startup" });
+  }
+};
+
+exports.updateStartupProfile = async (req, res) => {
+  try {
+    const startupId = req.params.id;
+
+    // Find existing startup
+    const startup = await StartupModel.findById(startupId);
+    if (!startup) {
+      return res.status(404).json({ error: "Startup not found" });
+    }
+
+    const {
+      firstName,
+      lastName,
+      email,
+      startupName,
+      contactPersonName,
+      country,
+      state,
+      industry,
+      website,
+      startupStage,
+      contactNumber,
+      elevatorPitch,
+    } = req.body;
+
+    // Reject password or plan updates if attempted
+    if ("password" in req.body || "selectedPlan" in req.body) {
+      console.warn(
+        "Attempted to update restricted fields for startup:",
+        startupId
+      );
+    }
+
+    // Update only profile-related fields
+    if (firstName) startup.firstName = firstName;
+    if (lastName) startup.lastName = lastName;
+    if (email) startup.email = email;
+    if (startupName) startup.startupName = startupName;
+    if (contactPersonName) startup.contactPersonName = contactPersonName;
+    if (country) startup.country = country;
+    if (state) startup.state = state;
+    if (industry) startup.industry = industry;
+    if (website) startup.website = website;
+    if (startupStage) startup.startupStage = startupStage;
+    if (contactNumber) startup.contactNumber = contactNumber;
+    if (elevatorPitch) startup.elevatorPitch = elevatorPitch;
+
+    // Handle photo/logo upload if file provided
+    if (req.file) {
+      startup.logoUrl = `/uploads/${req.file.filename}`;
+    }
+
+    await startup.save();
+
+    const { password, ...updatedStartup } = startup.toObject();
+
+    res.status(200).json({
+      success: true,
+      message: "Startup profile updated successfully",
+      startup: updatedStartup,
+    });
+  } catch (error) {
+    console.error("Update Startup Profile Error:", error);
+    res.status(500).json({ error: "Failed to update startup profile" });
   }
 };
 
