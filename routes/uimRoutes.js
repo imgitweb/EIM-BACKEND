@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const UimRegister = require("../models/UimRegister");
+const UimRegister = require("../models/RegisterModel")
 
 router.post("/register", async (req, res) => {
   try {
