@@ -212,7 +212,7 @@ app.use("/api/logs", routes.logs);
 app.use("/api", routes.api);
 app.use("/api/legal", routes.legal);
 app.use("/api/cofounders", routes.cofounders(upload));
-app.use("/api/uim", require("./routes/uimRoutes"));
+app.use("/api/chatgpt", require("./routes/chatGptRoutes"));
 
 
 // ─────────────────────────────────────────────────────────────
