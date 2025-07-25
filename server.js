@@ -213,6 +213,9 @@ app.use("/api", routes.api);
 app.use("/api/legal", routes.legal);
 app.use("/api/cofounders", routes.cofounders(upload));
 app.use("/api/chatgpt", require("./routes/chatGptRoutes"));
+app.use("/api/idea", require("./routes/chatGptRoutes"));
+
+
 
 
 // ─────────────────────────────────────────────────────────────

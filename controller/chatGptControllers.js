@@ -4,6 +4,8 @@ const {
   unicornIdeasPredictionPrompt,
 } = require("../controller/helper/helper.js");
 
+const Idea = require("../models/IdeaModel");
+
 const GenerateIdeaForUim = async (req, res) => {
   try {
     const { sectors, focus, market, interest, skills } = req.body;
@@ -17,9 +19,9 @@ const GenerateIdeaForUim = async (req, res) => {
     const prompt = generateUimPrompt(formData);
 
     const response = await generateApi(prompt);
-    // console.log("Raw Response:", response);
+    console.log("Raw Response:", response);
 
-    // Split the response into an array using numbering format "1.", "2.", etc.
+   
     const ideasArray = response
       .split(/\n?\d+\.\s+/)
       .filter(Boolean)
@@ -46,7 +48,7 @@ const UnicornIdeasPrediction = async (req, res) => {
 
     const prompt = unicornIdeasPredictionPrompt(idea);
     const response = await generateApi(prompt);
-    // console.log("Unicorn Prediction Response:", response);
+    console.log("Unicorn Prediction Response:", response);
 
     res.status(200).json({
       message: "Unicorn prediction generated successfully",
@@ -58,7 +60,30 @@ const UnicornIdeasPrediction = async (req, res) => {
   }
 };
 
+const SaveUserSelectedIdea = async (req, res) => {
+  try {
+    const {  idea, response} = req.body;
+
+    console.log("Received body:", req.body); 
+
+    if (!idea || !response ) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const newIdea = new Idea({ idea, response });
+    await newIdea.save();
+
+    res.status(200).json({ message: "Idea saved successfully", data: newIdea });
+  } catch (error) {
+    console.error(" Error in SaveUserSelectedIdea:", error); 
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+
 module.exports = {
   GenerateIdeaForUim,
   UnicornIdeasPrediction,
+  SaveUserSelectedIdea,
+  
 };
