@@ -10,24 +10,23 @@ const GenerateIdeaForUim = async (req, res) => {
   try {
     const { sectors, focus, market, interest, skills } = req.body;
 
-    // Validate required fields
     if (!sectors || !focus || !market || !interest || !skills) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    const formData = { sectors, focus, market, interest, skills };
-    const prompt = generateUimPrompt(formData);
-
+    const prompt = generateUimPrompt({
+      sectors,
+      focus,
+      market,
+      interest,
+      skills,
+    });
     const response = await generateApi(prompt);
-    console.log("Raw Response:", response);
 
-   
     const ideasArray = response
       .split(/\n?\d+\.\s+/)
       .filter(Boolean)
       .map((idea) => idea.trim());
-
-    console.log("Parsed Ideas:", ideasArray);
 
     res.status(200).json({
       message: "Ideas generated successfully",
@@ -48,7 +47,6 @@ const UnicornIdeasPrediction = async (req, res) => {
 
     const prompt = unicornIdeasPredictionPrompt(idea);
     const response = await generateApi(prompt);
-    console.log("Unicorn Prediction Response:", response);
 
     res.status(200).json({
       message: "Unicorn prediction generated successfully",
@@ -60,30 +58,39 @@ const UnicornIdeasPrediction = async (req, res) => {
   }
 };
 
-const SaveUserSelectedIdea = async (req, res) => {
+const SaveIdeasWithSelection = async (req, res) => {
   try {
-    const {  idea, response} = req.body;
+    const { ideas, selectedIdea } = req.body;
 
-    console.log("Received body:", req.body); 
-
-    if (!idea || !response ) {
-      return res.status(400).json({ message: "All fields are required" });
+    if (!ideas || ideas.length === 0 || !selectedIdea) {
+      return res
+        .status(400)
+        .json({ message: "Ideas and selected idea are required" });
     }
 
-    const newIdea = new Idea({ idea, response });
-    await newIdea.save();
+    const { idea, response } = selectedIdea;
 
-    res.status(200).json({ message: "Idea saved successfully", data: newIdea });
+    const newIdeas = new Idea({
+      ideas,
+      idea,
+      response,
+    });
+
+    await newIdeas.save();
+
+    res.status(200).json({
+      message: "Ideas and selected idea saved successfully",
+      data: newIdeas,
+    });
   } catch (error) {
-    console.error(" Error in SaveUserSelectedIdea:", error); 
-    res.status(500).json({ message: "Internal server error" });
+    console.error("Error saving ideas and selected idea:", error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
-}
+};
 
 
 module.exports = {
   GenerateIdeaForUim,
   UnicornIdeasPrediction,
-  SaveUserSelectedIdea,
-  
+  SaveIdeasWithSelection,
 };
