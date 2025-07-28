@@ -96,12 +96,8 @@ const corsOptions = {
   optionsSuccessStatus: 204,
 };
 
-<<<<<<< HEAD
-
-app.use("*", cors(corsOptions));
-=======
 app.use(cors(corsOptions));
->>>>>>> 1b9b11e3d88c5aa4dfedaac70722788f97046ca8
+
 
 // ─────────────────────────────────────────────────────────────
 // ✅ Global Middleware
