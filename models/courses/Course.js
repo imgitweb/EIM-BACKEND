@@ -6,6 +6,8 @@ const CourseSchema = new mongoose.Schema({
   subcategory: String,
   language: String,
   duration: String, 
+  milestone: String,
+  rating: { type: Number, default: 0 },
   level: { type: String, enum: ['Beginner', 'Intermediate', 'Advanced'] },
   price: { type: Number, default: 0 },
   isFree: { type: Boolean, default: false },
@@ -18,4 +20,6 @@ const CourseSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-export default mongoose.model('Course', CourseSchema);
+
+const Course = mongoose.model('Course', CourseSchema);
+export default Course;
