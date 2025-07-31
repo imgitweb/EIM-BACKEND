@@ -8,8 +8,15 @@ const ideaSchema = new mongoose.Schema(
         chance: String,
       },
     ],
-    idea: String, 
-    response: String, 
+    idea: String,
+    response: String,
+    summaries: [
+      {
+        title: String,
+        summary: String,
+        time: Date,
+      },
+    ],
   },
   { timestamps: true }
 );

@@ -35,7 +35,7 @@ const generateUimPrompt = (formData) => {
 };
 
 const unicornIdeasPredictionPrompt = (idea) => {
-  return `You are a startup assistant. I will give you a business idea, and I want you to generate a detailed AI-driven startup summary in the exact structure shown below. The format must match the example screenshot and return the output **only as JSON**, with clearly labeled keys for each section.
+  return `You are a startup assistant. I will give you a business idea, and I want you to generate a detailed AI-driven startup summary in the exact structure shown below. The format must match the example and return the output **only as JSON**, with clearly labeled keys for each section.
 
 Here is the required structure:
 {
@@ -69,12 +69,12 @@ Here is the required structure:
   },
   "Unicorn Radar Score": {
     "Score": "XX%",
-    "Insight": "Likelihood of becoming a unicorn in the next 5–7 years (Based on AI prediction model)"
+    "Insight": "Likelihood of becoming a unicorn in the next 5–7 years (Based on AI prediction model & market analysis)"
   }
 }
 
-Now, my business idea is: ${idea}
-`;
+Now, my business idea is: ${idea}. Please analyze the **Indian and global market trends** to calculate the "Unicorn Radar Score" as a percentage (0–100%) and provide insights for the score.`;
+
 };
 module.exports = {
   generateApi,
