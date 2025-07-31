@@ -21,6 +21,8 @@ const VideoSchema = new mongoose.Schema({
     enum: ['youtube', 'upload'],
   },
   videoUrl: String, 
+ vimeoId: String, // For Vimeo uploads
+  videoFile: String, // Path to the uploaded video file
   transcript: String,
   generateAssessment: {
     type: Boolean,

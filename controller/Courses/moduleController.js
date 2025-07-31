@@ -33,6 +33,7 @@ export const addModule = async (req, res) => {
 };
 
 
+
 export const getModulesByCourse = async (req, res) => {
   try {
     const { courseId } = req.params;

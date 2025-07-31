@@ -16,6 +16,8 @@ export const createCourse = async (req, res) => {
       tags,
     } = req.body;
 
+    console.log('Creating course:', req.body);
+
     const thumbnail = req.file ? req.file.filename : null;
 
     // ✅ Safely normalize tags
