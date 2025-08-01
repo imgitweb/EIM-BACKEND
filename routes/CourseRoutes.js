@@ -9,6 +9,7 @@ const {
   getAllCourses,
   getCourseById,
   updateCourse,
+  getFullCourseByID,
 } = require('../controller/Courses/courseController');
 
 const {
@@ -68,5 +69,10 @@ router.get('/videos/:moduleId', getVideosByModule);
 
 router.put('/videos/:id', updateVideo);
 router.delete('/videos/:id', deleteVideo);
+
+
+
+
+router.get('/full-course/:id', getFullCourseByID);
 
 module.exports = router;

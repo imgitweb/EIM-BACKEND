@@ -1,6 +1,8 @@
 import path from 'path';
 import fs from 'fs';
 import Course from '../../models/courses/Course.js';
+import Module from '../../models/courses/Module.js';
+import Video from '../../models/courses/Video.js';
 
 export const createCourse = async (req, res) => {
   try {
@@ -60,6 +62,7 @@ export const getAllCourses = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 };
+
 export const getCourseById = async (req, res) => {
   try {
     const course = await Course.findById(req.params.id);
@@ -72,6 +75,82 @@ export const getCourseById = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 };
+
+export const getFullCourseByID = async (req, res) => {
+  try {
+    const courseId = req.params.id;
+
+    // Fetch course
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
+
+    // Fetch modules for the course
+    const modules = await Module.find({ course: courseId }).sort({ createdAt: -1 });
+    if (!modules || modules.length === 0) {
+      return res.status(404).json({ error: 'No modules found for this course' });
+    }
+
+    const moduleIds = modules.map(mod => mod._id);
+
+    // Fetch all videos and group them by module
+    const videosByModule = await Video.aggregate([
+      { $match: { module: { $in: moduleIds } } },
+      {
+        $group: {
+          _id: "$module",
+          videos: {
+            $push: {
+              _id: "$_id",
+              title: "$title",
+              type: "$type",
+              videoUrl: "$videoUrl",
+              vimeoId: "$vimeoId",
+              videoFile: "$videoFile",
+              transcript: "$transcript",
+              generateAssessment: "$generateAssessment",
+              duration: "$duration",
+              createdAt: "$createdAt"
+            }
+          },
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    // Create a map for module -> videos
+    const videoMap = {};
+    videosByModule.forEach(entry => {
+      videoMap[entry._id.toString()] = {
+        videos: entry.videos,
+        videoCount: entry.count
+      };
+    });
+
+    // Build module array with video details
+    const modulesWithVideos = modules.map(mod => {
+      const videoData = videoMap[mod._id.toString()] || { videos: [], videoCount: 0 };
+      return {
+        ...mod.toObject(),
+        videoCount: videoData.videoCount,
+        videos: videoData.videos
+      };
+    });
+
+    res.json({
+      course,
+      modules: modulesWithVideos
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+
+
 
 export const updateCourse = async (req, res) => {
     try {
