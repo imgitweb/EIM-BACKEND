@@ -216,7 +216,14 @@ app.use("/api/logs", routes.logs);
 app.use("/api", routes.api);
 app.use("/api/legal", routes.legal);
 app.use("/api/cofounders", routes.cofounders(upload));
-app.use("/api", courseRoutes);
+app.use("/api/chatgpt", require("./routes/chatGptRoutes"));
+app.use("/api/idea", require("./routes/chatGptRoutes"));
+app.use("/api/uim-register", require("./routes/chatGptRoutes"));
+
+
+
+
+
 
 // ─────────────────────────────────────────────────────────────
 // ✅ Error Handlers
