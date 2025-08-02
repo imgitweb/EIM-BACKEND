@@ -12,6 +12,7 @@ const cookieParser = require("cookie-parser");
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
 require("dotenv").config();
+const courseRoutes = require("./routes/CourseRoutes") ;
 
 // ─────────────────────────────────────────────────────────────
 // ✅ Import Custom Modules
@@ -47,6 +48,7 @@ const routes = {
   api: require("./routes/api"),
   legal: require("./routes/openaiRoutes"),
   cofounders: require("./routes/coFounderRoutes"),
+  course: require("./routes/CourseRoutes"),
 };
 
 // ─────────────────────────────────────────────────────────────
@@ -214,6 +216,7 @@ app.use("/api/logs", routes.logs);
 app.use("/api", routes.api);
 app.use("/api/legal", routes.legal);
 app.use("/api/cofounders", routes.cofounders(upload));
+app.use("/api", courseRoutes);
 
 // ─────────────────────────────────────────────────────────────
 // ✅ Error Handlers
