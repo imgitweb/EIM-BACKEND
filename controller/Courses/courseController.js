@@ -55,13 +55,33 @@ export const createCourse = async (req, res) => {
 
 export const getAllCourses = async (req, res) => {
   try {
-    const courses = await Course.find().sort({ createdAt: -1 });
-    res.json(courses);
+    const page = parseInt(req.query.page) || 1;       // Default to page 1
+    const limit = parseInt(req.query.limit) || 10;    // Default to 10 items per page
+    const skip = (page - 1) * limit;
+
+    const courses = await Course.find()
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await Course.countDocuments();
+    if (!courses || courses.length === 0) {
+      return res.status(404).json({ error: 'No courses found' });
+    }
+
+
+    res.json({
+      data: courses,
+      currentPage: page,
+      totalPages: Math.ceil(total / limit),
+      hasMore: skip + courses.length < total
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });
   }
 };
+
 
 export const getCourseById = async (req, res) => {
   try {
@@ -79,6 +99,7 @@ export const getCourseById = async (req, res) => {
 export const getFullCourseByID = async (req, res) => {
   try {
     const courseId = req.params.id;
+    console.log("Fetching full course details for ID:", courseId);
 
     // Fetch course
     const course = await Course.findById(courseId);
