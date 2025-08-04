@@ -12,7 +12,6 @@ const cookieParser = require("cookie-parser");
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
 require("dotenv").config();
-const courseRoutes = require("./routes/CourseRoutes") ;
 
 // ─────────────────────────────────────────────────────────────
 // ✅ Import Custom Modules
@@ -49,6 +48,8 @@ const routes = {
   legal: require("./routes/openaiRoutes"),
   cofounders: require("./routes/coFounderRoutes"),
   course: require("./routes/CourseRoutes"),
+  postCoFounder: require("./routes/postCoFounderRoutes"),
+
 };
 
 // ─────────────────────────────────────────────────────────────
@@ -220,6 +221,7 @@ app.use("/api/cofounders", routes.cofounders(upload));
 app.use("/api/chatgpt", require("./routes/chatGptRoutes"));
 app.use("/api/idea", require("./routes/chatGptRoutes"));
 app.use("/api/uim-register", require("./routes/chatGptRoutes"));
+app.use("/api/post-cofounder",routes.postCoFounder);
 
 
 
