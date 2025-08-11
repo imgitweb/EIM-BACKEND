@@ -1,4 +1,4 @@
-// controllers/postCoFounderController.js
+
 const PostCoFounder = require("../models/PostCoFounderModel");
 
 const createPostCoFounder = async (req, res) => {
