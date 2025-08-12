@@ -20,6 +20,7 @@ const connectDB = require("./config/db");
 const seedMentorData = require("./seeding/mentorSeed");
 const seedInvestorData = require("./seeding/seedInvestorData");
 const seedCategoryData = require("./seeding/seedCategoryData");
+const courseRoutes = require("./routes/CourseRoutes");
 
 // ─────────────────────────────────────────────────────────────
 // ✅ Import Routes
