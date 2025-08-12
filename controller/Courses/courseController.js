@@ -66,8 +66,7 @@ const createCourse = async (req, res) => {
 
 const getAllCourses = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+  
 
     // Validate pagination parameters
     if (page < 1 || limit < 1 || limit > 100) {
@@ -77,6 +76,8 @@ const getAllCourses = async (req, res) => {
       });
     }
 
+    const page = parseInt(req.query.page) || 1;       // Default to page 1
+    const limit = parseInt(req.query.limit) || 10;    // Default to 10 items per page
     const skip = (page - 1) * limit;
 
     const courses = await Course.find()
@@ -87,12 +88,18 @@ const getAllCourses = async (req, res) => {
     const total = await Course.countDocuments();
 
     // Don't return 404 for empty results, return empty array instead
+    if (!courses || courses.length === 0) {
+      return res.status(404).json({ error: 'No courses found' });
+    }
+
+
     res.json({
       data: courses,
       currentPage: page,
       totalPages: Math.ceil(total / limit),
       totalCount: total,
       hasMore: skip + courses.length < total,
+      hasMore: skip + courses.length < total
     });
   } catch (err) {
     console.error("Error fetching courses:", err);
@@ -100,7 +107,9 @@ const getAllCourses = async (req, res) => {
   }
 };
 
-const getCourseById = async (req, res) => {
+
+
+export const getCourseById = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -335,4 +344,5 @@ module.exports = {
   getFullCourseByID,
   updateCourse,
   deleteCourse,
-};
+}
+
