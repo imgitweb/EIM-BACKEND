@@ -12,7 +12,6 @@ const cookieParser = require("cookie-parser");
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
 require("dotenv").config();
-const courseRoutes = require("./routes/CourseRoutes") ;
 
 // ─────────────────────────────────────────────────────────────
 // ✅ Import Custom Modules
@@ -49,11 +48,15 @@ const routes = {
   legal: require("./routes/openaiRoutes"),
   cofounders: require("./routes/coFounderRoutes"),
   course: require("./routes/CourseRoutes"),
+  postCoFounder: require("./routes/postCoFounderRoutes"),
+  startupHireTeamRoutes: require("./routes/startupHireTeamRoutes"),
+  PostCoFounderRequirementsRoutes: require("./routes/PostCoFounderRequirementsRoutes"),
 };
 
 // ─────────────────────────────────────────────────────────────
 // ✅ App Initialization
 // ─────────────────────────────────────────────────────────────
+
 const app = express();
 connectDB();
 seedMentorData();
@@ -101,7 +104,6 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-
 
 // ─────────────────────────────────────────────────────────────
 // ✅ Global Middleware
@@ -221,11 +223,12 @@ app.use("/api/chatgpt", require("./routes/chatGptRoutes"));
 app.use("/api/idea", require("./routes/chatGptRoutes"));
 app.use("/api/uim-register", require("./routes/chatGptRoutes"));
 app.use("/api", courseRoutes);
-
-
-
-
-
+app.use("/api/post-cofounder", routes.postCoFounder);
+app.use("/api/startup-hire", routes.startupHireTeamRoutes);
+app.use(
+  "/api/PostCoFounderRequirement",
+  routes.PostCoFounderRequirementsRoutes
+);
 
 // ─────────────────────────────────────────────────────────────
 // ✅ Error Handlers
@@ -277,4 +280,3 @@ if (process.env.NODE_ENV === "production") {
     console.log(`🌐 Dev server running at http://${HOST}:${PORT}`);
   });
 }
-
