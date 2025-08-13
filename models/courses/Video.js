@@ -1,14 +1,14 @@
-import mongoose from 'mongoose';
+const mongoose = require("mongoose");
 
 const VideoSchema = new mongoose.Schema({
   course: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Course',
+    ref: "Course",
     required: true,
   },
   module: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Module',
+    ref: "Module",
     required: true,
   },
   title: {
@@ -16,12 +16,12 @@ const VideoSchema = new mongoose.Schema({
     required: true,
   },
   type: {
-    type: String, 
+    type: String,
     required: true,
-    enum: ['youtube', 'upload'],
+    enum: ["youtube", "upload"],
   },
-  videoUrl: String, 
- vimeoId: String, // For Vimeo uploads
+  videoUrl: String,
+  vimeoId: String, // For Vimeo uploads
   videoFile: String, // Path to the uploaded video file
   transcript: String,
   generateAssessment: {
@@ -35,4 +35,5 @@ const VideoSchema = new mongoose.Schema({
   },
 });
 
-export default mongoose.model('Video', VideoSchema);
+const Video = mongoose.model("Video", VideoSchema);
+module.exports = Video;

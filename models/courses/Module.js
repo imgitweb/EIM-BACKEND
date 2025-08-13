@@ -1,9 +1,9 @@
-import mongoose from 'mongoose';
+const mongoose = require("mongoose");
 
 const ModuleSchema = new mongoose.Schema({
   course: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Course', 
+    ref: "Course",
     required: true,
   },
   name: {
@@ -18,4 +18,5 @@ const ModuleSchema = new mongoose.Schema({
   },
 });
 
-export default mongoose.model('Module', ModuleSchema);
+const module = mongoose.model("Module", ModuleSchema);
+module.exports = module;
