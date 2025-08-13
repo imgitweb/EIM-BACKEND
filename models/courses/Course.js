@@ -1,17 +1,17 @@
-import mongoose from 'mongoose';
+const mongoose = require("mongoose");
 
 const CourseSchema = new mongoose.Schema({
   title: { type: String, required: true },
   category: { type: String, required: true },
   subcategory: String,
   language: String,
-  duration: String, 
+  duration: String,
   milestone: String,
   rating: { type: Number, default: 0 },
-  level: { type: String, enum: ['Beginner', 'Intermediate', 'Advanced'] },
+  level: { type: String, enum: ["Beginner", "Intermediate", "Advanced"] },
   price: { type: Number, default: 0 },
   isFree: { type: Boolean, default: false },
-  thumbnail: String, 
+  thumbnail: String,
   instructor: String,
   description: String,
   objectives: [String],
@@ -20,6 +20,5 @@ const CourseSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-
-const Course = mongoose.model('Course', CourseSchema);
-export default Course;
+const Course = mongoose.model("Course", CourseSchema);
+module.exports = Course;
