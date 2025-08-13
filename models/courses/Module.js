@@ -18,5 +18,5 @@ const ModuleSchema = new mongoose.Schema({
   },
 });
 
-const module = mongoose.model("Module", ModuleSchema);
-module.exports = module;
+const ModuleModel = mongoose.model("Module", ModuleSchema);
+module.exports = ModuleModel;
