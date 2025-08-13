@@ -1,8 +1,8 @@
 const path = require("path");
 const fs = require("fs");
-import Course from "../../models/courses/Course.js";
-import Module from "../../models/courses/Module.js";
-import Video from "../../models/courses/Video.js";
+const Course = require("../../models/courses/Course.js");
+const Module = require("../../models/courses/Module.js");
+const Video = require("../../models/courses/Video.js");
 
 export const createCourse = async (req, res) => {
   try {

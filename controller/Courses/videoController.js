@@ -1,8 +1,8 @@
-import Video from '../../models/courses/Video.js';
-import Course from '../../models/courses/Course.js';
-import Module from '../../models/courses/Module.js';
-import { uploadToVimeo } from '../../utils/vimeoUploader.js';
-import fs from 'fs';
+const Video = require("../../models/courses/Video.js");
+const Course = require("../../models/courses/Course.js");
+const Module = require("../../models/courses/Module.js");
+const { uploadToVimeo } = require("../../utils/vimeoUploader.js");
+const fs = require("fs");
 
 // export const uploadVideo = async (req, res) => {
 //   try {
@@ -46,7 +46,6 @@ import fs from 'fs';
 //   }
 // };
 
-
 export const uploadVideo = async (req, res) => {
   try {
     const {
@@ -60,16 +59,20 @@ export const uploadVideo = async (req, res) => {
     } = req.body;
 
     if (!courseId || !moduleId || !title || !type) {
-      return res.status(400).json({ success: false, message: 'Missing required fields' });
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing required fields" });
     }
 
     let finalVideoUrl = videoUrl || null;
     let vimeoId = null;
 
     // ▶ If file upload
-    if (type === 'upload') {
+    if (type === "upload") {
       if (!req.file) {
-        return res.status(400).json({ success: false, message: 'No video file uploaded' });
+        return res
+          .status(400)
+          .json({ success: false, message: "No video file uploaded" });
       }
 
       try {
@@ -77,12 +80,14 @@ export const uploadVideo = async (req, res) => {
         vimeoId = await uploadToVimeo(req.file.path, title);
         finalVideoUrl = `https://player.vimeo.com/video/${vimeoId}`;
       } catch (err) {
-        console.error('❌ Vimeo Upload Failed:', err);
-        return res.status(500).json({ success: false, message: 'Failed to upload to Vimeo' });
+        console.error("❌ Vimeo Upload Failed:", err);
+        return res
+          .status(500)
+          .json({ success: false, message: "Failed to upload to Vimeo" });
       } finally {
         // Delete local file after upload
         fs.unlink(req.file.path, (err) => {
-          if (err) console.error('❗ Error deleting file:', err);
+          if (err) console.error("❗ Error deleting file:", err);
         });
       }
     }
@@ -97,23 +102,23 @@ export const uploadVideo = async (req, res) => {
       vimeoId,
       transcript,
       generateAssessment: !!generateAssessment,
-      duration: '-', // Optional: enhance later
+      duration: "-", // Optional: enhance later
     });
 
     const savedVideo = await newVideo.save();
 
     return res.status(201).json({
       success: true,
-      message: 'Video uploaded successfully',
+      message: "Video uploaded successfully",
       data: savedVideo,
     });
-
   } catch (error) {
-    console.error('🔥 Upload Error:', error);
-    return res.status(500).json({ success: false, message: 'Internal server error' });
+    console.error("🔥 Upload Error:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
   }
 };
-
 
 export const getVimeoTranscript = async (req, res) => {
   const { vimeoId } = req.params;
@@ -121,7 +126,10 @@ export const getVimeoTranscript = async (req, res) => {
   try {
     // Replace with actual Vimeo transcription fetch logic
     const transcript = await fetchTranscriptFromVimeo(vimeoId); // implement this
-    if (!transcript) return res.status(404).json({ success: false, message: 'Transcript not found yet' });
+    if (!transcript)
+      return res
+        .status(404)
+        .json({ success: false, message: "Transcript not found yet" });
 
     return res.json({
       success: true,
@@ -129,7 +137,9 @@ export const getVimeoTranscript = async (req, res) => {
     });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ success: false, message: 'Error fetching transcript' });
+    return res
+      .status(500)
+      .json({ success: false, message: "Error fetching transcript" });
   }
 };
 
@@ -137,28 +147,34 @@ export const saveTranscript = async (req, res) => {
   const { id, transcript, transcriptionMethod } = req.body;
   try {
     const video = await Video.findById(id);
-    if (!video) return res.status(404).json({ success: false, message: 'Video not found' });
+    if (!video)
+      return res
+        .status(404)
+        .json({ success: false, message: "Video not found" });
 
     video.transcript = transcript;
-    video.transcriptionMethod = transcriptionMethod || 'manual';
+    video.transcriptionMethod = transcriptionMethod || "manual";
     await video.save();
 
-    res.json({ success: true, message: 'Transcript saved' });
+    res.json({ success: true, message: "Transcript saved" });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ success: false, message: 'Failed to save transcript' });
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to save transcript" });
   }
 };
-
 
 export const getVideosByModule = async (req, res) => {
   try {
     const { moduleId } = req.params;
-    const videos = await Video.find({ module: moduleId }).sort({ createdAt: -1 });
+    const videos = await Video.find({ module: moduleId }).sort({
+      createdAt: -1,
+    });
     res.json(videos);
   } catch (error) {
-    console.error('Fetch Videos Error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Fetch Videos Error:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 export const updateVideo = async (req, res) => {
@@ -167,33 +183,31 @@ export const updateVideo = async (req, res) => {
     const { title, type, videoUrl, transcript, generateAssessment } = req.body;
 
     const video = await Video.findById(id);
-    if (!video) return res.status(404).json({ error: 'Video not found' });
+    if (!video) return res.status(404).json({ error: "Video not found" });
 
     video.title = title || video.title;
     video.type = type || video.type;
-    video.videoUrl = type === 'youtube' ? videoUrl
-        : video.videoUrl; // Only update if type is youtube
+    video.videoUrl = type === "youtube" ? videoUrl : video.videoUrl; // Only update if type is youtube
 
     video.transcript = transcript || video.transcript;
     video.generateAssessment = generateAssessment || video.generateAssessment;
 
     const updatedVideo = await video.save();
-    res.json({ message: 'Video updated successfully', video: updatedVideo });
+    res.json({ message: "Video updated successfully", video: updatedVideo });
   } catch (error) {
-    console.error('Update Video Error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Update Video Error:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 export const deleteVideo = async (req, res) => {
   try {
     const { id } = req.params;
     const video = await Video.findByIdAndDelete(id);
-    if (!video) return res.status(404).json({ error: 'Video not found' });
+    if (!video) return res.status(404).json({ error: "Video not found" });
 
-    res.json({ message: 'Video deleted successfully' });
+    res.json({ message: "Video deleted successfully" });
   } catch (error) {
-    console.error('Delete Video Error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Delete Video Error:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
-
