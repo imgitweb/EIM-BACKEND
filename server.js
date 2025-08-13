@@ -72,13 +72,11 @@ const allowedOrigins =
     ? [
         "https://app.incubationmasters.com",
         "https://app.incubationmasters.com:5000",
-        "https://app.incubationmasters.com:5001",
         "https://incubationmasters.com",
         "https://admin.incubationmasters.com",
         "https://www.incubationmasters.com",
         "http://localhost:3000",
         "http://localhost:3001",
-        "http://incubationmasters.com:5001",
         "http://incubationmasters.com:5000",
         "http://incubationmasters.com",
       ]
