@@ -1,10 +1,11 @@
 const path = require("path");
-const fs = require("fs");
+const fs = require("fs").promises;
+const fsSync = require("fs");
 const Course = require("../../models/courses/Course.js");
 const Module = require("../../models/courses/Module.js");
 const Video = require("../../models/courses/Video.js");
 
-export const createCourse = async (req, res) => {
+const createCourse = async (req, res) => {
   try {
     const {
       title,
@@ -20,14 +21,24 @@ export const createCourse = async (req, res) => {
 
     console.log("Creating course:", req.body);
 
+    // Validate required fields
+    if (!title || !category || !description) {
+      return res.status(400).json({
+        error: "Missing required fields: title, category, description",
+      });
+    }
+
     const thumbnail = req.file ? req.file.filename : null;
 
     // ✅ Safely normalize tags
     let tagsArray = [];
     if (typeof tags === "string") {
-      tagsArray = tags.split(",").map((tag) => tag.trim());
+      tagsArray = tags
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter((tag) => tag);
     } else if (Array.isArray(tags)) {
-      tagsArray = tags.map((tag) => String(tag).trim());
+      tagsArray = tags.map((tag) => String(tag).trim()).filter((tag) => tag);
     }
 
     const course = new Course({
@@ -53,10 +64,19 @@ export const createCourse = async (req, res) => {
   }
 };
 
-export const getAllCourses = async (req, res) => {
+const getAllCourses = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1; // Default to page 1
-    const limit = parseInt(req.query.limit) || 10; // Default to 10 items per page
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    // Validate pagination parameters
+    if (page < 1 || limit < 1 || limit > 100) {
+      return res.status(400).json({
+        error:
+          "Invalid pagination parameters. Page must be >= 1, limit must be 1-100",
+      });
+    }
+
     const skip = (page - 1) * limit;
 
     const courses = await Course.find()
@@ -65,39 +85,48 @@ export const getAllCourses = async (req, res) => {
       .limit(limit);
 
     const total = await Course.countDocuments();
-    if (!courses || courses.length === 0) {
-      return res.status(404).json({ error: "No courses found" });
-    }
 
+    // Don't return 404 for empty results, return empty array instead
     res.json({
       data: courses,
       currentPage: page,
       totalPages: Math.ceil(total / limit),
+      totalCount: total,
       hasMore: skip + courses.length < total,
     });
   } catch (err) {
-    console.error(err);
+    console.error("Error fetching courses:", err);
     res.status(500).json({ error: "Server error" });
   }
 };
 
-export const getCourseById = async (req, res) => {
+const getCourseById = async (req, res) => {
   try {
-    const course = await Course.findById(req.params.id);
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ error: "Course ID is required" });
+    }
+
+    const course = await Course.findById(id);
     if (!course) {
       return res.status(404).json({ error: "Course not found" });
     }
     res.json(course);
   } catch (err) {
-    console.error(err);
+    console.error("Error fetching course:", err);
     res.status(500).json({ error: "Server error" });
   }
 };
 
-export const getFullCourseByID = async (req, res) => {
+const getFullCourseByID = async (req, res) => {
   try {
     const courseId = req.params.id;
     console.log("Fetching full course details for ID:", courseId);
+
+    if (!courseId) {
+      return res.status(400).json({ error: "Course ID is required" });
+    }
 
     // Fetch course
     const course = await Course.findById(courseId);
@@ -105,14 +134,17 @@ export const getFullCourseByID = async (req, res) => {
       return res.status(404).json({ error: "Course not found" });
     }
 
-    // Fetch modules for the course
+    // Fetch modules for the course - sort by order instead of createdAt for proper sequencing
     const modules = await Module.find({ course: courseId }).sort({
-      createdAt: -1,
+      order: 1,
     });
+
+    // Return course even if no modules exist
     if (!modules || modules.length === 0) {
-      return res
-        .status(404)
-        .json({ error: "No modules found for this course" });
+      return res.json({
+        course,
+        modules: [],
+      });
     }
 
     const moduleIds = modules.map((mod) => mod._id);
@@ -169,12 +201,12 @@ export const getFullCourseByID = async (req, res) => {
       modules: modulesWithVideos,
     });
   } catch (err) {
-    console.error(err);
+    console.error("Error fetching full course:", err);
     res.status(500).json({ error: "Server error" });
   }
 };
 
-export const updateCourse = async (req, res) => {
+const updateCourse = async (req, res) => {
   try {
     const { id } = req.params;
     const {
@@ -189,48 +221,118 @@ export const updateCourse = async (req, res) => {
       tags,
     } = req.body;
 
+    if (!id) {
+      return res.status(400).json({ error: "Course ID is required" });
+    }
+
+    // Check if course exists
+    const existingCourse = await Course.findById(id);
+    if (!existingCourse) {
+      return res.status(404).json({ error: "Course not found" });
+    }
+
+    // Safely handle tags
+    let tagsArray = [];
+    if (tags) {
+      if (typeof tags === "string") {
+        tagsArray = tags
+          .split(",")
+          .map((tag) => tag.trim())
+          .filter((tag) => tag);
+      } else if (Array.isArray(tags)) {
+        tagsArray = tags.map((tag) => String(tag).trim()).filter((tag) => tag);
+      }
+    }
+
     const updateData = {
-      title,
-      category,
-      subcategory,
-      description,
-      language,
-      rating: rating || 0,
-      level,
-      milestone,
-      tags: tags.split(",").map((tag) => tag.trim()),
+      title: title || existingCourse.title,
+      category: category || existingCourse.category,
+      subcategory: subcategory || existingCourse.subcategory,
+      description: description || existingCourse.description,
+      language: language || existingCourse.language,
+      rating: rating !== undefined ? rating : existingCourse.rating,
+      level: level || existingCourse.level,
+      milestone: milestone || existingCourse.milestone,
+      tags: tags ? tagsArray : existingCourse.tags,
     };
 
+    // Handle file upload
     if (req.file) {
-      const course = await Course.findById(id);
-      if (course.thumbnail) {
-        fs.unlinkSync(path.join("uploads", course.thumbnail));
+      // Delete old thumbnail if it exists
+      if (existingCourse.thumbnail) {
+        const oldThumbnailPath = path.join("uploads", existingCourse.thumbnail);
+        try {
+          if (fsSync.existsSync(oldThumbnailPath)) {
+            fsSync.unlinkSync(oldThumbnailPath);
+          }
+        } catch (fileError) {
+          console.warn("Could not delete old thumbnail:", fileError.message);
+        }
       }
       updateData.thumbnail = req.file.filename;
     }
 
     const updatedCourse = await Course.findByIdAndUpdate(id, updateData, {
       new: true,
+      runValidators: true,
     });
+
     res.json({ message: "Course updated", course: updatedCourse });
   } catch (err) {
-    console.error(err);
+    console.error("Error updating course:", err);
     res.status(500).json({ error: "Server error" });
   }
 };
 
-export const deleteCourse = async (req, res) => {
+const deleteCourse = async (req, res) => {
   try {
-    const course = await Course.findByIdAndDelete(req.params.id);
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ error: "Course ID is required" });
+    }
+
+    const course = await Course.findById(id);
     if (!course) {
       return res.status(404).json({ error: "Course not found" });
     }
-    if (course.thumbnail) {
-      fs.unlinkSync(path.join("uploads", course.thumbnail));
+
+    // Delete associated modules and videos
+    const modules = await Module.find({ course: id });
+    const moduleIds = modules.map((mod) => mod._id);
+
+    if (moduleIds.length > 0) {
+      await Video.deleteMany({ module: { $in: moduleIds } });
+      await Module.deleteMany({ course: id });
     }
-    res.json({ message: "Course deleted" });
+
+    // Delete the course
+    await Course.findByIdAndDelete(id);
+
+    // Delete thumbnail file if it exists
+    if (course.thumbnail) {
+      const thumbnailPath = path.join("uploads", course.thumbnail);
+      try {
+        if (fsSync.existsSync(thumbnailPath)) {
+          fsSync.unlinkSync(thumbnailPath);
+        }
+      } catch (fileError) {
+        console.warn("Could not delete thumbnail file:", fileError.message);
+      }
+    }
+
+    res.json({ message: "Course deleted successfully" });
   } catch (err) {
-    console.error(err);
+    console.error("Error deleting course:", err);
     res.status(500).json({ error: "Server error" });
   }
+};
+
+module.exports = {
+  createCourse,
+  getAllCourses,
+  getCourseById,
+  getFullCourseByID,
+  updateCourse,
+  deleteCourse,
 };
