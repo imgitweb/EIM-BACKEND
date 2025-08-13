@@ -78,8 +78,8 @@ const allowedOrigins =
         "https://www.incubationmasters.com",
         "http://localhost:3000",
         "http://localhost:3001",
-        "http://incubationmasters.com:5000",
-        "http://incubationmasters.com",
+        "https://incubationmasters.com:5000",
+        "https://incubationmasters.com",
       ]
     : [
         "http://localhost:3000",
