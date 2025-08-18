@@ -28,6 +28,8 @@ const VideoSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+    // ✅ New Quiz Field
+  quiz: { type: mongoose.Schema.Types.ObjectId, ref: "Quiz" },
   duration: String,
   createdAt: {
     type: Date,
