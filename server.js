@@ -52,6 +52,7 @@ const routes = {
   postCoFounder: require("./routes/postCoFounderRoutes"),
   startupHireTeamRoutes: require("./routes/startupHireTeamRoutes"),
   PostCoFounderRequirementsRoutes: require("./routes/PostCoFounderRequirementsRoutes"),
+  companyRegistrationRoutes: require("./routes/companyRegistrationRoutes"),
 };
 
 // ───────────────────────────────────────────────────────────── 
@@ -232,6 +233,9 @@ app.use(
   "/api/PostCoFounderRequirement",
   routes.PostCoFounderRequirementsRoutes
 );
+app.use("/", routes.companyRegistrationRoutes);
+
+
 
 // ─────────────────────────────────────────────────────────────
 // ✅ Error Handlers
