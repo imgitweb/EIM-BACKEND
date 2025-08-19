@@ -256,7 +256,6 @@ app.use("/api/partners", require("./routes/partnerRoutes"));
 
 
 
-app.use("/api/partners", require("./routes/PartnerRoutes"));
 
 
 // ─────────────────────────────────────────────────────────────
