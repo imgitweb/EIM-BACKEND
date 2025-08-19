@@ -237,12 +237,6 @@ app.use(
   routes.PostCoFounderRequirementsRoutes
 );
 app.use("/", routes.companyRegistrationRoutes);
-
-
-
-app.use("/api/partners", require("./routes/PartnerRoutes"));
-
-
 app.use("/api/partners", require("./routes/PartnerRoutes"));
 
 
