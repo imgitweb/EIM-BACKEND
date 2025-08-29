@@ -1,11 +1,14 @@
-const path = require("path");
-const fs = require("fs").promises;
-const fsSync = require("fs");
-const Course = require("../../models/courses/Course.js");
-const Module = require("../../models/courses/Module.js");
-const Video = require("../../models/courses/Video.js");
+// Import Node built-in modules using ESM
+import path from "path";
+import fs from "fs/promises"; // fs.promises equivalent
+import { fileURLToPath } from "url";
 
-const createCourse = async (req, res) => {
+// Import your models using ESM import
+import Course from "../../models/courses/Course.js";
+import Module from "../../models/courses/Module.js";
+import Video from "../../models/courses/Video.js";
+
+export const createCourse = async (req, res) => {
   try {
     const {
       title,
@@ -64,7 +67,7 @@ const createCourse = async (req, res) => {
   }
 };
 
-const getAllCourses = async (req, res) => {
+export const getAllCourses = async (req, res) => {
   try {
   
 
@@ -107,8 +110,6 @@ const getAllCourses = async (req, res) => {
   }
 };
 
-
-
 export const getCourseById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -128,7 +129,7 @@ export const getCourseById = async (req, res) => {
   }
 };
 
-const getFullCourseByID = async (req, res) => {
+export const getFullCourseByID = async (req, res) => {
   try {
     const courseId = req.params.id;
     console.log("Fetching full course details for ID:", courseId);
@@ -215,7 +216,7 @@ const getFullCourseByID = async (req, res) => {
   }
 };
 
-const updateCourse = async (req, res) => {
+ export const updateCourse = async (req, res) => {
   try {
     const { id } = req.params;
     const {
@@ -293,7 +294,7 @@ const updateCourse = async (req, res) => {
   }
 };
 
-const deleteCourse = async (req, res) => {
+ export const deleteCourse = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -336,13 +337,4 @@ const deleteCourse = async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 };
-
-module.exports = {
-  createCourse,
-  getAllCourses,
-  getCourseById,
-  getFullCourseByID,
-  updateCourse,
-  deleteCourse,
-}
 
