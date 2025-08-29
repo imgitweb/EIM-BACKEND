@@ -20,6 +20,7 @@ const connectDB = require("./config/db");
 const seedMentorData = require("./seeding/mentorSeed");
 const seedInvestorData = require("./seeding/seedInvestorData");
 const seedCategoryData = require("./seeding/seedCategoryData");
+const seedPartnerData = require("./seeding/partnerSeed");
 const courseRoutes = require("./routes/CourseRoutes");
 
 // ─────────────────────────────────────────────────────────────
@@ -64,6 +65,7 @@ connectDB();
 seedMentorData();
 seedInvestorData();
 seedCategoryData();
+seedPartnerData();
 
 // ─────────────────────────────────────────────────────────────
 // ✅ CORS Setup
@@ -236,6 +238,9 @@ app.use(
 );
 app.use("/", routes.companyRegistrationRoutes);
 
+
+
+app.use("/api/partners", require("./routes/PartnerRoutes"));
 
 
 // ─────────────────────────────────────────────────────────────
