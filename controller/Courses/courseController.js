@@ -69,8 +69,8 @@ export const createCourse = async (req, res) => {
 
 export const getAllCourses = async (req, res) => {
   try {
-  const page = parseInt(req.query.page) || 1;       // Default to page 1
-    const limit = parseInt(req.query.limit) || 10;    // Default to 10 items per page
+    const page = parseInt(req.query.page) || 1; // Default to page 1
+    const limit = parseInt(req.query.limit) || 10; // Default to 10 items per page
     const skip = (page - 1) * limit;
 
     // Validate pagination parameters
@@ -81,8 +81,6 @@ export const getAllCourses = async (req, res) => {
       });
     }
 
-    
-
     const courses = await Course.find()
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -92,9 +90,8 @@ export const getAllCourses = async (req, res) => {
 
     // Don't return 404 for empty results, return empty array instead
     if (!courses || courses.length === 0) {
-      return res.status(404).json({ error: 'No courses found' });
+      return res.status(404).json({ error: "No courses found" });
     }
-
 
     res.json({
       data: courses,
@@ -102,7 +99,7 @@ export const getAllCourses = async (req, res) => {
       totalPages: Math.ceil(total / limit),
       totalCount: total,
       hasMore: skip + courses.length < total,
-      hasMore: skip + courses.length < total
+      hasMore: skip + courses.length < total,
     });
   } catch (err) {
     console.error("Error fetching courses:", err);
@@ -216,7 +213,7 @@ export const getFullCourseByID = async (req, res) => {
   }
 };
 
- export const updateCourse = async (req, res) => {
+export const updateCourse = async (req, res) => {
   try {
     const { id } = req.params;
     const {
@@ -294,7 +291,7 @@ export const getFullCourseByID = async (req, res) => {
   }
 };
 
- export const deleteCourse = async (req, res) => {
+export const deleteCourse = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -337,4 +334,3 @@ export const getFullCourseByID = async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 };
-
