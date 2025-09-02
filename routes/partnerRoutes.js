@@ -7,7 +7,6 @@ const {
   deletePartner,
   connectLegalPartner,
 } = require("../controller/Partner/partnerController");
-const express = require('express');
 const router = express.Router();
 
 router.post("/", createPartner);
