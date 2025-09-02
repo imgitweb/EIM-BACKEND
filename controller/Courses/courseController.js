@@ -1,14 +1,14 @@
-// Import Node built-in modules using ESM
-import path from "path";
-import fs from "fs/promises"; // fs.promises equivalent
-import { fileURLToPath } from "url";
-
+const path = require("path");
+const fs = require("fs");
+const fsSync = require("fs");
 // Import your models using ESM import
-import Course from "../../models/courses/Course.js";
-import Module from "../../models/courses/Module.js";
-import Video from "../../models/courses/Video.js";
+const Course = require("../../models/courses/Course.js");
+const Module = require("../../models/courses/Module.js");
+const Video = require("../../models/courses/Video.js");
 
-export const createCourse = async (req, res) => {
+// Synchronous fs for file existence checks and deletions
+
+exports.createCourse = async (req, res) => {
   try {
     const {
       title,
@@ -67,7 +67,7 @@ export const createCourse = async (req, res) => {
   }
 };
 
-export const getAllCourses = async (req, res) => {
+exports.getAllCourses = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1; // Default to page 1
     const limit = parseInt(req.query.limit) || 10; // Default to 10 items per page
@@ -107,7 +107,7 @@ export const getAllCourses = async (req, res) => {
   }
 };
 
-export const getCourseById = async (req, res) => {
+exports.getCourseById = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -126,7 +126,7 @@ export const getCourseById = async (req, res) => {
   }
 };
 
-export const getFullCourseByID = async (req, res) => {
+exports.getFullCourseByID = async (req, res) => {
   try {
     const courseId = req.params.id;
     console.log("Fetching full course details for ID:", courseId);
@@ -213,7 +213,7 @@ export const getFullCourseByID = async (req, res) => {
   }
 };
 
-export const updateCourse = async (req, res) => {
+exports.updateCourse = async (req, res) => {
   try {
     const { id } = req.params;
     const {
@@ -291,7 +291,7 @@ export const updateCourse = async (req, res) => {
   }
 };
 
-export const deleteCourse = async (req, res) => {
+exports.deleteCourse = async (req, res) => {
   try {
     const { id } = req.params;
 
