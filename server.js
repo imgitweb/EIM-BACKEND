@@ -56,7 +56,7 @@ const routes = {
   companyRegistrationRoutes: require("./routes/companyRegistrationRoutes"),
 };
 
-// ───────────────────────────────────────────────────────────── 
+// ─────────────────────────────────────────────────────────────
 // ✅ App Initialization
 // ─────────────────────────────────────────────────────────────
 
@@ -109,8 +109,7 @@ const corsOptions = {
   credentials: true,
   optionsSuccessStatus: 204,
 };
-
-app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 // ─────────────────────────────────────────────────────────────
 // ✅ Global Middleware
@@ -238,9 +237,6 @@ app.use(
 );
 app.use("/", routes.companyRegistrationRoutes);
 app.use("/api/partners", require("./routes/PartnerRoutes"));
-
-
-
 
 // ─────────────────────────────────────────────────────────────
 // ✅ Error Handlers
