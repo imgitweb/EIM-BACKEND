@@ -3,7 +3,7 @@ require("dotenv").config(); // Load environment variables
 const nodemailer = require("nodemailer");
 
 const sendEmail = async (recipientEmail, userName) => {
-  // Create a transporter object using Gmail SMTP or any other email provider
+ 
   const transporter = nodemailer.createTransport({
     service: "gmail", // Can be replaced with other SMTP services
     auth: {
@@ -12,7 +12,7 @@ const sendEmail = async (recipientEmail, userName) => {
     },
   });
 
-  // Setup email data
+  
   const mailOptions = {
     from: `"Team Shakti Sangam, 2025" <${process.env.EMAIL_USER}>`,
     to: recipientEmail, // Receiver's email address

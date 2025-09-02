@@ -1,4 +1,5 @@
 const Partner = require('../../models/partners/Partners');
+const sendConnectionEmail = require('../../utils/sendConnectionEmail');
 
 
 // Create a new partner
@@ -107,3 +108,24 @@ exports.deletePartner = async (req, res) => {
 };
 
 
+exports.connectLegalPartner = async (req, res) => {
+  try {
+    const { userId, partnerId , userEmail, partnerEmail, userName, partnerName } = req.body;
+    
+    // Basic validation
+    if (!userId || !partnerId) {
+      return res.status(400).json({ message: "User ID and Partner ID are required." });
+    }
+    // Find the partner by ID
+    const partner = await Partner.findById(partnerId);
+    if (!partner) {
+      return res.status(404).json({ message: "Partner not found." });
+    }
+
+    await sendConnectionEmail(userEmail, "user", userName, partner.name);
+    await sendConnectionEmail(partnerEmail, "partner", userName, partner.name);
+    res.status(200).json({ message: `User ${userId} successfully connected with partner ${partner.name}.` });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
