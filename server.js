@@ -105,10 +105,17 @@ const corsOptions = {
   },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-  allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-Requested-With",
+    "x-csrf-token",
+  ],
   credentials: true,
   optionsSuccessStatus: 204,
 };
+
+app.use(cors(corsOptions));
 app.options("*", cors(corsOptions));
 
 // ─────────────────────────────────────────────────────────────
@@ -119,6 +126,13 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false,
+    crossOriginEmbedderPolicy: false,
+  })
+);
 
 // ─────────────────────────────────────────────────────────────
 // ✅ Session Configuration
