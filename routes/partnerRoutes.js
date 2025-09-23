@@ -1,5 +1,5 @@
 const express = require('express');
-const { createPartner, getAllPartners, getPartnerById, updatePartner, deletePartner } = require('../controller/Partner/PartnerController');
+const { createPartner, getAllPartners, getPartnerById, updatePartner, deletePartner } = require('../controller/partner/partnerController');
 const router = express.Router();
 
 
