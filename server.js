@@ -22,6 +22,7 @@ const seedInvestorData = require("./seeding/seedInvestorData");
 const seedCategoryData = require("./seeding/seedCategoryData");
 const seedPartnerData = require("./seeding/partnerSeed");
 const courseRoutes = require("./routes/CourseRoutes");
+const SeedMVPTeam = require("./seeding/MVPSeed");
 
 // ─────────────────────────────────────────────────────────────
 // ✅ Import Routes
@@ -66,6 +67,7 @@ seedMentorData();
 seedInvestorData();
 seedCategoryData();
 seedPartnerData();
+SeedMVPTeam();
 
 // ─────────────────────────────────────────────────────────────
 // ✅ CORS Setup
@@ -251,6 +253,8 @@ app.use(
 );
 app.use("/", routes.companyRegistrationRoutes);
 app.use("/api/partners", require("./routes/partnerRoutes"));
+app.use("/api/mvp-team", require("./routes/MVP/MVPTeamRoutes"));
+app.use("/api/mvp-feature", require("./routes/MVP/featureRoutes"));
 
 // ─────────────────────────────────────────────────────────────
 // ✅ Error Handlers
