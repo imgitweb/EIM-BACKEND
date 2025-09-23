@@ -9,7 +9,7 @@ const partnerSchema = new Schema({
     type : Number,
   },
   email: { type: String, required: true, unique: true },
-  linkedinProfile: { type: String },
+  linkedinUrl: { type: String },
   location: { type: String },
   partnerType: { type: String, enum: ['Investor', 'Mentor', 'Other' , "Legal"], required: true },
   imageUrl: { type: String },
