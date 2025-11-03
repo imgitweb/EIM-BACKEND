@@ -1,7 +1,7 @@
-const User = require("./../models/signup/StartupModel"); // Import User model
+const User = require("./../models/signup/StartupModel");
 const mongoose = require("mongoose");
 const nodemailer = require("nodemailer");
-// Controller function to get 3 more users with the same industry
+const { validateIdeaWithAI, analyzeRisksAI, generateMarketCaseStudiesAI } = require("../utils/aiValidationService");
 exports.getUsersByIndustry = async (req, res) => {
   try {
     const { industry } = req.params; // Get the industry from URL parameter
@@ -138,5 +138,171 @@ exports.sendStartupExchangeEmail = async (req, res) => {
   } catch (error) {
     console.error("Error sending email:", error);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+exports.updateStartupDetails = async (req, res) => {
+  try {
+    const startupId = req.params.id;
+    const updateData = req.body;
+    const logo = req.file;
+
+    console.log("🟡 Received update data:", updateData);
+
+    if (logo) {
+      updateData.logoUrl = `/uploads/${logo.filename}`; // Assuming static folder setup
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(startupId)) {
+      return res.status(400).json({ message: "Invalid ObjectId format" });
+    }
+
+    const startup = await User.findById(startupId);
+    if (!startup) {
+      return res.status(404).json({ message: "Startup not found" });
+    }
+
+    // ✅ Parse socialLinks if it's a JSON string
+    if (updateData.socialLinks) {
+      try {
+        if (typeof updateData.socialLinks === "string") {
+          startup.socialLinks = JSON.parse(updateData.socialLinks);
+        } else if (Array.isArray(updateData.socialLinks)) {
+          startup.socialLinks = updateData.socialLinks;
+        }
+      } catch (err) {
+        console.error("❌ Failed to parse socialLinks:", err);
+      }
+    }
+
+    // ✅ Update other fields
+    startup.startupName = updateData.title || startup.startupName;
+    startup.elevatorPitch = updateData.pitch || startup.elevatorPitch;
+    startup.targetedAudience =
+      updateData.targetedAudience || startup.targetedAudience;
+    startup.email = updateData.email || startup.email;
+    startup.logoUrl = updateData.logoUrl || startup.logoUrl;
+    startup.contactNumber = updateData.phoneNumber || startup.contactNumber;
+    startup.problemStatement = updateData.problem || startup.problemStatement;
+    startup.solutionDescription =
+      updateData.solution || startup.solutionDescription;
+    startup.businessModel = updateData.businessModel || startup.businessModel;
+    startup.industry = updateData.industry || startup.industry;
+    startup.country = updateData.country || startup.country;
+    startup.startupStage = updateData.stage || startup.startupStage;
+
+    await startup.save();
+
+    console.log("✅ Updated Startup:", startup.socialLinks);
+
+    res.status(200).json({
+      message: "Startup details updated successfully",
+      startup,
+    });
+  } catch (error) {
+    console.error("❌ Error updating startup details:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+exports.validateStartup = async (req, res) => {
+  try {
+    const startupId = req.params.id;
+    const { title, problem, solution, audience } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(startupId)) {
+      return res.status(400).json({ message: "Invalid ObjectId format" });
+    }
+
+    const startup = await User.findById(startupId);
+    if (!startup) {
+      return res.status(404).json({ message: "Startup not found" });
+    }
+
+    const validation = await validateIdeaWithAI({
+      title,
+      problem,
+      solution,
+      audience,
+    });
+
+    res.status(200).json({
+      message: "✅ Idea validated successfully by AI",
+      validation,
+    });
+  } catch (error) {
+    console.error("❌ Error validating startup idea:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+exports.analyzeRisks = async (req, res) => {
+  try {
+    const startupId = req.params.id;
+    const { selectedRisks, targetedAudience } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(startupId)) {
+      return res.status(400).json({ message: "Invalid startup ID" });
+    }
+
+    const startup = await User.findById(startupId);
+    if (!startup) {
+      return res.status(404).json({ message: "Startup not found" });
+    }
+
+    if (!Array.isArray(selectedRisks) || selectedRisks.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "selectedRisks must be a non-empty array" });
+    }
+
+    // Merge audience override
+    const startupData = {
+      ...startup.toObject(),
+      targetedAudience: targetedAudience || startup.targetedAudience || "General Audience",
+    };
+
+    // 🧠 Call AI analysis service
+    const aiResult = await analyzeRisksAI({
+      startup: startupData,
+      selectedRisks,
+    });
+
+    res.status(200).json({
+      message: "AI risk analysis completed successfully",
+      data: aiResult,
+    });
+  } catch (error) {
+    console.error("❌ AI Risk Analysis Error:", error);
+    res.status(500).json({
+      message: "Server error during AI risk analysis",
+      error: error.message,
+    });
+  }
+};
+
+exports.generateMarketCaseStudies = async (req, res) => {
+  try {
+    const { idea, problem, solution, sector } = req.body;
+
+    const result = await generateMarketCaseStudiesAI({
+      idea,
+      problem,
+      solution,
+      sector,
+    });
+
+
+
+
+    res.status(200).json({ success: true, data: result });
+  } catch (error) {
+    console.error("❌ Error generating market case studies:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to generate market case studies.",
+    });
   }
 };

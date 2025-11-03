@@ -87,6 +87,39 @@ const startupSchema = new mongoose.Schema(
     logoUrl: {
       type: String,
     },
+     businessModel: {
+      type: String,
+      trim: true,
+    },
+     problemStatement: {
+      type: String,
+      trim: true,
+    },
+    solutionDescription: {
+      type: String,
+      trim: true,
+    },
+    targetedAudience: {
+      type: String,
+      trim: true,
+    },
+
+    socialLinks: [
+      {
+        platform: { type: String, trim: true },
+        url: { type: String, trim: true },
+      },
+    ],
+
+
+
+ createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+
+
+
   },
   { timestamps: true }
 );
