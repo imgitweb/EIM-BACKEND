@@ -1,12 +1,5 @@
-const express = require("express");
-const {
-  createPartner,
-  getAllPartners,
-  getPartnerById,
-  updatePartner,
-  deletePartner,
-  connectLegalPartner,
-} = require("../controller/partner/partnerController");
+const express = require('express');
+const { createPartner, getAllPartners, getPartnerById, updatePartner, deletePartner, connectLegalPartner } = require('../controller/partner/partnerController');
 const router = express.Router();
 
 router.post("/", createPartner);
