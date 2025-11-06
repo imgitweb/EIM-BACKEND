@@ -55,6 +55,7 @@ const routes = {
   startupHireTeamRoutes: require("./routes/startupHireTeamRoutes"),
   PostCoFounderRequirementsRoutes: require("./routes/PostCoFounderRequirementsRoutes"),
   companyRegistrationRoutes: require("./routes/companyRegistrationRoutes"),
+  MarketSize: require("./routes/marketSize"),
 };
 
 // ─────────────────────────────────────────────────────────────
@@ -255,6 +256,7 @@ app.use("/", routes.companyRegistrationRoutes);
 app.use("/api/partners", require("./routes/partnerRoutes"));
 app.use("/api/mvp-team", require("./routes/MVP/MVPTeamRoutes"));
 app.use("/api/mvp-feature", require("./routes/MVP/featureRoutes"));
+app.use("/api/market", routes.MarketSize);
 
 // ─────────────────────────────────────────────────────────────
 // ✅ Error Handlers
