@@ -108,6 +108,7 @@ const deleteFeature = async (req, res) => {
 
 
 
+
 const generateFeatures = async (req, res) => {
   try {
     const  featureList = req.body;
