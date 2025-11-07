@@ -5,6 +5,10 @@ const { generateFeaturesAI, generateBuilderAI } = require("../../utils/aiValidat
 const createFeature = async (req, res) => {
   try {
     const { features } = req.body;
+    const startupId = req.body.startup_id || req.userId;
+    
+
+
 
 
     if (!features && req.body.description) {
@@ -15,6 +19,7 @@ const createFeature = async (req, res) => {
       }
 
       const feature = new Feature({
+        startup_id: startupId || req.userId || '2762871382',
         description,
         priority,
         tasks: tasks || [],
@@ -39,6 +44,7 @@ const createFeature = async (req, res) => {
     }
 
     const validFeatures = features.map((f) => ({
+      startup_id: f.startup_id  || null,
       description: f.description,
       priority: f.priority,
       tasks: f.tasks || [],
@@ -61,7 +67,8 @@ const createFeature = async (req, res) => {
 
 const getAllFeatures = async (req, res) => {
   try {
-    const features = await Feature.find();
+    const startupId = req.query.startup_id || req.userId;
+    const features = await Feature.find({ startup_id: startupId });
     res.status(200).json(features);
   } catch (error) {
     console.error("Error fetching features:", error);

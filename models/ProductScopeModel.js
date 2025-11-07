@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 
 const featureSchema = new mongoose.Schema({
+  startup_id: { type: mongoose.Schema.Types.ObjectId, ref: "StartupModel", 
+  },
   description: { type: String, required: true },
   priority: { type: String, enum: ["Must-Have", "Should-Have", "Could-Have"], required: true },
   tasks: { type: [String], default: [] },
