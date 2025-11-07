@@ -54,6 +54,7 @@ const routes = {
   startupHireTeamRoutes: require("./routes/startupHireTeamRoutes"),
   PostCoFounderRequirementsRoutes: require("./routes/PostCoFounderRequirementsRoutes"),
   companyRegistrationRoutes: require("./routes/companyRegistrationRoutes"),
+  valuationRoutes: require("./routes/valuationRoutes"),
 };
 
 // ─────────────────────────────────────────────────────────────
@@ -251,6 +252,7 @@ app.use(
 );
 app.use("/", routes.companyRegistrationRoutes);
 app.use("/api/partners", require("./routes/partnerRoutes"));
+app.use('/api/valuation',routes.valuationRoutes);
 
 // ─────────────────────────────────────────────────────────────
 // ✅ Error Handlers
