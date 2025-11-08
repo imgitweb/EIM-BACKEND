@@ -179,13 +179,7 @@ const getMilestones = async (req, res) => {
       "3": {},
       "4": {},
       "5": {},
-      "6": {},
-      "7": {},
-      "8": {},
-      "9": {},
-      "10": {},
-      "11": {},
-      "12": {}
+      "6": {}
     }
 
     Ensure:
@@ -245,7 +239,7 @@ const getMilestoneByStartupId = async (req, res) => {
 
     const milestone = await Milestone.findOne({ startup_id });
 
-    console.log("Milestone fetched for startup_id:", startup_id , milestone);
+    console.log("Milestone fetched for startup_id:", startup_id, milestone);
 
     if (!milestone) {
       return res.status(404).json({

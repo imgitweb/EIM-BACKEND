@@ -241,3 +241,157 @@ Return JSON strictly in this structure:
     throw new Error("AI market case studies generation failed");
   }
 };
+
+exports.generateFeaturesAI = async (featureList) => {
+  try {
+
+    const prompt = `
+You are a senior product strategist specializing in MVP planning.
+
+For each of the following features, provide a detailed and concise JSON response in the exact structure below.
+Do NOT include explanations or markdown.
+
+Input features: ${featureList}
+
+Respond with JSON in this exact format:
+{
+  "features": [
+    {
+      "description": "Payment Gateway",
+      "priority": "Must-Have",
+      "tasks": [
+        "Integrate secure payment processor (Stripe, PayPal).",
+        "Implement payment API and webhook event handlers.",
+        "Add transaction history and receipts."
+      ],
+      "techStack": ["Node.js", "Stripe API", "React"],
+      "effort": "High",
+      "notes": "Essential for monetization; ensure compliance with PCI DSS."
+    },
+    {
+      "description": "Analytics Dashboard",
+      "priority": "Should-Have",
+      "tasks": [
+        "Implement admin analytics UI.",
+        "Integrate metrics API for user activity tracking.",
+        "Create summary visualization charts."
+      ],
+      "techStack": ["React", "Chart.js", "Node.js"],
+      "effort": "Medium",
+      "notes": "Useful for business insights and growth metrics."
+    }
+  ]
+}`;
+
+    // 🔥 Call OpenAI
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.4,
+    });
+
+    const content = completion.choices[0]?.message?.content?.trim();
+
+    let result;
+    try {
+      result = JSON.parse(content);
+    } catch (err) {
+      console.warn("⚠️ AI returned malformed JSON, applying fallback.");
+
+      // Fallback — minimal, but safe structured response
+      const features = featureList.split(",").map((f) => f.trim()).filter(Boolean);
+      result = {
+        features: features.map((f) => ({
+          description: f,
+          priority: "Could-Have",
+          tasks: [
+            `Define key functional requirements for ${f}.`,
+            `Design frontend UI components for ${f}.`,
+            `Implement backend endpoints for ${f}.`,
+          ],
+          techStack: ["React", "Node.js", "MongoDB"],
+          effort: "Medium",
+          notes: "Generated via fallback mode; AI response was invalid JSON.",
+        })),
+      };
+    }
+
+  return result;
+  } catch (error) {
+    console.error("❌ AI Feature Generation Error:", error.message);
+   throw new Error("AI market case studies generation failed");
+  }
+};
+
+exports.generateBuilderAI = async (inputData) => {
+  const { platform, idea, answers } = inputData;
+  try {
+   
+const prompt = `
+You are an experienced startup product strategist and MVP planner.
+
+Your job is to generate a **clean, production-ready HTML** roadmap for a startup's MVP (Minimum Viable Product),
+based on the following input:
+
+Platform: ${platform || "N/A"}
+Idea: ${idea || "N/A"}
+User Answers: ${JSON.stringify(answers, null, 2)}
+
+Requirements for your output:
+- Respond ONLY with valid HTML (no markdown, no code fences, no backticks).
+- Use clean structure, headings, and bullet points.
+- Keep tone professional, simple, and action-oriented.
+- Each section should be concise, not verbose.
+- Highlight tech recommendations clearly.
+- Add short, insightful notes in <em>italic</em> when useful.
+
+Your HTML must follow this exact layout:
+
+<h2>1. Overview</h2>
+<p>Briefly describe what this MVP is about and its strategic direction.</p>
+
+<h2>2. Core Features</h2>
+<ul>
+  <li>List 4–6 key features that align with the idea and platform.</li>
+</ul>
+
+<h2>3. Recommended Tech Stack</h2>
+<ul>
+  <li><strong>Frontend:</strong> Suggest frameworks or tools.</li>
+  <li><strong>Backend:</strong> Suggest core technology choices.</li>
+  <li><strong>Database:</strong> Recommend storage option.</li>
+  <li><strong>Hosting:</strong> Recommend deployment environment.</li>
+</ul>
+
+<h2>4. Timeline & Milestones</h2>
+<ul>
+  <li><strong>Week 1–2:</strong> Design – wireframes, prototypes.</li>
+  <li><strong>Week 3–5:</strong> Development – core functionality build.</li>
+  <li><strong>Week 6:</strong> QA and launch preparation.</li>
+</ul>
+
+<h2>5. Strategic Recommendations</h2>
+<ul>
+  <li>Give 3–4 concise business or product strategy suggestions.</li>
+</ul>
+
+At the end, add:
+<p><em>This roadmap is AI-generated based on the provided inputs and should be refined before execution.</em></p>
+`;
+
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.6,
+    });
+
+    let htmlResponse = completion.choices[0]?.message?.content?.trim() || "<p>No content generated.</p>";
+    htmlResponse = htmlResponse.replace(/```html|```/g, "").trim();
+
+  return { htmlResponse  };
+  } catch (error) {
+    console.error("❌ AI MVP Generation Error:", error.message);
+    throw new Error("AI generation failed");
+  }
+};

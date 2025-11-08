@@ -1,0 +1,137 @@
+[
+  {
+    "companyName": "Inovidea Technologies",
+    "services": "Web & App development",
+    "website": "https://invoidea.com/",
+    "contactPerson": null,
+    "contactNo": "72920 050505",
+    "location": "Delhi",
+    "category": "Web & App Development Companies"
+  },
+  {
+    "companyName": "Softkix Technologies",
+    "services": "Web & App development",
+    "website": "https://softfix.in/",
+    "contactPerson": null,
+    "contactNo": "7283866954",
+    "location": "Lucknow",
+    "category": "Web & App Development Companies"
+  },
+  {
+    "companyName": "Alphawizz",
+    "services": "AI, Data & Automation Experts",
+    "website": "https://alphawizz.in/",
+    "contactPerson": null,
+    "contactNo": "9864086860",
+    "location": "Indore",
+    "category": "AI, Data & Automation Experts"
+  },
+  {
+    "companyName": "Digital Latte",
+    "services": "Web & App development",
+    "website": "https://www.digitallatte.in/",
+    "contactPerson": "Chintan Founder",
+    "contactNo": "9664088787",
+    "location": "Mumbai",
+    "category": "Web & App Development Companies"
+  },
+  {
+    "companyName": "Growth Hackers",
+    "services": "AI, Data & Automation Experts",
+    "website": "https://growthhackers.digital/",
+    "contactPerson": null,
+    "contactNo": null,
+    "location": "Bengaluru",
+    "category": "AI, Data & Automation Experts"
+  },
+  {
+    "companyName": "Moolya Engineering",
+    "services": "Full-Stack Product Engineering Firms",
+    "website": "https://www.moolya.com/",
+    "contactPerson": null,
+    "contactNo": "9606988253",
+    "location": "Bengaluru",
+    "category": "Full-Stack Product Engineering Firms"
+  },
+    {
+    "companyName": "Einfochips ",
+    "services": "Full-Stack Product Engineering Firms",
+    "website": "https://www.einfochips.com/",
+    "contactPerson": "",
+    "contactNo": "",
+    "location": "Indore",
+    "category": "Full-Stack Product Engineering Firms"
+  },
+  {
+    "companyName": "Mariox software pvt. ltd",
+    "services": "Web & App development",
+    "website": "https://www.marioxsoftware.com/",
+    "contactPerson": null,
+    "contactNo": "9599287045",
+    "location": "Noida",
+    "category": "Web & App Development Companies"
+  },
+  {
+    "companyName": "Enfin Technologies ",
+    "services": "Full-Stack Product Engineering Firms",
+    "website": "https://www.enfintechnologies.com/",
+    "contactPerson": null,
+    "contactNo": "",
+    "location": "Bengaluru",
+    "category": "Full-Stack Product Engineering Firms"
+  },
+  {
+    "companyName": "Eagle",
+    "services": "AI, Data & Automation Experts",
+    "website": "https://www.eagle.in/",
+    "contactPerson": null,
+    "contactNo": "9667088955",
+    "location": "New Delhi",
+    "category": "AI, Data & Automation Experts"
+  },
+  {
+    "companyName": "Solace",
+    "services": "AI, Data & Automation Experts",
+    "website": "https://solace.com/",
+    "contactPerson": null,      
+    "contactNo": "8009191092",
+    "location": "Mumbai",
+    "category": "AI, Data & Automation Experts"
+  },
+  {
+    "companyName": "EngineerBabu",
+    "services": "Startup Tech Boutiques (Small to Mid-size)",
+    "website": "https://engineerbabu.com/",
+    "contactPerson": "Mayank Pratap Singh (Co-founder)",
+    "contactNo": "",
+    "location": "Indore",
+    "category": "Startup Tech Boutiques (Small to Mid-size)"
+  },
+  {
+    "companyName": "Chapter247 Infotech",
+    "services": "Startup Tech Boutiques (Small to Mid-size)",
+    "website": "https://www.chapter247.com/",
+    "contactPerson": "Sunny Yadav / Ankit Baviskar (ops/BD – public post)",
+    "contactNo": "90985 05794",
+    "location": "",
+    "category": "Startup Tech Boutiques (Small to Mid-size)"
+  },
+ {
+    "companyName": "Hiteshi Infotech Pvt Ltd",
+    "services": "AI, Data & Automation Experts",
+    "website": "https://hiteshi.com",
+    "contactPerson": "Address: 8th Floor, Crystal IT Park, Khandwa Road, Indore; Contact No: +91 731-2971133 (ThirdEssential)",
+    "contactNo": "Demo Number",
+    "location": "Indore",
+    "category": "AI, Data & Automation Experts"
+  },
+   {
+    "companyName": "Softude Infotech Pvt Ltd",
+    "services": "AI, Data & Automation Experts",
+    "website": "https://softude.com",
+    "contactPerson": "Address & phone: +91 731 4975283 (ThirdEssential)",
+    "contactNo": "Demo Number",
+    "location": "Indore",
+    "category": "AI, Data & Automation Experts"
+  }
+]
