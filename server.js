@@ -22,6 +22,7 @@ const seedInvestorData = require("./seeding/seedInvestorData");
 const seedCategoryData = require("./seeding/seedCategoryData");
 const seedPartnerData = require("./seeding/partnerSeed");
 const courseRoutes = require("./routes/CourseRoutes");
+const { seedActivities } = require("./seeding/activitySeeder");
 
 // ─────────────────────────────────────────────────────────────
 // ✅ Import Routes
@@ -55,7 +56,10 @@ const routes = {
   PostCoFounderRequirementsRoutes: require("./routes/PostCoFounderRequirementsRoutes"),
   companyRegistrationRoutes: require("./routes/companyRegistrationRoutes"),
 };
-
+const { ActivityRoute } = require("./routes/Activity/activityRoute");
+const { seedDeliverables } = require("./seeding/deliverablesSeeder");
+const { paymentRouters } = require("./routes/PaymentRoutes/routes");
+const { DeliverableRoutes } = require("./routes/DeliverableRoutes/deliverable");
 // ─────────────────────────────────────────────────────────────
 // ✅ App Initialization
 // ─────────────────────────────────────────────────────────────
@@ -66,7 +70,8 @@ seedMentorData();
 seedInvestorData();
 seedCategoryData();
 seedPartnerData();
-
+seedActivities();
+seedDeliverables();
 // ─────────────────────────────────────────────────────────────
 // ✅ CORS Setup
 // ─────────────────────────────────────────────────────────────
@@ -103,7 +108,6 @@ const corsOptions = {
       new Error("CORS policy does not allow access from this origin")
     );
   },
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
   allowedHeaders: [
     "Content-Type",
@@ -176,6 +180,8 @@ const storage = multer.diskStorage({
     else if (url.includes("/api/mentors")) folder = "uploads/mentors";
     else if (url.includes("/api/categories")) folder = "uploads/categories";
     else if (url.includes("/api/templates")) folder = "uploads/templates";
+    else if (url.includes("/deliverable/mark-as-completed"))
+      folder = "uploads/deliverables";
     else if (url.includes("/api/startup")) folder = "uploads";
 
     if (!fs.existsSync(folder)) fs.mkdirSync(folder, { recursive: true });
@@ -252,6 +258,9 @@ app.use(
 app.use("/", routes.companyRegistrationRoutes);
 app.use("/api/partners", require("./routes/partnerRoutes"));
 
+app.use("/activity", ActivityRoute);
+app.use("/api/payment", paymentRouters);
+app.use("/deliverable", DeliverableRoutes(upload));
 // ─────────────────────────────────────────────────────────────
 // ✅ Error Handlers
 // ─────────────────────────────────────────────────────────────
