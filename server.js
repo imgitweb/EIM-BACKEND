@@ -23,6 +23,7 @@ const seedCategoryData = require("./seeding/seedCategoryData");
 const seedPartnerData = require("./seeding/partnerSeed");
 const courseRoutes = require("./routes/CourseRoutes");
 const SeedMVPTeam = require("./seeding/MVPSeed");
+const { seedActivities } = require("./seeding/activitySeeder");
 
 // ─────────────────────────────────────────────────────────────
 // ✅ Import Routes
@@ -59,7 +60,10 @@ const routes = {
   valuationRoutes: require("./routes/valuationRoutes"),
   salesProduct: require("./routes/sales/salesRoute"),
 };
-
+const { ActivityRoute } = require("./routes/Activity/activityRoute");
+const { seedDeliverables } = require("./seeding/deliverablesSeeder");
+const { paymentRouters } = require("./routes/PaymentRoutes/routes");
+const { DeliverableRoutes } = require("./routes/DeliverableRoutes/deliverable");
 // ─────────────────────────────────────────────────────────────
 // ✅ App Initialization
 // ─────────────────────────────────────────────────────────────
@@ -71,7 +75,8 @@ seedInvestorData();
 seedCategoryData();
 seedPartnerData();
 SeedMVPTeam();
-
+seedActivities();
+seedDeliverables();
 // ─────────────────────────────────────────────────────────────
 // ✅ CORS Setup
 // ─────────────────────────────────────────────────────────────
@@ -108,7 +113,6 @@ const corsOptions = {
       new Error("CORS policy does not allow access from this origin")
     );
   },
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
   allowedHeaders: [
     "Content-Type",
@@ -181,6 +185,8 @@ const storage = multer.diskStorage({
     else if (url.includes("/api/mentors")) folder = "uploads/mentors";
     else if (url.includes("/api/categories")) folder = "uploads/categories";
     else if (url.includes("/api/templates")) folder = "uploads/templates";
+    else if (url.includes("/deliverable/mark-as-completed"))
+      folder = "uploads/deliverables";
     else if (url.includes("/api/startup")) folder = "uploads";
 
     if (!fs.existsSync(folder)) fs.mkdirSync(folder, { recursive: true });
@@ -262,6 +268,9 @@ app.use("/api/mvp-feature", require("./routes/MVP/featureRoutes"));
 app.use("/api/valuation", routes.valuationRoutes);
 app.use("/api/product", routes.salesProduct);
 
+app.use("/activity", ActivityRoute);
+app.use("/api/payment", paymentRouters);
+app.use("/deliverable", DeliverableRoutes(upload));
 // ─────────────────────────────────────────────────────────────
 // ✅ Error Handlers
 // ─────────────────────────────────────────────────────────────
@@ -286,16 +295,6 @@ app.use((err, req, res, next) => {
 // ─────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
 const HOST = "0.0.0.0";
-
-if (process.env.NODE_ENV === "production") {
-  app.listen(PORT, HOST, () => {
-    console.log(`🌐 HTTP Server running at http://${HOST}:${PORT}`);
-  });
-} else {
-  app.listen(PORT, HOST, () => {
-    console.log(`🌐 Dev server running at http://${HOST}:${PORT}`);
-  });
-}
 
 if (process.env.NODE_ENV === "production") {
   app.listen(PORT, HOST, () => {

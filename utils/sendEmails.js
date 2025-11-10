@@ -18,6 +18,9 @@ const sendEmail = async (options) => {
         user: process.env.EMAIL_USER || "your-email@gmail.com",
         pass: process.env.EMAIL_PASS || "your-email-password",
       },
+      tls: {
+        rejectUnauthorized: false,
+      },
     });
 
     // Define email options
