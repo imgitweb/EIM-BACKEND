@@ -4,6 +4,9 @@ const Module = require("../../models/courses/Module.js");
 const { uploadToVimeo } = require("../../utils/vimeoUploader.js");
 const fs = require("fs").promises;
 const fsSync = require("fs");
+const OpenAI = require("openai");
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const Quiz = require("../../models/courses/Quiz.js");
 
 // Helper function to safely delete files
 const safeDeleteFile = async (filePath) => {
@@ -131,6 +134,66 @@ const uploadVideo = async (req, res) => {
     });
 
     const savedVideo = await newVideo.save();
+
+     if (generateAssessment) {
+      try {
+        console.log("🧠 Generating quiz using ChatGPT...");
+
+        const prompt = `
+        Generate 5 high-quality multiple-choice quiz questions based on this video title:
+        "${title}"
+        ${transcript ? `Transcript content: ${transcript.slice(0, 2000)}` : ""}
+        
+        Each question must include:
+        - "question": string
+        - "options": array of 4 options
+        - "answer": correct option index (0-3)
+        - "explanation": short one-line explanation.
+        Return as valid JSON array.
+        `;
+
+        const completion = await openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [{ role: "user", content: prompt }],
+          temperature: 0.4,
+        });
+
+        const textResponse = completion.choices[0].message.content.trim();
+
+        let parsedQuestions;
+        try {
+          parsedQuestions = JSON.parse(textResponse);
+        } catch (err) {
+          console.error("⚠️ JSON Parse Error:", err);
+          parsedQuestions = [];
+        }
+
+        if (!Array.isArray(parsedQuestions) || parsedQuestions.length === 0) {
+          console.warn("⚠️ No quiz generated from ChatGPT.");
+        } else {
+          const quiz = new Quiz({
+            video: savedVideo._id,
+            questions: parsedQuestions,
+          });
+
+          const savedQuiz = await quiz.save();
+          console.log("✅ Quiz generated and saved:", savedQuiz._id);
+        }
+      } catch (quizErr) {
+        console.error("❌ Quiz generation failed:", quizErr);
+      }
+    }
+
+
+
+
+
+
+
+
+
+
+
 
     return res.status(201).json({
       success: true,
