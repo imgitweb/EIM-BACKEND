@@ -267,6 +267,7 @@ app.use("/api/mvp-team", require("./routes/MVP/MVPTeamRoutes"));
 app.use("/api/mvp-feature", require("./routes/MVP/featureRoutes"));
 app.use("/api/valuation", routes.valuationRoutes);
 app.use("/api/product", routes.salesProduct);
+app.use("/api/market", routes.MarketSize);
 
 app.use("/activity", ActivityRoute);
 app.use("/api/payment", paymentRouters);
