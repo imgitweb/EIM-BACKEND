@@ -57,6 +57,7 @@ const routes = {
   companyRegistrationRoutes: require("./routes/companyRegistrationRoutes"),
   MarketSize: require("./routes/marketSize"),
   valuationRoutes: require("./routes/valuationRoutes"),
+  salesProduct: require("./routes/sales/salesRoute"),
 };
 
 // ─────────────────────────────────────────────────────────────
@@ -259,6 +260,7 @@ app.use("/api/market", routes.MarketSize);
 app.use("/api/mvp-team", require("./routes/MVP/MVPTeamRoutes"));
 app.use("/api/mvp-feature", require("./routes/MVP/featureRoutes"));
 app.use("/api/valuation", routes.valuationRoutes);
+app.use("/api/product", routes.salesProduct);
 
 // ─────────────────────────────────────────────────────────────
 // ✅ Error Handlers
@@ -286,25 +288,19 @@ const PORT = process.env.PORT || 5000;
 const HOST = "0.0.0.0";
 
 if (process.env.NODE_ENV === "production") {
-  const SSL_KEY_PATH =
-    "/etc/letsencrypt/live/app.incubationmasters.com/privkey.pem";
-  const SSL_CERT_PATH =
-    "/etc/letsencrypt/live/app.incubationmasters.com/fullchain.pem";
+  app.listen(PORT, HOST, () => {
+    console.log(`🌐 HTTP Server running at http://${HOST}:${PORT}`);
+  });
+} else {
+  app.listen(PORT, HOST, () => {
+    console.log(`🌐 Dev server running at http://${HOST}:${PORT}`);
+  });
+}
 
-  if (fs.existsSync(SSL_KEY_PATH) && fs.existsSync(SSL_CERT_PATH)) {
-    const httpsOptions = {
-      key: fs.readFileSync(SSL_KEY_PATH),
-      cert: fs.readFileSync(SSL_CERT_PATH),
-    };
-    https.createServer(httpsOptions, app).listen(PORT, HOST, () => {
-      console.log(`🔒 HTTPS Server running at https://${HOST}:${PORT}`);
-    });
-  } else {
-    console.warn("⚠️ SSL certificates not found. Starting HTTP server...");
-    app.listen(PORT, HOST, () => {
-      console.log(`🌐 HTTP Server running at http://${HOST}:${PORT}`);
-    });
-  }
+if (process.env.NODE_ENV === "production") {
+  app.listen(PORT, HOST, () => {
+    console.log(`🌐 HTTP Server running at http://${HOST}:${PORT}`);
+  });
 } else {
   app.listen(PORT, HOST, () => {
     console.log(`🌐 Dev server running at http://${HOST}:${PORT}`);

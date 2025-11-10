@@ -95,6 +95,8 @@ const getMilestones = async (req, res) => {
       startup_id,
     } = reqBody;
 
+    console.log("Received request body for generating milestones:", reqBody);
+
     const requiredParams = [
       industry,
       businessModel,
@@ -119,83 +121,92 @@ const getMilestones = async (req, res) => {
         .json({ success: false, message: "Missing required parameters." });
     }
 
-    // Check if milestones already exist for this startup
-    const existingMilestone = await Milestone.findOne({ startup_id });
-    if (existingMilestone) {
-      return res.status(200).json({ success: true, data: existingMilestone });
-    }
-
     const prompt = `
-      Create a detailed milestone-based plan divided into 12 milestones to help the startup reach unicorn status. 
-      Include details such as activities, revenue, valuation, founders' learning, go-to-market strategy, expansion strategy, key actions, and resources.
-      - Industry: ${industry}
-      - Startup Elevator Pitch: ${pitch}
-      - Problem: ${problem}
-      - Solution: ${solution}
-      - Business Model: ${businessModel}
-      - TAM: ${tam}
-      - SOM: ${som}
-      - Start Date: ${startDate}
-      - Founder1: ${founder1}
-      - Founder2: ${founder2}
-      - Country: ${country}
-      - Revenue Status: ${revenueStatus}
-      - Revenue: ${revenue}
-      - Customers: ${customers}
-      
-      Return exactly 12 milestones in this specific JSON format:
-    {
-      "1": {
-        "timeline": {
-          "startDate": "DD-MM-YYYY",
-          "endDate": "DD-MM-YYYY",
-          "durationMonths": number
-        },
-        
-        "goal": "string",
-        "keyActivities": ["string"],
-        "suggestedActions": ["string"],
-        "resources": {
-          "books": ["string"],
-          "tools": ["string"],
-          "references": ["string"]
-        },        
-        "kpis": ["string"],
-        "financialProjections": {
-          "usd": {
-            "revenue": number,
-            "investment": number,
-            "valuation" : number
-          },
-          "inr": {
-            "revenue": number,
-            "investment": number,
-             "valuation" : number
-          }
-        },          
-      "2": {
-        // Same structure as milestone 1
-      },
-      "3": {},
-      "4": {},
-      "5": {},
-      "6": {}
-    }
+          Generate a detailed 6-milestone roadmap for a startup to reach unicorn status. 
+          Use the startup details provided and return ONLY a valid JSON object (no extra text).
 
-    Ensure:
-    1. Each milestone has a number key from 1 to 12
-    2. Exactly 12 milestones are included
-    3. Financial projections increase realistically
-    4. Each milestone builds upon previous ones
-    5. All dates are properly calculated from the start date
-    6. All fields are filled with relevant content
-    7. The response is valid JSON that can be parsed
-    `;
+          Startup Details:
+          - Industry: ${industry}
+          - Startup Elevator Pitch: ${pitch}
+          - Problem: ${problem}
+          - Solution: ${solution}
+          - Business Model: ${businessModel}
+          - TAM: ${tam}
+          - SOM: ${som}
+          - Start Date: ${startDate}
+          - Founder1: ${founder1}
+          - Founder2: ${founder2}
+          - Country: ${country}
+          - Revenue Status: ${revenueStatus}
+          - Revenue: ${revenue}
+          - Customers: ${customers}
+
+          Output Format (JSON only, exactly 6 milestones: "1" to "6"):
+
+          {
+            "1": {
+              "timeline": {
+                "startDate": "DD-MM-YYYY",
+                "endDate": "DD-MM-YYYY",
+                "durationMonths": number
+              },
+              "goal": "string",
+              "keyActivities": ["string"],
+              "suggestedActions": ["string"],
+              "resources": {
+                "books": ["string"],
+                "tools": ["string"],
+                "references": ["string"]
+              },
+              "kpis": ["string"],
+              "financialProjections": {
+                "usd": {
+                  "revenue": number,
+                  "investment": number,
+                  "valuation": number
+                },
+                "inr": {
+                  "revenue": number,
+                  "investment": number,
+                  "valuation": number
+                }
+              }
+            },
+            "2": {},
+            "3": {},
+            "4": {},
+            "5": {},
+            "6": {}
+          }
+
+          Rules:
+          1. Provide exactly 6 milestones numbered "1" to "6".
+          2. Each milestone builds on the previous one.
+          3. Dates must progress sequentially from the start date.
+          4. Financial projections must grow realistically for each milestone.
+          5. All fields must be filled with relevant content.
+          6. JSON must be valid and parseable — do not include explanations or extra text outside JSON.
+          `;
 
     const maxTokens = 3500;
     const milestones = await pathToUnicornController(prompt, maxTokens);
 
-    // Save to MongoDB
+    let existingMilestone = await Milestone.findOne({ startup_id });
+
+    if (existingMilestone) {
+      // ✅ Update only milestones field
+      existingMilestone.milestones = milestones;
+      existingMilestone.updatedAt = new Date();
+      await existingMilestone.save();
+
+      return res.status(200).json({
+        success: true,
+        message: "Milestones updated successfully.",
+        data: existingMilestone,
+      });
+    }
+
+    // ✅ Create new record
     const milestoneDoc = new Milestone({
       startup_id,
       industry,
@@ -217,7 +228,11 @@ const getMilestones = async (req, res) => {
 
     await milestoneDoc.save();
 
-    res.status(201).json({ success: true, data: milestoneDoc });
+    res.status(201).json({
+      success: true,
+      message: "Milestones generated successfully.",
+      data: milestoneDoc,
+    });
   } catch (error) {
     console.error("Error generating milestones:", error.message);
     res.status(500).json({
@@ -227,6 +242,7 @@ const getMilestones = async (req, res) => {
     });
   }
 };
+
 const getMilestoneByStartupId = async (req, res) => {
   try {
     const { startup_id } = req.params;
@@ -239,7 +255,7 @@ const getMilestoneByStartupId = async (req, res) => {
 
     const milestone = await Milestone.findOne({ startup_id });
 
-    console.log("Milestone fetched for startup_id:", startup_id, milestone);
+    console.dir(milestone, { depth: null });
 
     if (!milestone) {
       return res.status(404).json({
