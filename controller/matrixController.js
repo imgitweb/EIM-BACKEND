@@ -175,25 +175,72 @@ const getGP = async (req, res) => {
 // ===================================
 
 const createOrUpdateCac = async (req, res) => {
+    console.log("--- REQUEST BODY RECEIVED ---", req.body); 
     try {
-        const { startup_id, year, month, cac } = req.body; 
+        // 1. Extract ALL raw data sent by the frontend
+        const { 
+            startup_id, 
+            year, 
+            month, 
+            marketing_spend, 
+            sales_spend,     
+            new_customer     
+        } = req.body;
+
+        // --- CALCULATION LOGIC ---
+        if (!marketing_spend || !sales_spend || !new_customer || parseInt(new_customer) <= 0) {
+            return res.status(400).json({ message: "Missing required spending or customer data (New Customers must be > 0)." });
+        }
+        
+        // Calculate CAC based on the formula
+        const total_spend = parseFloat(marketing_spend) + parseFloat(sales_spend);
+        const calculated_value = total_spend / parseInt(new_customer);
+        // -------------------------
+
+        // 2. DEFINE THE COMPLETE DATA PAYLOAD TO SATISFY THE SCHEMA
+        const dataToSave = {
+            year: parseInt(year),
+            month: parseInt(month),
+            // VITAL FIX: Include raw fields required by the Mongoose schema
+            marketing_spend: parseFloat(marketing_spend), 
+            sales_spend: parseFloat(sales_spend),
+            new_customer: parseInt(new_customer),
+            
+            // VITAL FIX: Use the correct schema name for the calculated field (assuming 'calculated_cac')
+            calculated_cac: calculated_value, 
+            
+            // NOTE: If your schema uses 'cac' instead of 'calculated_cac', 
+            //       replace 'calculated_cac: calculated_value' with 'cac: calculated_value'
+        };
+
+        // 3. Check for existing entry using the unique index fields
         const existingCac = await Cac.findOne({ startup_id, year, month });
 
         if (existingCac) {
-            existingCac.cac = cac;
+            // 4. Update existing entry with the full payload
+            Object.assign(existingCac, dataToSave); 
             await existingCac.save(); 
             return res.status(200).json({ message: "CAC data updated successfully", data: existingCac });
         } else {
-            const newCac = new Cac({ startup_id, year, month, cac });
+            // 5. Create new entry with the full payload
+            const newCac = new Cac({ 
+                startup_id, 
+                ...dataToSave // Spreads all required fields and the calculated value
+            });
             await newCac.save();
             return res.status(201).json({ message: "CAC data saved successfully", data: newCac });
         }
     } catch (error) {
         console.error("Error saving or updating CAC data:", error);
-        return res.status(500).json({ message: "Internal server error", error: error.message });
+        // Better error response to help debug
+        return res.status(500).json({ 
+            message: "Internal server error. Check server logs for Mongoose validation failure.", 
+            error: error.message 
+        });
     }
 };
 
+// --- getCAC function remains correct and unchanged ---
 const getCAC = async (req, res) => {
     try {
         const { startup_id } = req.params;
@@ -202,7 +249,7 @@ const getCAC = async (req, res) => {
         if (!cacData.length) {
             return res.status(404).json({ message: "No CAC data found for this startup ID" });
         }
-
+        
         return res.status(200).json(cacData);
     } catch (error) {
         console.error("Error fetching CAC data:", error);
