@@ -60,6 +60,7 @@ const routes = {
   valuationRoutes: require("./routes/valuationRoutes"),
   salesProduct: require("./routes/sales/salesRoute"),
   termSheetRoutes: require("./routes/termSheetRoutes"),
+  clientPersonaRoutes: require("./routes/sales/clientPersonas"),
 };
 const { ActivityRoute } = require("./routes/Activity/activityRoute");
 const { seedDeliverables } = require("./seeding/deliverablesSeeder");
@@ -270,7 +271,7 @@ app.use("/api/valuation", routes.valuationRoutes);
 app.use("/api/product", routes.salesProduct);
 app.use("/api/market", routes.MarketSize);
 app.use("/api/termsheets", routes.termSheetRoutes);
-
+app.use("/api/client-personas", routes.clientPersonaRoutes);
 app.use("/activity", ActivityRoute);
 app.use("/api/payment", paymentRouters);
 app.use("/deliverable", DeliverableRoutes(upload));
