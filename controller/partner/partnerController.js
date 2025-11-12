@@ -1,6 +1,6 @@
 const Partner = require('../../models/partners/Partners');
 const sendConnectionEmail = require('../../utils/sendConnectionEmail');
-
+const Connection = require('../../models/Connection'); // You'll need to create this model
 
 // Create a new partner
 exports.createPartner = async (req, res) => {
@@ -19,8 +19,7 @@ exports.createPartner = async (req, res) => {
       websiteUrl,
       description
     } = req.body;
-    console.log("Received partner data:", req.body); // Debug log
-
+    console.log("Received partner data:", req.body); 
 
     // Basic validation for required fields
     if (!name || !email || !partnerType ) {
@@ -52,7 +51,6 @@ exports.createPartner = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
 
 // Get all partners
 exports.getAllPartners = async (req, res) => {
@@ -107,25 +105,91 @@ exports.deletePartner = async (req, res) => {
   }
 };
 
-
+// ✅ FIXED: Connect user with partner - Save to database and send email
 exports.connectLegalPartner = async (req, res) => {
   try {
-    const { userId, partnerId , userEmail, partnerEmail, userName, partnerName } = req.body;
+    const { 
+      partnerId, 
+      partnerEmail, 
+      name,           // User's name
+      email,          // User's email
+      phone,          // User's phone
+      company,        // User's company
+      message         // Connection message
+    } = req.body;
     
-    // Basic validation
-    if (!userId || !partnerId) {
-      return res.status(400).json({ message: "User ID and Partner ID are required." });
+    console.log("Connect request received:", req.body);
+
+    // ✅ Validate required fields
+    if (!partnerId) {
+      return res.status(400).json({ message: "Partner ID is required." });
     }
-    // Find the partner by ID
+
+    if (!name || !email || !phone || !message) {
+      return res.status(400).json({ 
+        message: "Name, Email, Phone, and Message are required." 
+      });
+    }
+
+    // ✅ Verify partner exists
     const partner = await Partner.findById(partnerId);
     if (!partner) {
       return res.status(404).json({ message: "Partner not found." });
     }
 
-    await sendConnectionEmail(userEmail, "user", userName, partner.name);
-    await sendConnectionEmail(partnerEmail, "partner", userName, partner.name);
-    res.status(200).json({ message: `User ${userId} successfully connected with partner ${partner.name}.` });
+    // ✅ Create connection record in database
+    const connection = new Connection({
+      partnerId: partnerId,
+      partnerName: partner.name,
+      partnerEmail: partner.email,
+      userName: name,
+      userEmail: email,
+      userPhone: phone,
+      userCompany: company || "Not provided",
+      message: message,
+      status: "pending",
+      createdAt: new Date()
+    });
+
+    const savedConnection = await connection.save();
+    console.log("Connection saved:", savedConnection);
+
+    // ✅ Send emails to both parties
+    try {
+      // Email to user
+      await sendConnectionEmail(
+        email, 
+        "user", 
+        name, 
+        partner.name,
+        partner.email,
+        message
+      );
+
+      // Email to partner
+      await sendConnectionEmail(
+        partnerEmail, 
+        "partner", 
+        name, 
+        partner.name,
+        email,
+        message
+      );
+      console.log("Emails sent successfully");
+    } catch (emailError) {
+      console.error("Email sending error:", emailError);
+      // Don't fail the request if email fails
+    }
+
+    res.status(201).json({ 
+      message: `Connection request sent successfully to ${partner.name}. They will contact you soon.`,
+      connectionId: savedConnection._id
+    });
+
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Connection error:", error);
+    res.status(500).json({ 
+      message: error.message || "Error creating connection request." 
+    });
   }
 };
