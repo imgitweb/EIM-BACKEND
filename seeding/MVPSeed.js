@@ -19,7 +19,9 @@ const SeedMVPTeam = async () => {
         contactNo: p.contactNo?.toString() || null,
         location: p.location?.trim() || null,
         category: mapCategory(p.category),
-        logo : p.logo?.trim()
+        logo : p.logo?.trim(),
+        discription: p.discription?.trim() || null,
+
       };
 
       await MVPTeam.findOneAndUpdate(
