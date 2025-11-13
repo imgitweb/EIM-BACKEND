@@ -1,101 +1,121 @@
 const mongoose = require('mongoose');
 
 const mentorSchema = new mongoose.Schema({
-    image :{
-        type : String,
-        required : true, 
+    image: {
+        type: String,
+        default: "", // optional
     },
-    name : {
-        type : String,
-        required : true,
-        trim : true
+    name: {
+        type: String,
+        required: true,
+        trim: true
     },
-    designation :{
-        type : String,
-        required : true,
-        trim : true
+    designation: {
+        type: String,
+        required: true,
+        trim: true
     },
-    totalExp : {
-        type : Number,
-        required : true
+    currentCompany: {
+        type: String,
+        default: "",
+        trim: true
     },
-    skills :{
-        type : [String],
-        required : true,
-        // trim : true
+    totalExp: {
+        type: Number,
+        default: 0
     },
-    languages :{
-        type : [String],
-        required : true,
-        // trim : true
+    skills: {
+        type: [String],
+        default: []
     },
-    aboutUs :{
-        type : String,
-        required : true,
-        trim : true
+    languages: {
+        type: [String],
+        default: []
     },
-    higherEducation : {
-        type : String,
-        required : true,
-        trim : true
+    aboutUs: {
+        type: String,
+        default: "",
+        trim: true
     },
-    rating : {
-        type : Number,
-        required : true,
-        min : 1,
-        max : 5
+    higherEducation: {
+        type: String,
+        default: "",
+        trim: true
     },
-    category :{
-        type : String,
-        required : true,
-        enum :["Tech","tech", "Non Technical", "Subject Expert" ,"Business Strategy","Funding","Legal","Finance","Marketing","marketing", "Subject Matter Expert","subject matter expert" ]
+    rating: {
+        type: Number,
+        default: 0,
+        min: 0,
+        max: 5
     },
-    gender : {
-        type : String,
-        required : true,
-        enum : ['male', 'female','other'],
+    category: {
+        type: String,
+        required: true,
+        enum: [
+            "Tech Mentors", "Tech", "tech",
+            "Non Technical", "Subject Expert",
+            "Business Strategy", "Funding",
+            "Legal", "Finance", "Marketing", "marketing",
+            "Subject Matter Expert", "subject matter expert",
+            "Leadership & Growth Mentors","Business & Strategy Mentors"
+        ],
+        trim: true
     },
-    institute :{
-        type : String,
-        required : true,
-        trim : true
+    subCategory: {
+        type: String,
+        default: "",
+        trim: true
     },
-    email : {
-        type : String,
-        required : true,
-        trim : true,
+    gender: {
+        type: String,
+        enum: ["male", "female", "other"],
+        default: "other"
+    },
+    institute: {
+        type: String,
+        default: "",
+        trim: true
+    },
+    email: {
+        type: String,
+        trim: true,
         lowercase: true,
-        unique: true
+        default: ""
     },
-    mo_number : {
-        type : String,
-        required : true,
-        trim : true
+    mo_number: {
+        type: String,
+        trim: true,
+        default: ""
     },
-    country : {
-        type : String,
-        required : true,
-        trim : true
+    contact: {
+        type: String,
+        trim: true,
+        default: ""
     },
-    city : {
-        type : String,
-        required : true,
-        trim : true
+    country: {
+        type: String,
+        default: "",
+        trim: true
     },
-    linkedin : {   
-        type : String,
-        required : true,
-        trim : true
+    city: {
+        type: String,
+        default: "",
+        trim: true
     },
-    specializationIn : {
-        type : String,
-        required : true,
-        trim : true
+    linkedin: {
+        type: String,
+        default: "",
+        trim: true
     },
-    isDeleted : {
+    specializationIn: {
+        type: String,
+        default: "",
+        trim: true
+    },
+    isDeleted: {
         type: Boolean,
         default: false
     }
-})
+});
 
 module.exports = mongoose.model('Mentor', mentorSchema);
