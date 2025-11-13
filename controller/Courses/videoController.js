@@ -135,54 +135,66 @@ const uploadVideo = async (req, res) => {
 
     const savedVideo = await newVideo.save();
 
-    if (generateAssessment) {
-      try {
-        console.log("🧠 Generating quiz using ChatGPT...");
+  if (generateAssessment) {
+  try {
+    console.log("🧠 Generating quiz using ChatGPT...");
 
-        const prompt = `
-        Generate 5 high-quality multiple-choice quiz questions based on this video title:
-        "${title}"
-        ${transcript ? `Transcript content: ${transcript.slice(0, 2000)}` : ""}
-        
-        Each question must include:
-        - "question": string
-        - "options": array of 4 options
-        - "answer": correct option index (0-3)
-        - "explanation": short one-line explanation.
-        Return as valid JSON array.
-        `;
+    const prompt = `
+Generate exactly 5 high-quality multiple-choice questions in pure JSON format.
+DO NOT use backticks, DO NOT wrap in markdown.
 
-        const completion = await openai.chat.completions.create({
-          model: "gpt-4o-mini",
-          messages: [{ role: "user", content: prompt }],
-          temperature: 0.4,
-        });
+Video title: "${title}"
+${transcript ? `Transcript: ${transcript.slice(0, 2000)}` : ""}
 
-        const textResponse = completion.choices[0].message.content.trim();
+Return only a JSON array of objects:
+[
+  {
+    "question": "",
+    "options": ["", "", "", ""],
+    "answer": 0,
+    "explanation": ""
+  }
+]
+`;
 
-        let parsedQuestions;
-        try {
-          parsedQuestions = JSON.parse(textResponse);
-        } catch (err) {
-          console.error("⚠️ JSON Parse Error:", err);
-          parsedQuestions = [];
-        }
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.4,
+    });
 
-        if (!Array.isArray(parsedQuestions) || parsedQuestions.length === 0) {
-          console.warn("⚠️ No quiz generated from ChatGPT.");
-        } else {
-          const quiz = new Quiz({
-            video: savedVideo._id,
-            questions: parsedQuestions,
-          });
+    const textResponse = completion.choices[0].message.content.trim();
 
-          const savedQuiz = await quiz.save();
-          console.log("✅ Quiz generated and saved:", savedQuiz._id);
-        }
-      } catch (quizErr) {
-        console.error("❌ Quiz generation failed:", quizErr);
-      }
+    // CLEAN BACKTICKS IF MODEL RETURNS THEM
+    let cleaned = textResponse
+      .replace(/```json/g, "")
+      .replace(/```/g, "")
+      .trim();
+
+    let parsedQuestions;
+    try {
+      parsedQuestions = JSON.parse(cleaned);
+    } catch (err) {
+      console.error("⚠️ JSON Parse Error:", err, cleaned);
+      parsedQuestions = [];
     }
+
+    if (!Array.isArray(parsedQuestions) || parsedQuestions.length === 0) {
+      console.warn("⚠️ No quiz generated from ChatGPT.");
+    } else {
+      const quiz = new Quiz({
+        video: savedVideo._id,
+        questions: parsedQuestions,
+      });
+
+      const savedQuiz = await quiz.save();
+      console.log("✅ Quiz generated and saved:", savedQuiz._id);
+    }
+  } catch (quizErr) {
+    console.error("❌ Quiz generation failed:", quizErr);
+  }
+}
+
     return res.status(201).json({
       success: true,
       message: "Video uploaded successfully",
