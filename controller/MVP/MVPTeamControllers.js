@@ -1,4 +1,5 @@
 const MVPTeamModel = require("../../models/MVPTeamModel");
+const StartupModel = require("../../models/signup/StartupModel");
 
  const createCompany = async (req, res) => {
   try {
@@ -47,11 +48,39 @@ const MVPTeamModel = require("../../models/MVPTeamModel");
   }
 };
 
+
+
+
+const GenerateINhousePlan = async (req, res) => {
+  try {
+    const { startup_id} = req.body;
+
+    const startupDetails = await StartupModel.findById(startup_id);
+    if (!startupDetails) {
+      return res.status(404).json({ success: false, error: "Startup not found" });
+    }
+   
+    
+ 
+    const aiValidationService = require("../../utils/aiValidationService");
+    const{ plan} = await aiValidationService.generateInhousePlan(startupDetails);
+
+    res.json({ success: true, plan });
+  }
+  catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+}
+
+
+
+
 module.exports = {
   createCompany,
   getCompanies,
   updateCompany,
   deleteCompany,
+  GenerateINhousePlan
 };
 
 

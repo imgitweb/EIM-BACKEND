@@ -6,7 +6,8 @@
     "contactPerson": null,
     "contactNo": "72920 050505",
     "location": "Delhi",
-    "category": "Web & App Development Companies"
+    "category": "Web & App Development Companies",
+    "discription": "Inovidea Technologies is a leading web and app development company that specializes in creating innovative digital solutions for businesses of all sizes. With a team of skilled developers and designers, Inovidea Technologies offers a wide range of services including custom web development, mobile app development, e-commerce solutions, and digital marketing. Their commitment to quality and customer satisfaction has made them a trusted partner for clients worldwide."
   },
   {
     "companyName": "Softkix Technologies",
@@ -15,7 +16,8 @@
     "contactPerson": null,
     "contactNo": "7283866954",
     "location": "Lucknow",
-    "category": "Web & App Development Companies"
+    "category": "Web & App Development Companies",
+    "discription": "Softkix Technologies is a premier web and app development company based in Lucknow, dedicated to delivering cutting-edge digital solutions. With a team of experienced developers and designers, Softkix Technologies specializes in creating custom websites, mobile applications, and e-commerce platforms that cater to the unique needs of businesses. Their focus on innovation, quality, and customer satisfaction has earned them a reputation as a reliable partner for clients seeking to enhance their online presence."
   },
   {
     "companyName": "Alphawizz",
@@ -24,7 +26,8 @@
     "contactPerson": null,
     "contactNo": "9864086860",
     "location": "Indore",
-    "category": "AI, Data & Automation Experts"
+    "category": "AI, Data & Automation Experts",
+    "discription": "Alphawizz is a leading AI, Data, and Automation expert company based in Indore, specializing in providing innovative solutions to businesses looking to leverage the power of artificial intelligence and data analytics. With a team of skilled professionals, Alphawizz offers services such as machine learning, data mining, robotic process automation, and AI-driven business intelligence. Their commitment to delivering cutting-edge technology solutions has made them a trusted partner for organizations seeking to enhance efficiency and drive growth through automation and data-driven insights."
   },
   {
     "companyName": "Digital Latte",
@@ -33,7 +36,8 @@
     "contactPerson": "Chintan Founder",
     "contactNo": "9664088787",
     "location": "Mumbai",
-    "category": "Web & App Development Companies"
+    "category": "Web & App Development Companies",
+    "discription": "Digital Latte is a dynamic web and app development company based in Mumbai, dedicated to crafting innovative digital solutions for businesses of all sizes. With a team of skilled developers and designers, Digital Latte specializes in creating custom websites, mobile applications, and e-commerce platforms that cater to the unique needs of their clients. Their focus on quality, creativity, and customer satisfaction has established them as a trusted partner for businesses looking to enhance their online presence and drive growth through technology."
   },
   {
     "companyName": "Growth Hackers",
@@ -42,7 +46,8 @@
     "contactPerson": null,
     "contactNo": null,
     "location": "Bengaluru",
-    "category": "AI, Data & Automation Experts"
+    "category": "AI, Data & Automation Experts",
+    "discription": "Growth Hackers is a leading AI, Data, and Automation expert company based in Bengaluru, specializing in providing innovative solutions to help businesses accelerate their growth. With a team of skilled professionals, Growth Hackers offers services such as data analytics, machine learning, robotic process automation, and AI-driven marketing strategies. Their commitment to leveraging cutting-edge technology has made them a trusted partner for organizations seeking to enhance efficiency, optimize operations, and drive business growth through data-driven insights and automation."
   },
   {
     "companyName": "Moolya Engineering",
@@ -51,7 +56,8 @@
     "contactPerson": null,
     "contactNo": "9606988253",
     "location": "Bengaluru",
-    "category": "Full-Stack Product Engineering Firms"
+    "category": "Full-Stack Product Engineering Firms",
+    "discription": "Moolya Engineering is a premier full-stack product engineering firm based in Bengaluru, specializing in delivering end-to-end software development solutions. With a team of experienced engineers and designers, Moolya Engineering offers a wide range of services including product design, development, testing, and deployment across various industries. Their commitment to quality, innovation, and customer satisfaction has established them as a trusted partner for businesses looking to build robust and scalable digital products that drive growth and success."
   },
     {
     "companyName": "Einfochips ",
@@ -60,7 +66,8 @@
     "contactPerson": "",
     "contactNo": "",
     "location": "Indore",
-    "category": "Full-Stack Product Engineering Firms"
+    "category": "Full-Stack Product Engineering Firms",
+    "discription": "eInfochips is a global product engineering services company that specializes in providing end-to-end solutions for product development, from concept to commercialization. With expertise in embedded systems, IoT, cloud computing, and AI/ML, eInfochips helps businesses across various industries innovate and accelerate their product development cycles. Their team of skilled engineers and technologists work closely with clients to deliver customized solutions that meet their unique needs and drive business growth."
   },
   {
     "companyName": "Mariox software pvt. ltd",
@@ -69,7 +76,8 @@
     "contactPerson": null,
     "contactNo": "9599287045",
     "location": "Noida",
-    "category": "Web & App Development Companies"
+    "category": "Web & App Development Companies",
+    "discription": "Mariox Software Pvt. Ltd is a leading web and app development company based in Noida, dedicated to delivering innovative digital solutions for businesses of all sizes. With a team of skilled developers and designers, Mariox Software specializes in creating custom websites, mobile applications, and e-commerce platforms that cater to the unique needs of their clients. Their focus on quality, creativity, and customer satisfaction has established them as a trusted partner for businesses looking to enhance their online presence and drive growth through technology."
   },
   {
     "companyName": "Enfin Technologies ",
@@ -78,7 +86,8 @@
     "contactPerson": null,
     "contactNo": "",
     "location": "Bengaluru",
-    "category": "Full-Stack Product Engineering Firms"
+    "category": "Full-Stack Product Engineering Firms",
+    "discription": "Enfin Technologies is a premier full-stack product engineering firm based in Bengaluru, specializing in delivering end-to-end software development solutions. With a team of experienced engineers and designers, Enfin Technologies offers a wide range of services including product design, development, testing, and deployment across various industries. Their commitment to quality, innovation, and customer satisfaction has established them as a trusted partner for businesses looking to build robust and scalable digital products that drive growth and success."
   },
   {
     "companyName": "Eagle",
@@ -87,7 +96,8 @@
     "contactPerson": null,
     "contactNo": "9667088955",
     "location": "New Delhi",
-    "category": "AI, Data & Automation Experts"
+    "category": "AI, Data & Automation Experts",
+    "discription": "Eagle is a leading AI, Data, and Automation expert company based in New Delhi, specializing in providing innovative solutions to help businesses leverage the power of artificial intelligence and data analytics. With a team of skilled professionals, Eagle offers services such as machine learning, data mining, robotic process automation, and AI-driven business intelligence. Their commitment to delivering cutting-edge technology solutions has made them a trusted partner for organizations seeking to enhance efficiency and drive growth through automation and data-driven insights."
   },
   {
     "companyName": "Solace",
@@ -96,7 +106,8 @@
     "contactPerson": null,      
     "contactNo": "8009191092",
     "location": "Mumbai",
-    "category": "AI, Data & Automation Experts"
+    "category": "AI, Data & Automation Experts",
+    "discription": "Solace is a leading AI, Data, and Automation expert company based in Mumbai, specializing in providing innovative solutions to help businesses leverage the power of artificial intelligence and data analytics. With a team of skilled professionals, Solace offers services such as machine learning, data mining, robotic process automation, and AI-driven business intelligence. Their commitment to delivering cutting-edge technology solutions has made them a trusted partner for organizations seeking to enhance efficiency and drive growth through automation and data-driven insights."
   },
   {
     "companyName": "EngineerBabu",
@@ -105,7 +116,9 @@
     "contactPerson": "Mayank Pratap Singh (Co-founder)",
     "contactNo": "",
     "location": "Indore",
-    "category": "Startup Tech Boutiques (Small to Mid-size)"
+    "category": "Startup Tech Boutiques (Small to Mid-size)",
+    "discription": "Engineerbabu is a startup tech boutique based in Indore, specializing in providing tailored technology solutions for startups and small to mid-size businesses. With a team of experienced developers and designers, Engineerbabu offers a range of services including web and mobile app development, product design, and digital marketing. Their focus on innovation, quality, and customer satisfaction has made them a trusted partner for startups looking to build and scale their digital products effectively."
+
   },
   {
     "companyName": "Chapter247 Infotech",
@@ -114,7 +127,8 @@
     "contactPerson": "Sunny Yadav / Ankit Baviskar (ops/BD – public post)",
     "contactNo": "90985 05794",
     "location": "",
-    "category": "Startup Tech Boutiques (Small to Mid-size)"
+    "category": "Startup Tech Boutiques (Small to Mid-size)",
+    "discription": "Chapter247 Infotech is a dynamic startup tech boutique that specializes in providing innovative technology solutions for startups and small to mid-size businesses. With a team of skilled developers and designers, Chapter247 Infotech offers a wide range of services including web and mobile app development, product design, and digital marketing. Their commitment to quality, creativity, and customer satisfaction has established them as a trusted partner for startups looking to build and scale their digital products effectively."
   },
  {
     "companyName": "Hiteshi Infotech Pvt Ltd",
@@ -123,7 +137,8 @@
     "contactPerson": "Address: 8th Floor, Crystal IT Park, Khandwa Road, Indore; Contact No: +91 731-2971133 (ThirdEssential)",
     "contactNo": "Demo Number",
     "location": "Indore",
-    "category": "AI, Data & Automation Experts"
+    "category": "AI, Data & Automation Experts",
+    "discription": "Hiteshi Infotech Pvt Ltd is a leading AI, Data, and Automation expert company based in Indore, specializing in providing innovative solutions to help businesses leverage the power of artificial intelligence and data analytics. With a team of skilled professionals, Hiteshi Infotech offers services such as machine learning, data mining, robotic process automation, and AI-driven business intelligence. Their commitment to delivering cutting-edge technology solutions has made them a trusted partner for organizations seeking to enhance efficiency and drive growth through automation and data-driven insights."
   },
    {
     "companyName": "Softude Infotech Pvt Ltd",
@@ -132,6 +147,7 @@
     "contactPerson": "Address & phone: +91 731 4975283 (ThirdEssential)",
     "contactNo": "Demo Number",
     "location": "Indore",
-    "category": "AI, Data & Automation Experts"
+    "category": "AI, Data & Automation Experts",
+    "discription": "Softude Infotech Pvt Ltd is a leading AI, Data, and Automation expert company based in Indore, specializing in providing innovative solutions to help businesses leverage the power of artificial intelligence and data analytics. With a team of skilled professionals, Softude Infotech offers services such as machine learning, data mining, robotic process automation, and AI-driven business intelligence. Their commitment to delivering cutting-edge technology solutions has made them a trusted partner for organizations seeking to enhance efficiency and drive growth through automation and data-driven insights."
   }
 ]

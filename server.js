@@ -62,6 +62,7 @@ const routes = {
   termSheetRoutes: require("./routes/termSheetRoutes"),
   clientPersonaRoutes: require("./routes/sales/clientPersonas"),
   complianceRoutes: require("./routes/complianceRoutes"),
+  feedbackRoutes: require("./routes/feedbackRoutes"),
 };
 const { ActivityRoute } = require("./routes/Activity/activityRoute");
 const { seedDeliverables } = require("./seeding/deliverablesSeeder");
@@ -274,9 +275,10 @@ app.use("/api/market", routes.MarketSize);
 app.use("/api/termsheets", routes.termSheetRoutes);
 app.use("/api/client-personas", routes.clientPersonaRoutes);
 app.use("/api/compliances", routes.complianceRoutes);
-app.use("/activity", ActivityRoute);
+app.use("/api/activity", ActivityRoute);
 app.use("/api/payment", paymentRouters);
-app.use("/deliverable", DeliverableRoutes(upload));
+app.use("/api/deliverable", DeliverableRoutes(upload));
+app.use("/api/feedback", routes.feedbackRoutes);
 // ─────────────────────────────────────────────────────────────
 // ✅ Error Handlers
 // ─────────────────────────────────────────────────────────────

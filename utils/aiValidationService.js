@@ -395,3 +395,113 @@ At the end, add:
     throw new Error("AI generation failed");
   }
 };
+
+
+
+exports.generateInhousePlan = async (startup) => {
+  console.log("🚀 Generating In-House Team Plan for Startup:", startup.startupName);
+  try {
+    const prompt = `
+You are an experienced startup HR and tech strategy consultant.
+Based on the following startup information, generate a detailed in-house team hiring plan in JSON format.
+
+Startup Details:
+- Name: ${startup.startupName || "N/A"}
+- Problem: ${startup.problemStatement || "N/A"}
+- Solution: ${startup.solutionDescription || "N/A"}
+- Target Audience: ${startup.targetedAudience || "N/A"}
+- Industry: ${startup.industry || "N/A"}
+- Stage: ${startup.startupStage || "N/A"}
+
+Respond strictly with valid JSON using this structure:
+{
+  "overview": "Short summary of the hiring strategy.",
+  "roles": [
+    {
+      "title": "Role name",
+      "responsibilities": ["Task 1", "Task 2"],
+      "skills": ["Skill 1", "Skill 2"],
+      "estimatedSalary": "$ per year",
+      "hiringPriority": "High/Medium/Low"
+    }
+  ],
+  "estimatedTimeline": "Example: 4–6 months",
+  "estimatedCost": "Approx total cost per year",
+  "recommendedTechStack": ["React", "Node.js", "MongoDB"],
+  "milestones": ["Define roadmap", "Hire team", "Build MVP", "Test & launch"],
+  "aiInsight": "Short AI insight about optimizing hiring and team setup."
+}
+`;
+
+    // 🔹 Call OpenAI
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.6,
+    });
+
+    let content = completion.choices[0]?.message?.content?.trim() || "";
+    console.log("🧠 Raw AI Response:", content);
+
+    // 🧩 Try cleaning and parsing the response
+    let plan;
+    try {
+      // remove possible markdown code fences or extra text
+      content = content
+        .replace(/```json|```/g, "")
+        .replace(/^.*?{/, "{")
+        .replace(/}[^}]*$/, "}")
+        .trim();
+
+      plan = JSON.parse(content);
+    } catch (err) {
+      console.warn("⚠️ AI returned invalid JSON, applying fallback.");
+      console.warn("Returned content:", content);
+
+      // 🩹 Fallback plan if JSON invalid
+      plan = {
+        overview: "Fallback plan used because AI response was invalid JSON.",
+        roles: [
+          {
+            title: "Full Stack Developer",
+            responsibilities: [
+              "Build and maintain the web application",
+              "Integrate APIs and handle deployment"
+            ],
+            skills: ["React", "Node.js", "MongoDB"],
+            estimatedSalary: "$80,000 / year",
+            hiringPriority: "High",
+          },
+          {
+            title: "UI/UX Designer",
+            responsibilities: [
+              "Create wireframes and design system",
+              "Conduct user research and improve usability"
+            ],
+            skills: ["Figma", "UX Research"],
+            estimatedSalary: "$60,000 / year",
+            hiringPriority: "Medium",
+          },
+        ],
+        estimatedTimeline: "4–6 months",
+        estimatedCost: "$140,000 / year",
+        recommendedTechStack: ["React", "Node.js", "MongoDB"],
+        milestones: [
+          "Hire core team",
+          "Build MVP",
+          "Conduct testing",
+          "Launch public beta",
+        ],
+        aiInsight:
+          "Start with a lean core team and scale gradually as the MVP stabilizes.",
+      };
+    }
+
+    return { success: true, plan };
+  } catch (error) {
+    console.error("❌ AI In-House Plan Generation Error:", error.message);
+    throw new Error("AI generation failed");
+  }
+};
+
+

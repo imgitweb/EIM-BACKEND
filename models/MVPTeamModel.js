@@ -26,7 +26,8 @@ const MVPSchema = new mongoose.Schema({
     "Consulting"
   ],
     required: true
-  }
+  },
+  discription: { type: String  },
   
 
 }, { timestamps: true });
