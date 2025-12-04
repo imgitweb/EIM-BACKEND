@@ -1,36 +1,16 @@
-const MAX_BERKUS_VALUATION = 25000000;    // ₹2.5 crore cap
-const SCORECARD_BENCHMARK = 30000000;     // default ₹3 crore
 
-const SCORECARD_WEIGHTS = {
-    team: 0.30,
-    opportunity: 0.25,
-    productTech: 0.15,
-    competition: 0.10,
-    marketing: 0.10,
-    funding: 0.10,
-};
-
-// ===============================================
-// BERKUS METHOD (PDF-accurate)
-// ===============================================
 exports.calculateBerkus = (inputs) => {
-    const {
-        maxValue = 2000000, // default ₹20 lakh
-        soundIdea = 0,
-        teamQuality = 0,
-        prototype = 0,
-        relationships = 0,
-        rollout = 0,
-    } = inputs;
+  const { maxPerFactor = 2000000, scores = {} } = inputs;
 
-    const factors = [soundIdea, teamQuality, prototype, relationships, rollout];
+  const totalScore =
+    (scores.sound_idea || 0) +
+    (scores.team || 0) +
+    (scores.prototype || 0) +
+    (scores.strategic_relationships || 0) +
+    (scores.rollout_sales || 0);
 
-    const total = factors.reduce((sum, score) => {
-        const safeScore = Math.max(0, Math.min(score, 10)); 
-        return sum + (safeScore / 10) * maxValue;
-    }, 0);
-
-    return Math.min(total, MAX_BERKUS_VALUATION);
+  const valuation = (totalScore / 50) * (maxPerFactor * 5);
+  return Math.round(Math.max(0, valuation));
 };
 
 
@@ -38,57 +18,61 @@ exports.calculateBerkus = (inputs) => {
 // SCORECARD METHOD
 // ===============================================
 exports.calculateScorecard = (inputs) => {
-    const {
-        benchmark = SCORECARD_BENCHMARK,
-        team = 0,
-        opportunity = 0,
-        productTech = 0,
-        competition = 0,
-        marketing = 0,
-        funding = 0,
-    } = inputs;
+  const {
+    baseValuation = 10000000,
+    team = 5,
+    market = 5,
+    product = 5,
+    competition = 5,
+    marketing = 5,
+    funding = 5
+  } = inputs;
 
-    let multiplier =
-        (team / 10) * SCORECARD_WEIGHTS.team +
-        (opportunity / 10) * SCORECARD_WEIGHTS.opportunity +
-        (productTech / 10) * SCORECARD_WEIGHTS.productTech +
-        (competition / 10) * SCORECARD_WEIGHTS.competition +
-        (marketing / 10) * SCORECARD_WEIGHTS.marketing +
-        (funding / 10) * SCORECARD_WEIGHTS.funding;
+  const weights = {
+    team: 0.30,
+    market: 0.25,
+    product: 0.15,
+    competition: 0.10,
+    marketing: 0.10,
+    funding: 0.10
+  };
 
-    return benchmark * multiplier;
+  let multiplier = 0;
+  Object.entries(weights).forEach(([key, weight]) => {
+    const score = inputs[key] ?? 5;
+    multiplier += (score / 10) * weight * 10;
+  });
+
+  return Math.round(baseValuation * multiplier);
 };
 
-
-// ===============================================
-// DCF METHOD (Matches your PDF)
-// ===============================================
 exports.calculateDCF = (inputs) => {
-    let { cf1, cf2, cf3, cf4, cf5, discountRate, terminalGrowth } = inputs;
+  const {
+    cf1 = 0, cf2 = 0, cf3 = 0, cf4 = 0, cf5 = 0,
+    discountRate = 40,
+    terminalGrowth = 3
+  } = inputs;
 
-    const r = (discountRate || 40) / 100;
-    const g = (terminalGrowth || 3) / 100;
+  const r = discountRate / 100;
+  const g = terminalGrowth / 100;
 
-    const cashFlows = [cf1, cf2, cf3, cf4, cf5].map(v => Math.max(0, v));
+  if (r <= g) throw new Error("Discount rate must be > terminal growth rate");
 
-    let pvSum = 0;
+  let pv = 0;
+  [cf1, cf2, cf3, cf4, cf5].forEach((cf, i) => {
+    pv += cf / Math.pow(1 + r, i + 1);
+  });
 
-    cashFlows.forEach((cf, i) => {
-        pvSum += cf / Math.pow(1 + r, i + 1);
-    });
+  const terminalValue = cf5 * (1 + g) / (r - g);
+  const pvTerminal = terminalValue / Math.pow(1 + r, 5);
 
-    const terminalValue = (cashFlows[4] * (1 + g)) / (r - g);
-
-    const pvTerminal = terminalValue / Math.pow(1 + r, 5);
-
-    return Math.max(0, pvSum + pvTerminal);
+  return Math.round(Math.max(0, pv + pvTerminal));
 };
 
-
-// ===============================================
-// REVENUE MULTIPLE METHOD
-// ===============================================
 exports.calculateRevenueMultiple = (inputs) => {
-    let { revenue = 0, multiple = 1 } = inputs;
-    return Math.max(0, revenue * multiple);
+  const { revenue = 0, multiple = 1 } = inputs;
+  if (revenue < 0 || multiple <= 0) return 0;
+  return Math.round(revenue * multiple);
 };
+
+exports.calculateVC = exports.calculateRevenueMultiple;

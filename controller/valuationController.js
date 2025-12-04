@@ -1,70 +1,72 @@
-const valuationService = require('../services/valuationService');
 const Valuation = require('../models/Valuation');
+const User = require("../models/signup/StartupModel")
+const valuationService = require('../services/valuationService');
 
 exports.calculateAndSaveValuation = async (req, res) => {
-    const { method, inputs } = req.body;
+  const { method, inputs } = req.body;
 
-    if (!method || !inputs) {
-        return res.status(400).json({ 
-            message: 'Method and input factors are required.',
-            success: false 
+  if (!method || !inputs || typeof inputs !== 'object') {
+    return res.status(400).json({
+      success: false,
+      message: 'Method and inputs (object) are required.'
+    });
+  }
+
+  let result;
+  let methodTitle;
+
+  try {
+    switch (method) {
+      case 'berkus':
+        result = valuationService.calculateBerkus(inputs);
+        methodTitle = 'Berkus Method (Ideation Stage)';
+        break;
+
+      case 'scorecard':
+        result = valuationService.calculateScorecard(inputs);
+        methodTitle = 'Scorecard Method';
+        break;
+
+      case 'dcf':
+        result = valuationService.calculateDCF(inputs);
+        methodTitle = 'Discounted Cash Flow (DCF)';
+        break;
+
+      case 'multiple':
+      case 'revenue_multiple':
+      case 'vc_method':
+        result = valuationService.calculateRevenueMultiple(inputs);
+        methodTitle = 'Revenue Multiple Method';
+        break;
+
+      default:
+        return res.status(400).json({
+          success: false,
+          message: `Invalid method: ${method}`
         });
     }
 
-    let valuationResult = 0;
-    let methodTitle = '';
+    const record = new Valuation({
+      method: methodTitle,
+      inputs,
+      result,
+      user: req.user?._id || null
+    });
+    await record.save();
 
-    try {
-        switch (method) {
+    return res.status(200).json({
+      success: true,
+      method: methodTitle,
+      valuation: result,
+      saved: true
+    });
 
-            case 'berkus':
-                valuationResult = valuationService.calculateBerkus(inputs);
-                methodTitle = 'Berkus Method';
-                break;
-
-            case 'scorecard':
-                valuationResult = valuationService.calculateScorecard(inputs);
-                methodTitle = 'Scorecard Method';
-                break;
-
-            case 'dcf':
-                valuationResult = valuationService.calculateDCF(inputs);
-                methodTitle = 'Discounted Cash Flow (DCF)';
-                break;
-
-            case 'revenue_multiple':
-                valuationResult = valuationService.calculateRevenueMultiple(inputs);
-                methodTitle = 'Revenue Multiple Method';
-                break;
-
-            default:
-                return res.status(400).json({ 
-                    message: `Invalid valuation method: ${method}`, 
-                    success: false 
-                });
-        }
-
-        const newValuationRecord = new Valuation({
-            method: methodTitle,
-            inputs: inputs,
-            result: valuationResult,
-            calculatedAt: new Date()
-        });
-
-        await newValuationRecord.save();
-
-        return res.status(200).json({
-            method: methodTitle,
-            valuation: valuationResult,
-            success: true
-        });
-
-    } catch (error) {
-        console.error(`Error calculating valuation for method ${method}:`, error);
-        return res.status(500).json({ 
-            message: 'Server error during calculation.',
-            error: error.message,
-            success: false
-        });
-    }
+  } catch (error) {
+    console.error('Valuation Error:', error.message);
+    return res.status(500).json({
+      success: false,
+      message: 'Calculation failed',
+      error: error.message
+    });
+  }
 };
