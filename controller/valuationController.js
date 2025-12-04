@@ -1,4 +1,3 @@
-
 const valuationService = require('../services/valuationService');
 const Valuation = require('../models/Valuation');
 
@@ -16,8 +15,8 @@ exports.calculateAndSaveValuation = async (req, res) => {
     let methodTitle = '';
 
     try {
-        // --- 1. Call the appropriate service method based on input 'method' ---
         switch (method) {
+
             case 'berkus':
                 valuationResult = valuationService.calculateBerkus(inputs);
                 methodTitle = 'Berkus Method';
@@ -27,15 +26,15 @@ exports.calculateAndSaveValuation = async (req, res) => {
                 valuationResult = valuationService.calculateScorecard(inputs);
                 methodTitle = 'Scorecard Method';
                 break;
-                
+
             case 'dcf':
                 valuationResult = valuationService.calculateDCF(inputs);
                 methodTitle = 'Discounted Cash Flow (DCF)';
                 break;
 
-            case 'vc_method':
-                valuationResult = valuationService.calculateVC(inputs);
-                methodTitle = 'Venture Capital (VC) Method';
+            case 'revenue_multiple':
+                valuationResult = valuationService.calculateRevenueMultiple(inputs);
+                methodTitle = 'Revenue Multiple Method';
                 break;
 
             default:
@@ -45,20 +44,18 @@ exports.calculateAndSaveValuation = async (req, res) => {
                 });
         }
 
-        // --- 2. Save the calculation result to the database (Using the imported Model) ---
         const newValuationRecord = new Valuation({
             method: methodTitle,
             inputs: inputs,
             result: valuationResult,
             calculatedAt: new Date()
         });
-        await newValuationRecord.save();
-        
 
-        // --- 3. Return the result to the frontend ---
+        await newValuationRecord.save();
+
         return res.status(200).json({
             method: methodTitle,
-            valuation: valuationResult, 
+            valuation: valuationResult,
             success: true
         });
 
