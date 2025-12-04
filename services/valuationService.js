@@ -1,80 +1,94 @@
-const MAX_BERKUS_VALUATION = 25000000; 
-const SCORECARD_BENCHMARK = 30000000; 
-const DCF_DEFAULT_DISCOUNT_RATE = 0.20; 
+const MAX_BERKUS_VALUATION = 25000000;    // ₹2.5 crore cap
+const SCORECARD_BENCHMARK = 30000000;     // default ₹3 crore
 
 const SCORECARD_WEIGHTS = {
     team: 0.30,
-    problemSolution: 0.25,
-    traction: 0.15,
-    marketSize: 0.10,
+    opportunity: 0.25,
+    productTech: 0.15,
     competition: 0.10,
-    other: 0.10,
-    TOTAL_WEIGHT: 1.00 
+    marketing: 0.10,
+    funding: 0.10,
+};
+
+// ===============================================
+// BERKUS METHOD (PDF-accurate)
+// ===============================================
+exports.calculateBerkus = (inputs) => {
+    const {
+        maxValue = 2000000, // default ₹20 lakh
+        soundIdea = 0,
+        teamQuality = 0,
+        prototype = 0,
+        relationships = 0,
+        rollout = 0,
+    } = inputs;
+
+    const factors = [soundIdea, teamQuality, prototype, relationships, rollout];
+
+    const total = factors.reduce((sum, score) => {
+        const safeScore = Math.max(0, Math.min(score, 10)); 
+        return sum + (safeScore / 10) * maxValue;
+    }, 0);
+
+    return Math.min(total, MAX_BERKUS_VALUATION);
 };
 
 
-exports.calculateBerkus = (factors) => {
-    const totalValuation = Object.values(factors).reduce((sum, current) => sum + current, 0);
-    return Math.min(totalValuation, MAX_BERKUS_VALUATION);
-};
-
+// ===============================================
+// SCORECARD METHOD
+// ===============================================
 exports.calculateScorecard = (inputs) => {
-    const benchmark = inputs.benchmark || SCORECARD_BENCHMARK;
-    
-    let finalScoreSum = 0;
-    
-    finalScoreSum += (inputs.team / 10) * SCORECARD_WEIGHTS.team;
-    finalScoreSum += (inputs.problemSolution / 10) * SCORECARD_WEIGHTS.problemSolution;
-    finalScoreSum += (inputs.traction / 10) * SCORECARD_WEIGHTS.traction;
-    finalScoreSum += (inputs.marketSize / 10) * SCORECARD_WEIGHTS.marketSize;
-    finalScoreSum += (inputs.competition / 10) * SCORECARD_WEIGHTS.competition;
-    finalScoreSum += (inputs.other / 10) * SCORECARD_WEIGHTS.other;
+    const {
+        benchmark = SCORECARD_BENCHMARK,
+        team = 0,
+        opportunity = 0,
+        productTech = 0,
+        competition = 0,
+        marketing = 0,
+        funding = 0,
+    } = inputs;
 
-    return benchmark * finalScoreSum;
+    let multiplier =
+        (team / 10) * SCORECARD_WEIGHTS.team +
+        (opportunity / 10) * SCORECARD_WEIGHTS.opportunity +
+        (productTech / 10) * SCORECARD_WEIGHTS.productTech +
+        (competition / 10) * SCORECARD_WEIGHTS.competition +
+        (marketing / 10) * SCORECARD_WEIGHTS.marketing +
+        (funding / 10) * SCORECARD_WEIGHTS.funding;
+
+    return benchmark * multiplier;
 };
 
 
+// ===============================================
+// DCF METHOD (Matches your PDF)
+// ===============================================
 exports.calculateDCF = (inputs) => {
-    let { annualRevenue, annualExpense, growthRate, projectionYears, discountRate } = inputs;
+    let { cf1, cf2, cf3, cf4, cf5, discountRate, terminalGrowth } = inputs;
 
-    const r = growthRate / 100; 
-    const d = (discountRate / 100) || DCF_DEFAULT_DISCOUNT_RATE;
-    const years = Math.min(Math.max(projectionYears, 1), 10);
-    
-    let presentValueSum = 0;
-    let currentRevenue = annualRevenue;
-    let currentExpense = annualExpense;
+    const r = (discountRate || 40) / 100;
+    const g = (terminalGrowth || 3) / 100;
 
-    for (let t = 1; t <= years; t++) {
-        currentRevenue = currentRevenue * (1 + r);
-        currentExpense = currentExpense * (1 + 0.10); 
-        
-        const profit = currentRevenue - currentExpense;
-        const presentValue = profit / Math.pow(1 + d, t);
-        presentValueSum += presentValue;
-    }
+    const cashFlows = [cf1, cf2, cf3, cf4, cf5].map(v => Math.max(0, v));
 
-    return Math.max(0, presentValueSum);
+    let pvSum = 0;
+
+    cashFlows.forEach((cf, i) => {
+        pvSum += cf / Math.pow(1 + r, i + 1);
+    });
+
+    const terminalValue = (cashFlows[4] * (1 + g)) / (r - g);
+
+    const pvTerminal = terminalValue / Math.pow(1 + r, 5);
+
+    return Math.max(0, pvSum + pvTerminal);
 };
 
 
-exports.calculateVC = (inputs) => {
-    let { currentAnnualRevenue, investmentAmount, growthRate, yearsToExit, industryMultiple, roiMultiple } = inputs;
-    
-    const STARTING_ANNUAL_REVENUE = currentAnnualRevenue || 10000000; 
-    
-    const r = growthRate / 100;
-    const years = yearsToExit;
-    
-    const exitRevenue = STARTING_ANNUAL_REVENUE * Math.pow(1 + r, years);
-
-    const exitValue = exitRevenue * industryMultiple;
-
-    if (roiMultiple <= 0) return 0;
-
-    const targetPostMoneyValuation = exitValue / roiMultiple;
-
-    const preMoneyValuation = targetPostMoneyValuation - investmentAmount;
-    
-    return Math.max(0, preMoneyValuation);
+// ===============================================
+// REVENUE MULTIPLE METHOD
+// ===============================================
+exports.calculateRevenueMultiple = (inputs) => {
+    let { revenue = 0, multiple = 1 } = inputs;
+    return Math.max(0, revenue * multiple);
 };
