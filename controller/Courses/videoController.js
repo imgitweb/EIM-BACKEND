@@ -4,9 +4,8 @@ const Module = require("../../models/courses/Module.js");
 const { uploadToVimeo } = require("../../utils/vimeoUploader.js");
 const fs = require("fs").promises;
 const fsSync = require("fs");
-const OpenAI = require("openai");
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const Quiz = require("../../models/courses/Quiz.js");
+const { CallOpenai } = require("../helper/helper.js");
 
 // Helper function to safely delete files
 const safeDeleteFile = async (filePath) => {
@@ -22,7 +21,6 @@ const safeDeleteFile = async (filePath) => {
 
 // Placeholder for Vimeo transcript fetch - implement based on Vimeo API
 const fetchTranscriptFromVimeo = async (vimeoId) => {
-  // TODO: Implement actual Vimeo API call
   console.log(`Fetching transcript for Vimeo ID: ${vimeoId}`);
   return null; // Return actual transcript data when implemented
 };
@@ -135,65 +133,52 @@ const uploadVideo = async (req, res) => {
 
     const savedVideo = await newVideo.save();
 
-  if (generateAssessment) {
-  try {
-    console.log("🧠 Generating quiz using ChatGPT...");
+    if (generateAssessment) {
+      try {
+        console.log("🧠 Generating quiz using ChatGPT...");
 
-    const prompt = `
-Generate exactly 5 high-quality multiple-choice questions in pure JSON format.
-DO NOT use backticks, DO NOT wrap in markdown.
+        const prompt = `
+      Generate exactly 5 high-quality multiple-choice questions in pure JSON format.
+      DO NOT use backticks, DO NOT wrap in markdown.
 
-Video title: "${title}"
-${transcript ? `Transcript: ${transcript.slice(0, 2000)}` : ""}
+      Video title: "${title}"
+      ${transcript ? `Transcript: ${transcript.slice(0, 2000)}` : ""}
 
-Return only a JSON array of objects:
-[
-  {
-    "question": "",
-    "options": ["", "", "", ""],
-    "answer": 0,
-    "explanation": ""
-  }
-]
-`;
+      Return only a JSON array of objects:
+      [
+        {
+          "question": "",
+          "options": ["", "", "", ""],
+          "answer": 0,
+          "explanation": ""
+        }
+      ]
+      `;
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.4,
-    });
+        const response = CallOpenai(prompt);
+        let parsedQuestions;
+        try {
+          parsedQuestions = response;
+        } catch (err) {
+          console.error("⚠️ JSON Parse Error:", err, cleaned);
+          parsedQuestions = [];
+        }
 
-    const textResponse = completion.choices[0].message.content.trim();
+        if (!Array.isArray(parsedQuestions) || parsedQuestions.length === 0) {
+          console.warn("⚠️ No quiz generated from ChatGPT.");
+        } else {
+          const quiz = new Quiz({
+            video: savedVideo._id,
+            questions: parsedQuestions,
+          });
 
-    // CLEAN BACKTICKS IF MODEL RETURNS THEM
-    let cleaned = textResponse
-      .replace(/```json/g, "")
-      .replace(/```/g, "")
-      .trim();
-
-    let parsedQuestions;
-    try {
-      parsedQuestions = JSON.parse(cleaned);
-    } catch (err) {
-      console.error("⚠️ JSON Parse Error:", err, cleaned);
-      parsedQuestions = [];
+          const savedQuiz = await quiz.save();
+          console.log("✅ Quiz generated and saved:", savedQuiz._id);
+        }
+      } catch (quizErr) {
+        console.error("❌ Quiz generation failed:", quizErr);
+      }
     }
-
-    if (!Array.isArray(parsedQuestions) || parsedQuestions.length === 0) {
-      console.warn("⚠️ No quiz generated from ChatGPT.");
-    } else {
-      const quiz = new Quiz({
-        video: savedVideo._id,
-        questions: parsedQuestions,
-      });
-
-      const savedQuiz = await quiz.save();
-      console.log("✅ Quiz generated and saved:", savedQuiz._id);
-    }
-  } catch (quizErr) {
-    console.error("❌ Quiz generation failed:", quizErr);
-  }
-}
 
     return res.status(201).json({
       success: true,

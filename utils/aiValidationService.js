@@ -1,53 +1,48 @@
-// services/aiValidationService.js
-const OpenAI = require("openai");
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-
 exports.validateIdeaWithAI = async (ideaData) => {
   const { title, problem, solution, audience } = ideaData;
+  const { CallOpenAi } = require("../controller/helper/helper.js");
 
   const prompt = `
-You are a startup idea evaluator. Analyze this idea and give a realistic assessment with a total score out of 100.
+    You are a startup idea evaluator. Analyze this idea and give a realistic assessment with a total score out of 100.
 
-Startup Idea Details:
-- Title: ${title}
-- Problem: ${problem}
-- Solution: ${solution}
-- Target Audience: ${audience}
+    Startup Idea Details:
+    - Title: ${title}
+    - Problem: ${problem}
+    - Solution: ${solution}
+    - Target Audience: ${audience}
 
-Please respond ONLY in valid JSON with the following structure:
+    Please respond ONLY in valid JSON with the following structure:
 
-{
-  "score": <number between 0-100>,
-  "strengths": [<3 bullet points>],
-  "weaknesses": [<3 bullet points>],
-  "opportunities": [<3 bullet points>],
-  "risks": [<3 bullet points>]
-}
-`;
+    {
+      "score": <number between 0-100>,
+      "strengths": [<3 bullet points>],
+      "weaknesses": [<3 bullet points>],
+      "opportunities": [<3 bullet points>],
+      "risks": [<3 bullet points>]
+    }
+    `;
 
   try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.7,
-    });
-
-    const content = completion.choices[0]?.message?.content?.trim();
+    const completion = CallOpenAi(prompt);
 
     let result;
     try {
-      result = JSON.parse(content);
+      result = completion;
     } catch (err) {
       console.warn("⚠️ AI returned invalid JSON, using fallback result");
       result = {
         score: Math.floor(Math.random() * 41) + 60,
         strengths: ["Creative concept", "Market relevance", "Good scalability"],
-        weaknesses: ["Unclear differentiation", "Limited data", "Needs traction"],
-        opportunities: ["Growing segment", "Tech leverage", "Partnership potential"],
+        weaknesses: [
+          "Unclear differentiation",
+          "Limited data",
+          "Needs traction",
+        ],
+        opportunities: [
+          "Growing segment",
+          "Tech leverage",
+          "Partnership potential",
+        ],
         risks: ["Competition", "Funding dependency", "Execution risk"],
       };
     }
@@ -84,7 +79,9 @@ Structure your response exactly as:
   "mitigation": [<3-5 clear, actionable mitigation recommendations>]
 }
 
-Now analyze the following startup and include **only** the selected risk dimensions: ${selectedRisks.join(", ")}.
+Now analyze the following startup and include **only** the selected risk dimensions: ${selectedRisks.join(
+    ", "
+  )}.
 
 Startup Details:
 - Name: ${startup.startupName || "N/A"}
@@ -114,10 +111,26 @@ Startup Details:
           selectedRisks.map((r) => [r, Math.floor(Math.random() * 41) + 60])
         ),
         swot: {
-          strengths: ["Innovative product direction", "Strong founder expertise", "Scalable potential"],
-          weaknesses: ["Weak marketing clarity", "Limited funding runway", "Overreliance on tech"],
-          opportunities: ["Untapped regional market", "Tech-first disruption potential", "High investor interest"],
-          threats: ["Competitive incumbents", "Execution bottlenecks", "Uncertain regulations"],
+          strengths: [
+            "Innovative product direction",
+            "Strong founder expertise",
+            "Scalable potential",
+          ],
+          weaknesses: [
+            "Weak marketing clarity",
+            "Limited funding runway",
+            "Overreliance on tech",
+          ],
+          opportunities: [
+            "Untapped regional market",
+            "Tech-first disruption potential",
+            "High investor interest",
+          ],
+          threats: [
+            "Competitive incumbents",
+            "Execution bottlenecks",
+            "Uncertain regulations",
+          ],
         },
         mitigation: [
           "Conduct early customer validation",
@@ -189,7 +202,9 @@ Return JSON strictly in this structure:
     try {
       result = JSON.parse(content);
     } catch (err) {
-      console.warn("⚠️ AI returned invalid JSON for case studies, using fallback.");
+      console.warn(
+        "⚠️ AI returned invalid JSON for case studies, using fallback."
+      );
 
       // Reliable fallback
       result = {
@@ -199,7 +214,8 @@ Return JSON strictly in this structure:
             country: "India",
             model: "IoT-driven soil analytics for small farmers",
             funding: "$2.5M Seed Round",
-            learning: "Built rural partnerships early to reduce deployment costs",
+            learning:
+              "Built rural partnerships early to reduce deployment costs",
           },
           {
             name: "HealthBridge",
@@ -213,7 +229,8 @@ Return JSON strictly in this structure:
             country: "USA",
             model: "AI-based crop monitoring SaaS for agribusinesses",
             funding: "$7M Series A",
-            learning: "Pivoted to enterprise clients after B2C traction stalled",
+            learning:
+              "Pivoted to enterprise clients after B2C traction stalled",
           },
           {
             name: "EcoGrow",
@@ -227,7 +244,8 @@ Return JSON strictly in this structure:
             country: "Brazil",
             model: "Blockchain-based produce traceability system",
             funding: "$6M Pre-Series A",
-            learning: "Leveraged partnerships with cooperatives for faster scaling",
+            learning:
+              "Leveraged partnerships with cooperatives for faster scaling",
           },
         ],
         insight:
@@ -244,7 +262,6 @@ Return JSON strictly in this structure:
 
 exports.generateFeaturesAI = async (featureList) => {
   try {
-
     const prompt = `
 You are a senior product strategist specializing in MVP planning.
 
@@ -299,7 +316,10 @@ Respond with JSON in this exact format:
       console.warn("⚠️ AI returned malformed JSON, applying fallback.");
 
       // Fallback — minimal, but safe structured response
-      const features = featureList.split(",").map((f) => f.trim()).filter(Boolean);
+      const features = featureList
+        .split(",")
+        .map((f) => f.trim())
+        .filter(Boolean);
       result = {
         features: features.map((f) => ({
           description: f,
@@ -316,18 +336,17 @@ Respond with JSON in this exact format:
       };
     }
 
-  return result;
+    return result;
   } catch (error) {
     console.error("❌ AI Feature Generation Error:", error.message);
-   throw new Error("AI market case studies generation failed");
+    throw new Error("AI market case studies generation failed");
   }
 };
 
 exports.generateBuilderAI = async (inputData) => {
   const { platform, idea, answers } = inputData;
   try {
-   
-const prompt = `
+    const prompt = `
 You are an experienced startup product strategist and MVP planner.
 
 Your job is to generate a **clean, production-ready HTML** roadmap for a startup's MVP (Minimum Viable Product),
@@ -379,27 +398,29 @@ At the end, add:
 <p><em>This roadmap is AI-generated based on the provided inputs and should be refined before execution.</em></p>
 `;
 
-
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.6,
     });
 
-    let htmlResponse = completion.choices[0]?.message?.content?.trim() || "<p>No content generated.</p>";
+    let htmlResponse =
+      completion.choices[0]?.message?.content?.trim() ||
+      "<p>No content generated.</p>";
     htmlResponse = htmlResponse.replace(/```html|```/g, "").trim();
 
-  return { htmlResponse  };
+    return { htmlResponse };
   } catch (error) {
     console.error("❌ AI MVP Generation Error:", error.message);
     throw new Error("AI generation failed");
   }
 };
 
-
-
 exports.generateInhousePlan = async (startup) => {
-  console.log("🚀 Generating In-House Team Plan for Startup:", startup.startupName);
+  console.log(
+    "🚀 Generating In-House Team Plan for Startup:",
+    startup.startupName
+  );
   try {
     const prompt = `
 You are an experienced startup HR and tech strategy consultant.
@@ -466,7 +487,7 @@ Respond strictly with valid JSON using this structure:
             title: "Full Stack Developer",
             responsibilities: [
               "Build and maintain the web application",
-              "Integrate APIs and handle deployment"
+              "Integrate APIs and handle deployment",
             ],
             skills: ["React", "Node.js", "MongoDB"],
             estimatedSalary: "$80,000 / year",
@@ -476,7 +497,7 @@ Respond strictly with valid JSON using this structure:
             title: "UI/UX Designer",
             responsibilities: [
               "Create wireframes and design system",
-              "Conduct user research and improve usability"
+              "Conduct user research and improve usability",
             ],
             skills: ["Figma", "UX Research"],
             estimatedSalary: "$60,000 / year",
@@ -503,5 +524,3 @@ Respond strictly with valid JSON using this structure:
     throw new Error("AI generation failed");
   }
 };
-
-

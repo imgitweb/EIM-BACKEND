@@ -275,12 +275,10 @@ exports.deleteInvestor = async (req, res) => {
     );
 
     if (!updatedInvestor) {
-      return res
-        .status(404)
-        .json({
-          success: false,
-          error: "Investor not found or already deleted",
-        });
+      return res.status(404).json({
+        success: false,
+        error: "Investor not found or already deleted",
+      });
     }
 
     // Respond with 204 No Content on successful delete

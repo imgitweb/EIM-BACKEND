@@ -1,294 +1,260 @@
 require("dotenv").config();
 const axios = require("axios");
-const OpenAI = require("../config/ChecklistPrompt");
+const { CallOpenAi } = require("./helper/helper");
 
+// ------------------------------------------------------
+// HELPERS
+// ------------------------------------------------------
+const safeStringify = (data, maxChars = 7000) => {
+  try {
+    let str = JSON.stringify(data);
+    if (str.length > maxChars) str = str.slice(0, maxChars) + "...TRIMMED";
+    return str;
+  } catch {
+    return "";
+  }
+};
+
+const escape = (str = "") =>
+  String(str).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+
+// ------------------------------------------------------
+// PROMPT GENERATOR
+// ------------------------------------------------------
 const mileStonePrompt = (data) => {
-  const escapeString = (str) => str.replace(/[`"\\]/g, "\\$&");
-
-  const alphaPlanData = {
-    id: "alpha",
-    name: "Alpha",
-    duration: "30 days",
-    description: "Alpha Quadrant – 30 days entrepreneurship program",
-  };
-
   const faqItems = [
     {
-      title: "Week 1 - Introduction to Entrepreneurship",
+      title: "Level 1 - Introduction to Entrepreneurship",
       content: [
         "Understanding the startup ecosystem",
         "Identifying market needs",
-        "Define problem statement and potential market size in your country and globally.",
-        "Idea Ranking and chances of success meter (ESM Score out of 100)",
+        "Define problem statement and potential market size",
+        "Idea Ranking and ESM Score",
         "Introduction to UIM and UIM Network",
       ],
     },
     {
-      title: "Week 2 - Business Idea Validation", // Fixed from "Week 5"
+      title: "Level 2 - Business Idea Validation",
       content: [
         "Techniques for validating ideas",
         "Customer interviews and feedback",
-        "Identify potential sales and distribution channels.",
-        "List out similar businesses, their success and failure patterns",
-        "List out the potential impediments with this idea and execution such as founders' knowledge, resources, money, technology exposure, etc.",
+        "Identify potential sales and distribution channels",
+        "List similar businesses and failure patterns",
+        "List impediments such as resources, money, expertise",
       ],
     },
     {
-      title: "Week 3 - First Cut of Business Model",
+      title: "Level 3 - First Cut of Business Model",
       content: [
-        "Introduction to business model canvas",
-        "List out the potential competitors and prepare a matrix.",
-        "Examples of successful and failed business models",
-        "List out 10 potential customers who would pay for your services and create a customer persona.",
-        "Fine-tune revenue model for your idea",
-        "List out the required budget and resources for MLP and for full-fledged product development.",
+        "Business Model Canvas",
+        "Competitor matrix",
+        "Examples of successful and failed models",
+        "Identify first 10 paying customers + persona",
+        "Refine revenue model and resource budget",
       ],
     },
     {
-      title: "Week 4 - Finalizing Numbers and Decision Making",
+      title: "Level 4 - Final Numbers & Decision Making",
       content: [
         "Recalculate ESM",
-        "Create a viable plan to arrange the required budget and resources listed out last week.",
-        "Create Potential Roadmap to 100 Crore Revenue and positive EBITDA",
-        "Decision time – if you would like to pursue this idea further or drop it right here.",
+        "Create plan to arrange budget and resources",
+        "Roadmap to 100 Cr revenue + EBITDA positive",
+        "Decision: pursue or drop idea",
       ],
     },
   ];
 
-  const milestoneStructureText = faqItems
+  const duration = data?.planData?.duration || 30;
+  const perMilestone = Math.round(duration / 4);
+
+  const milestoneBlocks = faqItems
     .map((item, index) => {
-      const description = item.content.slice(0, 2).join(" and ");
-      return `"Milestone ${index + 1}": {
-        "Timeline": {
-          "Start Date": "Month YYYY",
-          "End Date": "Month YYYY",
-          "Duration (Days)": "${Math.round(30 / faqItems.length)}"
+      const desc = `${item.content[0]} and ${item.content[1]}`;
+      return `"Milestone ${index + 1}":{
+        "Timeline":{
+          "Start Date":"Month YYYY",
+          "End Date":"Month YYYY",
+          "Duration Days":"${perMilestone}"
         },
-        "Title": "${escapeString(item.title)}",
-        "Description": "${escapeString(description)}",
-        "Goals": {
-          "Primary Goal": "${escapeString(item.title)}",
-          "Measurable Goals": ${JSON.stringify(item.content)}
+        "Title":"${escape(item.title)}",
+        "Description":"${escape(desc)}",
+        "Goals":{
+          "Primary Goal":"${escape(item.title)}",
+          "Measurable Goals":${JSON.stringify(item.content)}
         },
-        "TechVerse": {
-          "Top 5 Relevant Technical Courses": [
-            { "Title": "", "Category": "" },
-            { "Title": "", "Category": "" },
-            { "Title": "", "Category": "" },
-            { "Title": "", "Category": "" },
-            { "Title": "", "Category": "" }
+        "Learning Modules":{
+          "Top5":[
+            {"Title":"","Category":"","Path":"","Id":""},
+            {"Title":"","Category":"","Path":"","Id":""},
+            {"Title":"","Category":"","Path":"","Id":""},
+            {"Title":"","Category":"","Path":"","Id":""},
+            {"Title":"","Category":"","Path":"","Id":""}
           ]
         },
-        "ProVision": {
-          "Top 5 Relevant Non-Technical Courses": [
-            { "Title": "", "Category": "" },
-            { "Title": "", "Category": "" },
-            { "Title": "", "Category": "" },
-            { "Title": "", "Category": "" },
-            { "Title": "", "Category": "" }
+        "Tools & Templates":{
+          "Top5":[
+            {"Title":"","Category":"","Path":"","Id":""},
+            {"Title":"","Category":"","Path":"","Id":""},
+            {"Title":"","Category":"","Path":"","Id":""},
+            {"Title":"","Category":"","Path":"","Id":""},
+            {"Title":"","Category":"","Path":"","Id":""}
           ]
         },
-        "SkillForge": {
-          "Top 5 Relevant Certification Courses": [
-            { "Title": "", "Category": "" },
-            { "Title": "", "Category": "" },
-            { "Title": "", "Category": "" },
-            { "Title": "", "Category": "" },
-            { "Title": "", "Category": "" }
+        "Activities":{
+          "Top5":[
+            {"Title":"","Category":"","Path":"","Id":""},
+            {"Title":"","Category":"","Path":"","Id":""},
+            {"Title":"","Category":"","Path":"","Id":""},
+            {"Title":"","Category":"","Path":"","Id":""},
+            {"Title":"","Category":"","Path":"","Id":""}
           ]
         },
-        "NetX": {
-          "Top 5 Relevant Key Activity Courses": [
-            { "Title": "", "Category": "" },
-            { "Title": "", "Category": "" },
-            { "Title": "", "Category": "" },
-            { "Title": "", "Category": "" },
-            { "Title": "", "Category": "" }
+        "Deliverables":{
+          "Top5":[
+            {"Title":"","Category":"","Path":"","Id":""},
+            {"Title":"","Category":"","Path":"","Id":""},
+            {"Title":"","Category":"","Path":"","Id":""},
+            {"Title":"","Category":"","Path":"","Id":""},
+            {"Title":"","Category":"","Path":"","Id":""}
           ]
         }
       }`;
     })
-    .join(",\n");
+    .join(",");
 
-  return `You are an expert AI career planner for the Alpha Quadrant 30-day entrepreneurship program.
+  return `
+You are generating 4 entrepreneurship milestones. Use ONLY the provided datasets.
 
-Create a ${
-    faqItems.length
-  }-step career roadmap based on the resume, desired role, and job goal, using only courses from the provided video course list.
+INPUT DATA:
+- Startup Name: "${escape(data.startupName)}"
+- Country: "${escape(data.country)}"
+- Courses Dataset: ${safeStringify(data.videoCourses)}
+- Activities Dataset: ${safeStringify(data.activities)}
+- Deliverables Dataset: ${safeStringify(data.deliverables)}
 
-### Plan:
-${alphaPlanData.description}
+RULES:
+1. Use ONLY items from datasets. No invented titles.
+2. EXACTLY 5 items for each section: Learning Modules, Tools & Templates, Activities, Deliverables.
+3. Keys MUST be: "Top5" (no variations)
+4. No duplicate Titles across ANY milestone or section.
+5. If insufficient items exist → write "Insufficient relevant courses".
+6. Levels:
+   - Milestone 1 = Beginner
+   - Milestone 2–3 = Intermediate
+   - Milestone 4 = Advanced
+7. Timeline: sequential, Month YYYY, non-overlapping.
+8. OUTPUT MUST be valid JSON ONLY.
 
-### Milestones:
-${faqItems
-  .map(
-    (item, index) =>
-      `Milestone ${index + 1}: ${item.title} - ${item.content
-        .slice(0, 2)
-        .join(" and ")}`
-  )
-  .join("\n")}
-
-### Input:
-- Target Startup Name: ${data.startupName}
-- Target Country: ${data.country}
-
-### Conditions:
-- Use only {data.videoCourses}. Do not invent courses.
-- Select 5 courses per section based on keyword and semantic matching to entrepreneurship, role, and resume.
-- If fewer than 5 relevant courses, use "Insufficient relevant courses" and pick the next best.
-- No course reuse across milestones or sections.
-- Infer course level: Milestone 1 (Beginner), Milestones 2-3 (Intermediate), Milestone 4 (Advanced).
-
-### Sections:
-- TechVerse: 5 technical courses (e.g., market analysis, business tools).
-- ProVision: 5 soft skills courses (e.g., communication, leadership).
-- SkillForge: 5 certification courses (e.g., business certifications).
-- NetX: 5 networking/branding courses (e.g., pitching, networking).
-
-### Timeline:
-- Total duration: 30 days, ~${Math.round(
-    30 / faqItems.length
-  )} days per milestone.
-- Use sequential, non-overlapping dates starting from ${new Date().toLocaleString(
-    "default",
-    { month: "long", year: "numeric" }
-  )}.
-- Format: "Month YYYY".
-
-### Output:
-Return valid JSON:
+OUTPUT:
 {
-  ${milestoneStructureText}
+${milestoneBlocks}
 }
-
-### Instructions:
-- Align courses with Alpha Quadrant entrepreneurship goals.
-- No course repetition.
-- Return only raw JSON, no extra text.
 `;
 };
 
-const validateMilestoneStructure = (milestone) => {
+// ------------------------------------------------------
+// VALIDATOR
+// ------------------------------------------------------
+const validateMilestoneStructure = (obj) => {
   try {
-    if (!milestone || typeof milestone !== "object") return false;
+    if (!obj || typeof obj !== "object") return false;
 
-    const milestoneKeys = Object.keys(milestone).filter((key) =>
-      key.startsWith("Milestone")
+    const milestoneKeys = Object.keys(obj).filter((k) =>
+      k.startsWith("Milestone")
     );
     if (milestoneKeys.length !== 4) return false;
 
-    const usedCourses = new Set();
+    const usedTitles = new Set();
+
     for (const key of milestoneKeys) {
-      const ms = milestone[key];
+      const ms = obj[key];
+
+      // Basic checks
       if (
         !ms.Timeline ||
         !ms.Timeline["Start Date"] ||
         !ms.Timeline["End Date"] ||
-        !ms.Timeline["Duration (Days)"]
-      )
+        !ms.Timeline["Duration Days"]
+      ) {
         return false;
+      }
+
       if (
         !ms.Goals ||
         !ms.Goals["Primary Goal"] ||
         !Array.isArray(ms.Goals["Measurable Goals"])
-      )
+      ) {
         return false;
+      }
 
       const sections = [
-        { section: "TechVerse", key: "Top 5 Relevant Technical Courses" },
-        { section: "ProVision", key: "Top 5 Relevant Non-Technical Courses" },
-        { section: "SkillForge", key: "Top 5 Relevant Certification Courses" },
-        { section: "NetX", key: "Top 5 Relevant Key Activity Courses" },
+        { section: "Learning Modules", array: "Top5" },
+        { section: "Tools & Templates", array: "Top5" },
+        { section: "Activities", array: "Top5" },
+        { section: "Deliverables", array: "Top5" },
       ];
 
-      for (const { section, key } of sections) {
-        if (
-          !ms[section] ||
-          !Array.isArray(ms[section][key]) ||
-          ms[section][key].length !== 5
-        )
-          return false;
-        for (const course of ms[section][key]) {
-          if (
-            !course ||
-            !course.Title ||
-            !course.Category ||
-            usedCourses.has(course.Title)
-          )
-            return false;
-          usedCourses.add(course.Title);
+      for (const { section, array } of sections) {
+        const sec = ms[section];
+        if (!sec || !Array.isArray(sec[array])) return false;
+        if (sec[array].length !== 5) return false;
+
+        for (const item of sec[array]) {
+          if (!item || typeof item !== "object") return false;
+          if (!("Title" in item) || !("Category" in item)) return false;
+
+          // Avoid duplicates but allow empty template entries
+          if (item.Title && usedTitles.has(item.Title)) return false;
+          if (item.Title) usedTitles.add(item.Title);
         }
       }
     }
+
     return true;
-  } catch (error) {
-    console.error("Validation error:", error);
+  } catch (err) {
+    console.error("Validator error:", err);
     return false;
   }
 };
 
-const callOpenAI = async (data) => {
-  const MAX_ATTEMPTS = 1;
-  let attempt = 0;
+// ------------------------------------------------------
+// MAIN OPENAI CALLER
+// ------------------------------------------------------
+const openAI = async (data) => {
+  const MAX_ATTEMPTS = 3;
 
-  while (attempt < MAX_ATTEMPTS) {
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     try {
-      attempt++;
-      console.log(`Calling OpenAI - Attempt ${attempt}/${MAX_ATTEMPTS}`);
-
+      console.log(`OpenAI Call Attempt ${attempt}`);
       const prompt = mileStonePrompt(data);
-      const response = await OpenAI({
-        prompt: prompt,
-      });
 
-      let milestoneData;
-      try {
-        milestoneData = JSON.parse(response.data.choices[0].text.trim());
-      } catch (parseError) {
-        console.log(`JSON parse error on attempt ${attempt}, trying repair...`);
-        milestoneData = attemptJSONRepair(response.data.choices[0].text.trim());
-        if (!milestoneData)
-          throw new Error("Failed to parse AI response as JSON");
-      }
+      const response = await CallOpenAi(prompt);
 
-      if (!validateMilestoneStructure(milestoneData)) {
+      const json =
+        typeof response === "string" ? JSON.parse(response) : response;
+
+      if (!validateMilestoneStructure(json)) {
         throw new Error("Invalid milestone structure");
       }
 
-      console.log("Successfully generated valid milestone data");
-      return milestoneData;
-    } catch (error) {
-      console.error(
-        `OpenAI call failed (attempt ${attempt}): ${error.message}`
-      );
-      if (attempt >= MAX_ATTEMPTS) {
+      return json;
+    } catch (err) {
+      console.error(`Attempt ${attempt} failed: ${err.message}`);
+
+      if (attempt === MAX_ATTEMPTS) {
         return {
           error: "Failed to generate valid milestone data",
-          debug: { error: error.message },
+          debug: err.message,
         };
       }
-      await new Promise((resolve) => setTimeout(resolve, 2 ** attempt * 1000));
+
+      await new Promise((r) => setTimeout(r, Math.pow(2, attempt) * 1000));
     }
   }
 };
 
-const attemptJSONRepair = (jsonString) => {
-  try {
-    let cleaned = jsonString.trim().replace(/^```json\s*|\s*```$/g, "");
-    try {
-      return JSON.parse(cleaned);
-    } catch {
-      cleaned = cleaned
-        .replace(/([{,]\s*)(\w+)(\s*:)/g, '$1"$2"$3')
-        .replace(/,\s*([}\]])/g, "$1")
-        .replace(/'([^']+)'/g, '"$1"');
-      return JSON.parse(cleaned);
-    }
-  } catch (error) {
-    console.error("JSON repair failed:", error);
-    return null;
-  }
+module.exports = {
+  mileStonePrompt,
+  validateMilestoneStructure,
+  openAI,
 };
-
-module.exports = { mileStonePrompt, validateMilestoneStructure, callOpenAI };

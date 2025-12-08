@@ -1,24 +1,51 @@
 const { OpenAI } = require("openai");
 require("dotenv").config();
+const openAi = new OpenAI({ apiKey: process.env.OPEN_API_KEY });
 
-
-const openAi = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-
-
-const generateApi = async (prompt) => {
+const CallOpenAi = async (prompt) => {
   try {
-    const resp = await openAi.chat.completions.create({
-      model: "gpt-3.5-turbo",
+    const response = await openAi.chat.completions.create({
+      model: "gpt-4.1",
       messages: [{ role: "user", content: prompt }],
-      max_tokens: 4096,
     });
-    return resp.choices[0].message.content;
+
+    let assistantReply = response.choices?.[0]?.message?.content;
+    if (!assistantReply) throw new Error("No assistant reply found");
+
+    // Clean markdown and whitespace
+    assistantReply = assistantReply
+      .replace(/```json/g, "")
+      .replace(/```/g, "")
+      .trim();
+
+    // Attempt to extract first JSON object or array
+    const jsonMatch = assistantReply.match(/(\{[\s\S]*\}|\[[\s\S]*\])/);
+    if (!jsonMatch) {
+      console.warn("Full assistant reply:", assistantReply);
+      throw new Error("No JSON object found in assistant reply");
+    }
+
+    const cleanedJson = jsonMatch[0];
+
+    // Attempt to parse JSON
+    try {
+      return JSON.parse(cleanedJson);
+    } catch {
+      // Fallback: minor repairs for single quotes or trailing commas
+      const repaired = cleanedJson
+        .replace(/'/g, '"') // single to double quotes
+        .replace(/,\s*([}\]])/g, "$1"); // remove trailing commas
+
+      try {
+        return JSON.parse(repaired);
+      } catch (jsonError) {
+        console.error("Invalid JSON received after repair:", repaired);
+        throw new Error("OpenAI returned invalid JSON: " + jsonError.message);
+      }
+    }
   } catch (error) {
-    console.error("Error with OpenAI:", error.message);
-    throw new Error(`OpenAI API error: ${error.message}`);
+    console.error("Error fetching data from OpenAI:", error.message || error);
+    throw new Error("Failed to fetch from OpenAI: " + error.message);
   }
 };
 
@@ -74,13 +101,9 @@ Here is the required structure:
 }
 
 Now, my business idea is: ${idea}. Please analyze the **Indian and global market trends** to calculate the "Unicorn Radar Score" as a percentage (0–100%) and provide insights for the score.`;
-
 };
 module.exports = {
-  generateApi,
+  CallOpenAi,
   generateUimPrompt,
   unicornIdeasPredictionPrompt,
 };
-
-
-

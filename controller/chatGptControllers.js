@@ -1,12 +1,10 @@
 const {
-  generateApi,
   generateUimPrompt,
   unicornIdeasPredictionPrompt,
 } = require("../controller/helper/helper.js");
-
 const UimRegister = require("../models/UimRegisterModel");
-
 const Idea = require("../models/IdeaModel");
+const { CallOpenAi } = require("./helper/helper");
 
 const GenerateIdeaForUim = async (req, res) => {
   try {
@@ -22,16 +20,11 @@ const GenerateIdeaForUim = async (req, res) => {
       interest,
       skills,
     });
-    const response = await generateApi(prompt);
-
-    const ideasArray = response
-      .split(/\n?\d+\.\s+/)
-      .filter(Boolean)
-      .map((idea) => idea.trim());
+    const response = await CallOpenAi(prompt);
 
     res
       .status(200)
-      .json({ message: "Ideas generated successfully", data: ideasArray });
+      .json({ message: "Ideas generated successfully", data: response });
   } catch (error) {
     res.status(500).json({ errorMessage: error.message });
   }
@@ -43,7 +36,7 @@ const UnicornIdeasPrediction = async (req, res) => {
     if (!idea) return res.status(400).json({ message: "Idea is required" });
 
     const prompt = unicornIdeasPredictionPrompt(idea);
-    const response = await generateApi(prompt);
+    const response = await CallOpenAi(prompt);
 
     res.status(200).json({
       message: "Unicorn prediction generated successfully",
@@ -81,7 +74,6 @@ const SaveIdeasWithSelection = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
 
 const SaveSummary = async (req, res) => {
   try {

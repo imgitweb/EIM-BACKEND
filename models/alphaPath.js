@@ -1,8 +1,13 @@
 const mongoose = require("mongoose");
 
-const AlphaPath = new mongoose.Schema({
-  startup_id: { type: String, required: true, unique: true },
+const SchemaModel = new mongoose.Schema({
+  startup_id: {
+    type: String,
+    required: true,
+    unique: true,
+    ref: "StartupModel",
+  },
   milestones: { type: Object, required: true },
 });
 
-module.exports = mongoose.model("pathModel", AlphaPath);
+module.exports = mongoose.model("PathModels", SchemaModel);

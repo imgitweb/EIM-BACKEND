@@ -2,11 +2,18 @@ const { validationResult } = require("express-validator");
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
-const StartupModel = require("../../models/signup/StartupModel");
-const saveMilestoneDataToDB = require("../../models/alphaPath");
+const StartupModel = require("../../models/signup/StartupModel.js");
+const saveMilestoneDataToDB = require("../../models/alphaPath.js");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-const { mileStonePrompt, callOpenAI } = require("../milistoneController");
+const { openAI } = require("../milistoneController.js");
+const videoCoursesModel = require("../../models/courses/Course.js");
+const {
+  ActivityModel,
+} = require("../../models/ActivityModel/activityModel.js");
+const {
+  deliverableModel,
+} = require("../../models/DeliverablesModel/deliverables.js");
 
 // Load plans with error handling
 const getPlans = () => {
@@ -26,6 +33,8 @@ const getPlans = () => {
 exports.getPlans = (req, res) => {
   try {
     const plans = getPlans();
+
+    console.log("secound getPlans ");
     if (!plans || plans.length === 0 || plans.length === "Free") {
       return res
         .status(500)
@@ -64,17 +73,13 @@ exports.createStartup = async (req, res) => {
       elevatorPitch,
       selectedPlan,
     } = req.body;
-
-    // Check for required fields based on registration stage
+    console.log("req.body", req.body);
     if (!email || !password) {
       return res.status(400).json({ error: "Email and password are required" });
     }
     const saltRounds = 10;
     const bpassword = await bcrypt.hash(password, saltRounds);
-    // Handle logo file if present
-    // const logoUrl = req.file ? `/uploads/${req.file.filename}` : "";
 
-    // Check for existing startup
     const existingStartup = await StartupModel.findOne({
       $or: [{ email }, { startupName: startupName ? startupName : undefined }],
     });
@@ -97,6 +102,9 @@ exports.createStartup = async (req, res) => {
         ? selectedPlan
         : "alpha",
     };
+    const plansinfo = getPlans(); // assuming this returns an array of plans
+    const planData = plansinfo.find((plan) => plan.id === selectedPlan);
+    console.log("planData", planData);
 
     // Add optional fields if provided
     if (startupName) startupData.startupName = startupName;
@@ -120,18 +128,42 @@ exports.createStartup = async (req, res) => {
       { expiresIn: "24h" }
     );
 
+    const videoCourses = await videoCoursesModel
+      .find()
+      .select("_id title category thumbnail");
+    const activities = await ActivityModel.aggregate([
+      {
+        $project: {
+          _id: 1,
+          activity_name: 1,
+          path: "$activity_schema",
+        },
+      },
+    ]);
+
+    const deliverables = await deliverableModel
+      .find()
+      .select("_id deliverable_name ");
+    console.log("videoCourses", videoCourses);
+    console.log("activities", activities);
+    console.log("deliverables", deliverables);
+
     const data = {
       startupName: startupName, // No fallback
       country: country, // No fallback
+      videoCourses: videoCourses,
+      activities: activities,
+      deliverables: deliverables,
+      planData: planData,
     };
-    const milestoneData = await callOpenAI(data);
+    const milestoneData = await openAI(data);
 
     if (milestoneData.error) {
       console.error("Milestone generation failed:", milestoneData.debug);
       // Proceed with startup creation even if milestones fail
     } else {
       try {
-        await saveMilestoneDataToDB(milestoneData); // replace with actual DB function
+        await saveMilestoneDataToDB.create(milestoneData); // replace with actual DB function
         console.log("Milestone data saved successfully.");
       } catch (dbError) {
         console.error("Error saving milestone data to the database:", dbError);
