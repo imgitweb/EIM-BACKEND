@@ -3,11 +3,14 @@ const User = require("../models/signup/StartupModel")
 const valuationService = require('../services/valuationService');
 
 exports.calculateAndSaveValuation = async (req, res) => {
+ 
   const { method, inputs } = req.body;
 
   if (!method || !inputs || typeof inputs !== 'object') {
+    
     return res.status(400).json({
       success: false,
+      
       message: 'Method and inputs (object) are required.'
     });
   }
@@ -50,7 +53,7 @@ exports.calculateAndSaveValuation = async (req, res) => {
       method: methodTitle,
       inputs,
       result,
-      user: req.user?._id || null
+      user: req.user._id
     });
     await record.save();
 
