@@ -14,6 +14,7 @@ const {
 const {
   deliverableModel,
 } = require("../../models/DeliverablesModel/deliverables.js");
+const templateModel = require("../../models/templateModel.js");
 
 // Load plans with error handling
 const getPlans = () => {
@@ -128,25 +129,49 @@ exports.createStartup = async (req, res) => {
       { expiresIn: "24h" }
     );
 
-    const videoCourses = await videoCoursesModel
-      .find()
-      .select("_id title category thumbnail");
-    const activities = await ActivityModel.aggregate([
+    const videoCourses = await videoCoursesModel.aggregate([
       {
         $project: {
           _id: 1,
-          activity_name: 1,
-          path: "$activity_schema",
+          title: 1,
+          category: "",
+          Path: "",
         },
       },
     ]);
 
-    const deliverables = await deliverableModel
-      .find()
-      .select("_id deliverable_name ");
-    console.log("videoCourses", videoCourses);
-    console.log("activities", activities);
-    console.log("deliverables", deliverables);
+    const activities = await ActivityModel.aggregate([
+      {
+        $project: {
+          _id: 1,
+          title: "$activity_name",
+          category: "",
+          Path: "$activity_schema",
+        },
+      },
+    ]);
+
+    const deliverables = await deliverableModel.aggregate([
+      {
+        $project: {
+          _id: 1,
+          title: "$deliverable_name",
+          category: "",
+          Path: "",
+        },
+      },
+    ]);
+
+    const toolsTemplates = await templateModel.aggregate([
+      {
+        $project: {
+          _id: 1,
+          title: "$template_name",
+          category: "$category_name",
+          Path: "$template_file",
+        },
+      },
+    ]);
 
     const data = {
       startupName: startupName, // No fallback
@@ -154,6 +179,7 @@ exports.createStartup = async (req, res) => {
       videoCourses: videoCourses,
       activities: activities,
       deliverables: deliverables,
+      toolsTemplates: toolsTemplates,
       planData: planData,
     };
     const milestoneData = await openAI(data);
@@ -163,7 +189,10 @@ exports.createStartup = async (req, res) => {
       // Proceed with startup creation even if milestones fail
     } else {
       try {
-        await saveMilestoneDataToDB.create(milestoneData); // replace with actual DB function
+        await saveMilestoneDataToDB.create({
+          startup_id: startup._id,
+          milestones: milestoneData,
+        });
         console.log("Milestone data saved successfully.");
       } catch (dbError) {
         console.error("Error saving milestone data to the database:", dbError);
