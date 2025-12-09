@@ -89,13 +89,11 @@ const mileStonePrompt = (data) => {
             {"Title":"","Category":"","Path":"","Id":""},
             {"Title":"","Category":"","Path":"","Id":""},
             {"Title":"","Category":"","Path":"","Id":""},
-            {"Title":"","Category":"","Path":"","Id":""},
             {"Title":"","Category":"","Path":"","Id":""}
           ]
         },
         "Tools & Templates":{
           "Top5":[
-            {"Title":"","Category":"","Path":"","Id":""},
             {"Title":"","Category":"","Path":"","Id":""},
             {"Title":"","Category":"","Path":"","Id":""},
             {"Title":"","Category":"","Path":"","Id":""},
@@ -107,13 +105,11 @@ const mileStonePrompt = (data) => {
             {"Title":"","Category":"","Path":"","Id":""},
             {"Title":"","Category":"","Path":"","Id":""},
             {"Title":"","Category":"","Path":"","Id":""},
-            {"Title":"","Category":"","Path":"","Id":""},
             {"Title":"","Category":"","Path":"","Id":""}
           ]
         },
         "Deliverables":{
           "Top5":[
-            {"Title":"","Category":"","Path":"","Id":""},
             {"Title":"","Category":"","Path":"","Id":""},
             {"Title":"","Category":"","Path":"","Id":""},
             {"Title":"","Category":"","Path":"","Id":""},
