@@ -68,6 +68,7 @@ const { ActivityRoute } = require("./routes/Activity/activityRoute");
 const { seedDeliverables } = require("./seeding/deliverablesSeeder");
 const { paymentRouters } = require("./routes/PaymentRoutes/routes");
 const { DeliverableRoutes } = require("./routes/DeliverableRoutes/deliverable");
+const { milestoneRoutes } = require("./routes/MilistonePath/milestoneRoutes");
 // ─────────────────────────────────────────────────────────────
 // ✅ App Initialization
 // ─────────────────────────────────────────────────────────────
@@ -279,6 +280,7 @@ app.use("/api/activity", ActivityRoute);
 app.use("/api/payment", paymentRouters);
 app.use("/api/deliverable", DeliverableRoutes(upload));
 app.use("/api/feedback", routes.feedbackRoutes);
+app.use("/api/milestones", milestoneRoutes);
 // ─────────────────────────────────────────────────────────────
 // ✅ Error Handlers
 // ─────────────────────────────────────────────────────────────
