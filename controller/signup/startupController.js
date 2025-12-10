@@ -169,7 +169,7 @@ exports.createStartup = async (req, res) => {
           title: "$template_name",
           category: "$category_name",
           Path: "$template_file",
-        },title
+        },
       },
     ]);
 
