@@ -174,7 +174,8 @@ exports.createStartup = async (req, res) => {
     ]);
 
     const data = {
-      startupName: startupName, // No fallback
+      startupName: startupName,
+      startupElevatorPitch: elevatorPitch, // No fallback
       country: country, // No fallback
       videoCourses: videoCourses,
       activities: activities,
@@ -182,7 +183,9 @@ exports.createStartup = async (req, res) => {
       toolsTemplates: toolsTemplates,
       planData: planData,
     };
+    console.log("milestoneDataassinge", data);
     const milestoneData = await openAI(data);
+    console.log("milestoneData", milestoneData);
 
     if (milestoneData.error) {
       console.error("Milestone generation failed:", milestoneData.debug);

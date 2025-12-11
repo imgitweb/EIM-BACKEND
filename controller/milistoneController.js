@@ -65,7 +65,11 @@ const mileStonePrompt = (data) => {
     },
   ];
 
-  const duration = data?.planData?.duration || 30;
+  let durationValue = data?.planData?.duration || 30;
+  if (typeof durationValue === "string") {
+    durationValue = parseInt(durationValue);
+  }
+  const duration = durationValue;
   const perMilestone = Math.round(duration / 4);
 
   // We provide a skeleton, but we instruct AI it can remove items if data is missing
@@ -124,8 +128,9 @@ const mileStonePrompt = (data) => {
           You are generating 4 entrepreneurship milestones. Use ONLY the provided datasets.
 
           INPUT DATA:
-          - Startup Name: "${escape(data.startupName)}"
-          - Country: "${escape(data.country)}"
+          - Startup Name: ${escape(data.startupName)}
+          - Startup Eevator Pitch: ${escape(data.startupElevatorPitch)}
+          - Country: ${escape(data.country)}
           - Courses Dataset: ${safeStringify(data.videoCourses)}
           - Activities Dataset: ${safeStringify(data.activities)}
           - Deliverables Dataset: ${safeStringify(data.deliverables)}
