@@ -1,7 +1,6 @@
 const jwt = require("jsonwebtoken");
 const StartupModel = require("../models/signup/StartupModel");
 
-
 exports.protect = async (req, res, next) => {
   try {
     let token;
@@ -31,10 +30,11 @@ exports.protect = async (req, res, next) => {
           .json({ success: false, message: "User not found" });
       }
 
-      if (user.isVerified) {
-        return res
-          .status(401)
-          .json({ success: false, message: "Email not verified" });
+      if (!user.isVerified) {
+        return res.status(401).json({
+          success: false,
+          message: "Please verify your email before accessing this feature",
+        });
       }
 
       req.user = user;
