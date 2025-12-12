@@ -1,7 +1,7 @@
+const { CallOpenAi } = require("../controller/helper/helper.js");
+
 exports.validateIdeaWithAI = async (ideaData) => {
   const { title, problem, solution, audience } = ideaData;
-  const { CallOpenAi } = require("../controller/helper/helper.js");
-
   const prompt = `
     You are a startup idea evaluator. Analyze this idea and give a realistic assessment with a total score out of 100.
 
@@ -91,19 +91,12 @@ Startup Details:
 - Target Audience: ${startup.targetedAudience || "N/A"}
 - Stage: ${startup.startupStage || "N/A"}
 `;
-
   try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.5,
-    });
-
-    const content = completion.choices[0]?.message?.content?.trim();
+    const completion = await CallOpenAi(prompt);
 
     let result;
     try {
-      result = JSON.parse(content);
+      result = completion; // maybe parse or handle?
     } catch (err) {
       console.warn("⚠️ AI returned malformed JSON, applying fallback.");
       result = {
@@ -190,17 +183,11 @@ Return JSON strictly in this structure:
 `;
 
   try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.65,
-    });
-
-    const content = completion.choices[0]?.message?.content?.trim();
+    const completion = await CallOpenAi(prompt);
 
     let result;
     try {
-      result = JSON.parse(content);
+      result = completion;
     } catch (err) {
       console.warn(
         "⚠️ AI returned invalid JSON for case studies, using fallback."
@@ -301,17 +288,11 @@ Respond with JSON in this exact format:
 }`;
 
     // 🔥 Call OpenAI
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.4,
-    });
-
-    const content = completion.choices[0]?.message?.content?.trim();
+    const completion = await CallOpenAi(prompt);
 
     let result;
     try {
-      result = JSON.parse(content);
+      result = completion;
     } catch (err) {
       console.warn("⚠️ AI returned malformed JSON, applying fallback.");
 
@@ -398,16 +379,7 @@ At the end, add:
 <p><em>This roadmap is AI-generated based on the provided inputs and should be refined before execution.</em></p>
 `;
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.6,
-    });
-
-    let htmlResponse =
-      completion.choices[0]?.message?.content?.trim() ||
-      "<p>No content generated.</p>";
-    htmlResponse = htmlResponse.replace(/```html|```/g, "").trim();
+    const htmlResponse = await CallOpenAi(prompt);
 
     return { htmlResponse };
   } catch (error) {
@@ -454,27 +426,11 @@ Respond strictly with valid JSON using this structure:
 }
 `;
 
-    // 🔹 Call OpenAI
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.6,
-    });
+    const completion = await CallOpenAi(prompt);
 
-    let content = completion.choices[0]?.message?.content?.trim() || "";
-    console.log("🧠 Raw AI Response:", content);
-
-    // 🧩 Try cleaning and parsing the response
     let plan;
     try {
-      // remove possible markdown code fences or extra text
-      content = content
-        .replace(/```json|```/g, "")
-        .replace(/^.*?{/, "{")
-        .replace(/}[^}]*$/, "}")
-        .trim();
-
-      plan = JSON.parse(content);
+      plan = completion;
     } catch (err) {
       console.warn("⚠️ AI returned invalid JSON, applying fallback.");
       console.warn("Returned content:", content);

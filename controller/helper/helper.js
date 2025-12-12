@@ -11,7 +11,7 @@ const CallOpenAi = async (prompt) => {
 
     let assistantReply = response.choices?.[0]?.message?.content;
     if (!assistantReply) throw new Error("No assistant reply found");
-
+    console.log("assistantReply", assistantReply);
     // Clean markdown and whitespace
     assistantReply = assistantReply
       .replace(/```json/g, "")
