@@ -1,0 +1,67 @@
+[
+  { "title": "How to Find a Suitable Startup Idea", "videoUrl": "https://yourdomain.com/videos/1" },
+  { "title": "Startup Ideation & Opportunity Discovery", "videoUrl": "https://yourdomain.com/videos/2" },
+  { "title": "How to Validate Your Startup Idea", "videoUrl": "https://yourdomain.com/videos/3" },
+  { "title": "Design Thinking and Customer Problem Validation", "videoUrl": "https://yourdomain.com/videos/4" },
+  { "title": "Market Research & Competitive Landscape Analysis", "videoUrl": "https://yourdomain.com/videos/5" },
+
+  { "title": "Building MVPs: Rapid Prototyping & Launch", "videoUrl": "https://yourdomain.com/videos/6" },
+  { "title": "Product-Market Fit Mastery", "videoUrl": "https://yourdomain.com/videos/7" },
+
+  { "title": "Business Model Design & Revenue Architecture", "videoUrl": "https://yourdomain.com/videos/8" },
+  { "title": "Financial Modeling for Early-Stage Startups", "videoUrl": "https://yourdomain.com/videos/9" },
+  { "title": "How to Calculate Runway and Burn Rate Accurately", "videoUrl": "https://yourdomain.com/videos/10" },
+  { "title": "Budgeting, Forecasting & Cash Flow Planning", "videoUrl": "https://yourdomain.com/videos/11" },
+
+  { "title": "Understanding Cap Table Like a Pro", "videoUrl": "https://yourdomain.com/videos/12" },
+  { "title": "Decoding the Term Sheet", "videoUrl": "https://yourdomain.com/videos/13" },
+  { "title": "Understanding SAFE, Convertible Note & Equity Rounds", "videoUrl": "https://yourdomain.com/videos/14" },
+  { "title": "ESOPs and Founder Vesting Explained", "videoUrl": "https://yourdomain.com/videos/15" },
+  { "title": "Founder Agreements, Equity Split & Vesting", "videoUrl": "https://yourdomain.com/videos/16" },
+
+  { "title": "Intellectual Property, Patents & Licensing", "videoUrl": "https://yourdomain.com/videos/17" },
+  { "title": "Startup Legal Foundations & Entity Structuring", "videoUrl": "https://yourdomain.com/videos/18" },
+  { "title": "Compliance, Taxation & Regulatory Essentials", "videoUrl": "https://yourdomain.com/videos/19" },
+
+  { "title": "Startup Accounting, Bookkeeping & Financial Controls", "videoUrl": "https://yourdomain.com/videos/20" },
+  { "title": "How to Set Your Startup Valuation (Pre-Seed to Series A)", "videoUrl": "https://yourdomain.com/videos/21" },
+
+  { "title": "Building a Pitch Deck Investors Actually Read", "videoUrl": "https://yourdomain.com/videos/22" },
+  { "title": "How to Find Investors for Your Startup", "videoUrl": "https://yourdomain.com/videos/23" },
+  { "title": "Seed Funding Strategies & Readiness", "videoUrl": "https://yourdomain.com/videos/24" },
+  { "title": "Series A/B/C Fundraising & Investor Relations", "videoUrl": "https://yourdomain.com/videos/25" },
+  { "title": "Due Diligence Preparation & Data Room Management", "videoUrl": "https://yourdomain.com/videos/26" },
+
+  { "title": "Grants, Government Schemes & Non-Dilutive Funding", "videoUrl": "https://yourdomain.com/videos/27" },
+  { "title": "Term Sheets, Cap Tables & Equity Dynamics Masterclass", "videoUrl": "https://yourdomain.com/videos/28" },
+  { "title": "Venture Capital, Angel Networks & Fund Structures", "videoUrl": "https://yourdomain.com/videos/29" },
+
+  { "title": "Sales Foundations for Startup Founders", "videoUrl": "https://yourdomain.com/videos/30" },
+  { "title": "B2B & B2C Sales Strategy and Pipeline Management", "videoUrl": "https://yourdomain.com/videos/31" },
+  { "title": "Negotiation & Deal Closing for Startups", "videoUrl": "https://yourdomain.com/videos/32" },
+
+  { "title": "Startup Marketing Fundamentals", "videoUrl": "https://yourdomain.com/videos/33" },
+  { "title": "Digital Marketing, Performance Ads & SEO", "videoUrl": "https://yourdomain.com/videos/34" },
+  { "title": "Brand Building, Positioning & Storytelling", "videoUrl": "https://yourdomain.com/videos/35" },
+
+  { "title": "Product Management for Startup Founders", "videoUrl": "https://yourdomain.com/videos/36" },
+  { "title": "UX/UI Design for Non-Design Founders", "videoUrl": "https://yourdomain.com/videos/37" },
+
+  { "title": "Technology Architecture & Scalable Systems", "videoUrl": "https://yourdomain.com/videos/38" },
+  { "title": "Choosing Tech Stack, Cloud & DevOps", "videoUrl": "https://yourdomain.com/videos/39" },
+  { "title": "AI/ML Integration for Startup Products", "videoUrl": "https://yourdomain.com/videos/40" },
+  { "title": "Cybersecurity & Data Privacy Compliance", "videoUrl": "https://yourdomain.com/videos/41" },
+
+  { "title": "Building and Leading High-Performance Teams", "videoUrl": "https://yourdomain.com/videos/42" },
+  { "title": "Recruitment, Hiring & Interview Frameworks for Startups", "videoUrl": "https://yourdomain.com/videos/43" },
+  { "title": "HR Policies, Culture Building & People Ops", "videoUrl": "https://yourdomain.com/videos/44" },
+
+  { "title": "OKRs, KPIs & Startup Performance Management", "videoUrl": "https://yourdomain.com/videos/45" },
+  { "title": "Customer Success, Onboarding & Retention", "videoUrl": "https://yourdomain.com/videos/46" },
+  { "title": "Scaling Operations & Process Automation", "videoUrl": "https://yourdomain.com/videos/47" },
+
+  { "title": "Corporate Governance & Board Management", "videoUrl": "https://yourdomain.com/videos/48" },
+  { "title": "IPO Readiness & Exit Strategy Mastery", "videoUrl": "https://yourdomain.com/videos/49" },
+
+  { "title": "Founder Leadership, Mindset & Decision-Making", "videoUrl": "https://yourdomain.com/videos/50" }
+]
