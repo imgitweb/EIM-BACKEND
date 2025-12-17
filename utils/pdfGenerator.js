@@ -1,413 +1,571 @@
-// utils/pdfGenerator.js
+// utils/advancedPdfGenerator.js
 const PDFDocument = require("pdfkit");
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  ULTRA-SAFE HELPERS
+//  SAFE HELPERS
 // ─────────────────────────────────────────────────────────────────────────────
-const safe = (v) => (v != null && v !== "" ? String(v).trim() : "");
+const safe = (v) => (v != null && v !== "" ? String(v).trim() : "[●]");
 const toNum = (v) => {
   const n = parseFloat(v);
   return isNaN(n) ? 0 : n;
 };
 const formatINR = (v) => {
   const n = toNum(v);
-  if (n <= 0) return "";
+  if (n <= 0) return "[●]";
   return `₹${n.toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
 };
 const formatDate = (d) => {
-  if (!d) return "";
+  if (!d) return "[●]";
   const date = new Date(d);
   return isNaN(date.getTime())
-    ? ""
+    ? "[●]"
     : date.toLocaleDateString("en-IN", {
         year: "numeric",
         month: "long",
         day: "numeric",
       });
 };
+const formatPercent = (v) => {
+  const n = toNum(v);
+  return n > 0 ? `${n.toFixed(2)}%` : "[●]";
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  SECTION HEADER (इमेज के अनुसार स्टाइल किया गया)
+//  PAGE MANAGEMENT
 // ─────────────────────────────────────────────────────────────────────────────
-function drawSectionHeader(doc, title, currentY, isMain = true) {
-  let y = toNum(currentY);
-  const pageHeight = doc.page.height;
-  const bottomMargin = 80;
-  const marginLeft = 50;
+const MARGIN_LEFT = 50;
+const MARGIN_RIGHT = 50;
+const MARGIN_TOP = 40;
+const MARGIN_BOTTOM = 60;
+const PAGE_WIDTH = 595;
+const PAGE_HEIGHT = 842;
+const CONTENT_WIDTH = PAGE_WIDTH - MARGIN_LEFT - MARGIN_RIGHT;
 
-  if (y + 30 > pageHeight - bottomMargin) {
+function checkPageBreak(doc, yPos, spaceNeeded = 50) {
+  if (yPos + spaceNeeded > PAGE_HEIGHT - MARGIN_BOTTOM) {
     doc.addPage();
-    y = 50;
+    addPageHeader(doc);
+    return MARGIN_TOP + 30;
   }
+  return yPos;
+}
 
-  if (isMain) {
-    // Main Sections (e.g., SECTION 1)
-    doc
-      .font("Helvetica-Bold")
-      .fontSize(12)
-      .fillColor("#000000")
-      .text(title, marginLeft, y);
-  } else {
-    // Sub-sections (e.g., 1.1, 2.1)
-    doc
-      .font("Helvetica-Bold")
-      .fontSize(10)
-      .fillColor("#000000")
-      .text(title, marginLeft, y);
-  }
-  return y + (isMain ? 15 : 12);
+function addPageHeader(doc) {
+  doc
+    .font("Helvetica-Bold")
+    .fontSize(10)
+    .fillColor("#7c3aed")
+    .text("TERM SHEET - CONFIDENTIAL", MARGIN_LEFT, 20, { width: CONTENT_WIDTH });
+
+  // Page number
+  const pages = doc.bufferedPageRange().count;
+  doc
+    .font("Helvetica")
+    .fontSize(9)
+    .fillColor("#999999")
+    .text(`Page ${pages}`, PAGE_WIDTH - 100, 20, { width: 50, align: "right" });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  DRAW CAPITALIZATION TABLE (कस्टम टेबल लॉजिक)
+//  TEXT DRAWING FUNCTIONS
 // ─────────────────────────────────────────────────────────────────────────────
-function drawCapTable(doc, data, currentY, sectionTitle) {
-  let y = toNum(currentY);
-  const marginLeft = 50;
-  const tableWidth = 510;
-  const col1Width = 120; // Shareholder
-  const col2Width = 140; // Shares/Amount
-  const col3Width = 250; // % Ownership
+function drawMainHeading(doc, text, yPos) {
+  yPos = checkPageBreak(doc, yPos, 30);
 
-  const rowHeight = 20; // Sub-section Header
-
-  y = drawSectionHeader(doc, sectionTitle, y, false);
-  doc.moveDown(0.2);
-  y += 5; // 1. HEADER ROW
-
-  doc.font("Helvetica-Bold").fontSize(10).fillColor("#000000");
-
-  let currentX = marginLeft;
-  let headerY = y; // Draw headers
-
-  doc.text("Shareholder", currentX + 5, headerY + 4, { width: col1Width - 10 });
-  currentX += col1Width;
-  doc.text("Shares", currentX + 5, headerY + 4, { width: col2Width - 10 });
-  currentX += col2Width;
-  doc.text("% Ownership", currentX + 5, headerY + 4, { width: col3Width - 10 });
-  currentX += col3Width; // Draw header borders
-
-  doc.strokeColor("#000000").lineWidth(0.5);
-  doc.rect(marginLeft, headerY, tableWidth, rowHeight).stroke();
   doc
-    .moveTo(marginLeft + col1Width, headerY)
-    .lineTo(marginLeft + col1Width, headerY + rowHeight)
-    .stroke();
+    .font("Helvetica-Bold")
+    .fontSize(13)
+    .fillColor("#1a365d")
+    .text(text, MARGIN_LEFT, yPos);
+
+  // Underline
   doc
-    .moveTo(marginLeft + col1Width + col2Width, headerY)
-    .lineTo(marginLeft + col1Width + col2Width, headerY + rowHeight)
+    .strokeColor("#7c3aed")
+    .lineWidth(2)
+    .moveTo(MARGIN_LEFT, doc.y + 5)
+    .lineTo(MARGIN_LEFT + CONTENT_WIDTH, doc.y + 5)
     .stroke();
 
-  y += rowHeight; // 2. DATA ROWS
+  return doc.y + 15;
+}
 
-  doc.font("Helvetica").fontSize(10).fillColor("#000000");
+function drawSubHeading(doc, text, yPos) {
+  yPos = checkPageBreak(doc, yPos, 20);
 
-  data.forEach((row) => {
-    currentX = marginLeft;
-    let dataY = y; // Draw text
+  doc
+    .font("Helvetica-Bold")
+    .fontSize(11)
+    .fillColor("#374151")
+    .text(text, MARGIN_LEFT, yPos);
 
-    doc.text(safe(row.shareholder), currentX + 5, dataY + 4, {
-      width: col1Width - 10,
-    });
-    currentX += col1Width;
-    doc.text(safe(row.shares), currentX + 5, dataY + 4, {
-      width: col2Width - 10,
-    });
-    currentX += col2Width;
-    doc.text(safe(row.ownership), currentX + 5, dataY + 4, {
-      width: col3Width - 10,
-    });
-    currentX += col3Width; // Draw row borders
+  return doc.y + 8;
+}
 
-    doc.rect(marginLeft, dataY, tableWidth, rowHeight).stroke();
-    doc
-      .moveTo(marginLeft + col1Width, dataY)
-      .lineTo(marginLeft + col1Width, dataY + rowHeight)
-      .stroke();
-    doc
-      .moveTo(marginLeft + col1Width + col2Width, dataY)
-      .lineTo(marginLeft + col1Width + col2Width, dataY + rowHeight)
-      .stroke();
+function drawBulletPoint(doc, text, yPos, indent = 0) {
+  yPos = checkPageBreak(doc, yPos, 20);
 
-    y += rowHeight;
+  const xPos = MARGIN_LEFT + indent * 15;
+  const textWidth = CONTENT_WIDTH - indent * 15;
+
+  // Draw bullet
+  doc
+    .font("Helvetica-Bold")
+    .fontSize(10)
+    .fillColor("#7c3aed")
+    .text("•", xPos, yPos);
+
+  // Draw text
+  doc
+    .font("Helvetica")
+    .fontSize(10)
+    .fillColor("#1f2937")
+    .text(text, xPos + 15, yPos, { width: textWidth - 15 });
+
+  return doc.y + 5;
+}
+
+function drawKeyValue(doc, key, value, yPos) {
+  yPos = checkPageBreak(doc, yPos, 18);
+
+  doc
+    .font("Helvetica-Bold")
+    .fontSize(10)
+    .fillColor("#1f2937")
+    .text(key, MARGIN_LEFT, yPos, { width: 200 });
+
+  doc
+    .font("Helvetica")
+    .fontSize(10)
+    .fillColor("#374151")
+    .text(safe(value), MARGIN_LEFT + 210, yPos, { width: CONTENT_WIDTH - 210 });
+
+  return doc.y + 6;
+}
+
+function drawTable(doc, headers, rows, yPos) {
+  yPos = checkPageBreak(doc, yPos, 60);
+
+  const tableWidth = CONTENT_WIDTH;
+  const colWidths = [150, 150, 155];
+  const rowHeight = 22;
+
+  // Header
+  doc.rect(MARGIN_LEFT, yPos, tableWidth, rowHeight).fillAndStroke("#7c3aed", "#000000");
+  doc
+    .font("Helvetica-Bold")
+    .fontSize(9)
+    .fillColor("#ffffff");
+
+  let xPos = MARGIN_LEFT;
+  headers.forEach((header, i) => {
+    doc.text(header, xPos + 5, yPos + 6, { width: colWidths[i] - 10 });
+    xPos += colWidths[i];
   });
 
-  return y + 15; // Extra space after table
+  yPos += rowHeight;
+
+  // Rows
+  doc.fillColor("#000000");
+  rows.forEach((row) => {
+    if (yPos + rowHeight > PAGE_HEIGHT - MARGIN_BOTTOM) {
+      doc.addPage();
+      addPageHeader(doc);
+      yPos = MARGIN_TOP + 30;
+    }
+
+    doc.rect(MARGIN_LEFT, yPos, tableWidth, rowHeight).stroke();
+
+    xPos = MARGIN_LEFT;
+    row.forEach((cell, i) => {
+      doc
+        .font("Helvetica")
+        .fontSize(9)
+        .fillColor("#374151")
+        .text(safe(cell), xPos + 5, yPos + 6, { width: colWidths[i] - 10 });
+      xPos += colWidths[i];
+    });
+
+    yPos += rowHeight;
+  });
+
+  return yPos + 12;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  MAIN GENERATOR (इमेज लेआउट के लिए अपडेटेड)
-// ─────────────────────────────────────────────────────────────────────────────
-function generateTermSheetPDF(doc, data) {
-  let y = 50;
-  const marginLeft = 50;
-
-  // Placeholder Data (यदि data ऑब्जेक्ट में फील्ड्स खाली हैं तो उपयोग करने के लिए)
-  const defaultData = {
-    companyName: "ABC Private Pvt. Ltd.",
-    cin: "[●]",
-    registeredAddress: "[●]",
-    contactPerson: "[●]",
-    investorName: "Investor 1",
-    investmentAmount: 20000000,
-    preMoneyValuation: 80000000,
-    vestingSchedule: "4 year vesting period with a 1 year cliff",
-    esopPoolSize: 10,
-    closingDate: new Date().toISOString(),
-    governingLaw: "Laws of India",
-    jurisdiction: "Courts of [City]",
-  };
-
-  // Data को defaultData के साथ मर्ज करें
-  const D = { ...defaultData, ...data }; // ── TITLE & DATE ──
-
-  doc
-    .font("Helvetica-Bold")
-    .fontSize(12)
-    .fillColor("#1a365d")
-    .text(
-      "PRE-SEED FUNDRAISING TERMSHEET (CCD — Compulsorily Convertible",
-      marginLeft,
-      y
-    );
-  y += 12;
-  doc.text("Debentures)", marginLeft, y, { underline: true });
-  y += 20;
-
-  doc.font("Helvetica").fontSize(10).fillColor("#000000");
-  doc.text(`Date: [Insert Date]`, marginLeft, y);
-  y += 20;
-
-  doc.text(
-    "This Termsheet outlines the principal terms agreed between the Company and the Investors. All terms are subject to final approval, execution of definitive legal documentation, satisfactory due diligence, corporate secretarial compliance, and regulatory compliance. This document is non-binding, except for the clauses on Exclusivity, Governing Law, Cost Reimbursement, and Confidentiality.",
-    marginLeft,
-    y,
-    { width: 510, align: "justify" }
-  );
-  y = doc.y + 15; // ───────────────────────────────────────────────────────────────────────────── //  SECTION 1 — TRANSACTION DETAILS // ─────────────────────────────────────────────────────────────────────────────
-
-  y = drawSectionHeader(doc, "SECTION 1 — TRANSACTION DETAILS", y);
-  doc.moveDown(0.5);
-  y += 5; // 1.1 Company & Founder Details
-
-  y = drawSectionHeader(doc, "1.1 Company & Founder Details", y, false);
-  doc.moveDown(0.2);
-
+function drawSection(doc, title, content, yPos) {
+  yPos = drawSubHeading(doc, title, yPos);
+  
   doc
     .font("Helvetica")
     .fontSize(10)
-    .list(
-      [
-        `Company: ${safe(D.companyName)}`,
-        `CIN: ${safe(D.cin)}`,
-        `Registered/Corp. Office: ${safe(D.registeredAddress)}`,
-        `Founders:`,
-      ],
-      marginLeft + 10,
-      doc.y,
-      { lineGap: 3, bulletRadius: 2, bulletIndent: 10 }
-    );
-  y = doc.y + 5; // Inner founder list
+    .fillColor("#1f2937")
+    .text(content, MARGIN_LEFT, yPos, {
+      width: CONTENT_WIDTH,
+      align: "justify",
+    });
+
+  return doc.y + 8;
+}
+
+function drawSignatureBlock(doc, label, yPos) {
+  yPos = checkPageBreak(doc, yPos, 50);
 
   doc
     .font("Helvetica")
-    .fontSize(10)
-    .list(
-      [
-        `Founder A — 50,000 equity shares (50%)`,
-        `Founder B — 50,000 equity shares (50%)`,
-      ],
-      marginLeft + 30,
-      doc.y,
-      { lineGap: 3, bulletRadius: 2, bulletIndent: 10 }
-    );
-  y = doc.y + 10; // 1.2 Investment & Valuation
-
-  y = drawSectionHeader(doc, "1.2 Investment & Valuation", y, false);
-  doc.moveDown(0.2);
-
-  // NOTE: Assuming two investors for the image layout
-  doc
-    .font("Helvetica")
-    .fontSize(10)
-    .list(
-      [
-        `Investors: ${safe(D.investorName)} — ${formatINR(
-          D.investmentAmount / 2
-        )}`,
-        `Investors: Investor 2 — ${formatINR(D.investmentAmount / 2)}`,
-        `Pre-Money Valuation: ${formatINR(D.preMoneyValuation)}`,
-        `Total Investment: ${formatINR(D.investmentAmount)}`,
-      ],
-      marginLeft + 10,
-      doc.y,
-      { lineGap: 3, bulletRadius: 2, bulletIndent: 10 }
-    );
-  y = doc.y + 10; // 1.3 Instrument
-
-  y = drawSectionHeader(doc, "1.3 Instrument", y, false);
-  doc.moveDown(0.2);
+    .fontSize(9)
+    .fillColor("#000000")
+    .text(label, MARGIN_LEFT, yPos);
 
   doc
-    .font("Helvetica")
-    .fontSize(10)
-    .text(
-      `CCD is a debt-like instrument that mandatorily converts into equity at a specified time or at the next funding event, whichever is earlier. Conversion shall be on the terms of the Shareholders’ Agreement, Articles, and Liquidation Preference. CCD holders become Shareholders only upon conversion.`,
-      marginLeft + 10,
-      doc.y,
-      { width: 500, align: "justify" }
-    );
-  y = doc.y + 15; // ───────────────────────────────────────────────────────────────────────────── //  SECTION 2 — CAPITALIZATION TABLE // ─────────────────────────────────────────────────────────────────────────────
+    .moveTo(MARGIN_LEFT, yPos + 25)
+    .lineTo(MARGIN_LEFT + 150, yPos + 25)
+    .stroke();
 
-  y = drawSectionHeader(doc, "SECTION 2 — CAPITALIZATION TABLE", y);
-  doc.moveDown(0.5);
-  y += 5; // 2.1 Pre-Investment Cap Table
-
-  const preCapTableData = [
-    { shareholder: "Founder A", shares: "50,000", ownership: "50%" },
-    { shareholder: "Founder B", shares: "50,000", ownership: "50%" },
-    { shareholder: "TOTAL", shares: "1,00,000", ownership: "100%" },
-  ];
-  y = drawCapTable(doc, preCapTableData, y, "2.1 Pre-Investment Cap Table"); // 2.2 Post-Investment Cap Table
-
-  const postCapTableData = [
-    { shareholder: "Founder A", shares: "50,000", ownership: "Varies" },
-    { shareholder: "Founder B", shares: "50,000", ownership: "Varies" },
-    { shareholder: "CCD on conversion", shares: "Varies", ownership: "Varies" },
-    { shareholder: "TOTAL", shares: "Dynamic", ownership: "100%" },
-  ];
-  y = drawCapTable(doc, postCapTableData, y, "2.2 Post-Investment Cap Table"); // ───────────────────────────────────────────────────────────────────────────── //  SECTION 3 — INVESTOR RIGHTS // ─────────────────────────────────────────────────────────────────────────────
-
-  y = drawSectionHeader(doc, "SECTION 3 — INVESTOR RIGHTS", y);
-  doc.moveDown(0.5);
-  y += 5;
-
-  doc
-    .font("Helvetica")
-    .fontSize(10)
-    .text(
-      `Rights include (but not limited to) Information Rights, Pro-Rata Rights, Board Observer Rights, Top-Along and Drag-Along Rights depending on the Investment Amount and Valuation.`,
-      marginLeft,
-      doc.y,
-      { width: 510, align: "justify" }
-    );
-  y = doc.y + 15; // ───────────────────────────────────────────────────────────────────────────── //  SECTION 4 — OBLIGATIONS OF FOUNDERS & COMPANY // ─────────────────────────────────────────────────────────────────────────────
-
-  y = drawSectionHeader(
-    doc,
-    "SECTION 4 — OBLIGATIONS OF FOUNDERS & COMPANY",
-    y
-  );
-  doc.moveDown(0.5);
-  y += 5;
-
-  doc
-    .font("Helvetica")
-    .fontSize(10)
-    .list(
-      [
-        `Founders’ shares to be subject to a vesting schedule.`,
-        `Full-time commitment required.`,
-        `No outside debt or encumbrance.`,
-        `ESOP pool creation up to ${safe(D.esopPoolSize)}% post-money.`,
-      ],
-      marginLeft + 10,
-      doc.y,
-      { lineGap: 3, bulletRadius: 2, bulletIndent: 10 }
-    );
-  y = doc.y + 15; // ───────────────────────────────────────────────────────────────────────────── //  SECTION 5 — CONDITIONS PRECEDENT // ─────────────────────────────────────────────────────────────────────────────
-
-  y = drawSectionHeader(doc, "SECTION 5 — CONDITIONS PRECEDENT", y);
-  doc.moveDown(0.5);
-  y += 5;
-
-  doc
-    .font("Helvetica")
-    .fontSize(10)
-    .text(
-      `Conditions Precedent include execution of definitive agreements, cap table certification, corporate approvals, compliance with all statutory requirements including RBI filings, share issuance formalities, and record updates.`,
-      marginLeft,
-      doc.y,
-      { width: 510, align: "justify" }
-    );
-  y = doc.y + 15; // ───────────────────────────────────────────────────────────────────────────── //  SECTION 6 — MISCELLANEOUS // ─────────────────────────────────────────────────────────────────────────────
-
-  y = drawSectionHeader(doc, "SECTION 6 — MISCELLANEOUS", y);
-  doc.moveDown(0.5);
-  y += 5;
-
-  doc
-    .font("Helvetica")
-    .fontSize(10)
-    .list(
-      [
-        `Confidentiality for all parties.`,
-        `Exclusivity for [●] days.`,
-        `Termsheet is non-binding except specified clauses.`,
-        `Governing Law: ${safe(D.governingLaw)}.`,
-        `Jurisdiction: ${safe(D.jurisdiction)}.`,
-      ],
-      marginLeft + 10,
-      doc.y,
-      { lineGap: 3, bulletRadius: 2, bulletIndent: 10 }
-    );
-  y = doc.y + 25; // ───────────────────────────────────────────────────────────────────────────── //  SIGNATURE BLOCK // ───────────────────────────────────────────────────────────────────────────── // Helper function for signature lines
-
-  const drawSignatureBlock = (doc, currentY, label) => {
-    const lineY = currentY + 15;
-    const lineX = doc.x + 5;
-    const lineLength = 200;
-
-    doc.font("Helvetica").fontSize(10).text(label, lineX, currentY);
-    doc
-      .moveTo(lineX, lineY)
-      .lineTo(lineX + lineLength, lineY)
-      .stroke();
-  };
-
-  // Set current Y for signatures
-  const signatureY = y;
-
-  // Column 1: Company and Founder Signatures
-  let col1Y = signatureY;
-  doc
-    .font("Helvetica-Bold")
-    .fontSize(10)
-    .text("For the Company:", marginLeft, col1Y);
-  col1Y += 20;
-  drawSignatureBlock(doc, col1Y, safe(D.companyName));
-  col1Y += 40;
-  drawSignatureBlock(doc, col1Y, "Designation:");
-  col1Y += 40;
-
-  col1Y += 15;
-  drawSignatureBlock(doc, col1Y, "Founder A:");
-  col1Y += 40;
-  drawSignatureBlock(doc, col1Y, "Founder B:");
-  col1Y += 40;
-
-  // Column 2: Investor Signatures
-  let col2Y = signatureY;
-  const col2X = 330;
-
-  doc.font("Helvetica-Bold").fontSize(10).text("Investors:", col2X, col2Y);
-  col2Y += 20;
-
-  drawSignatureBlock(doc, col2Y, "Investor 1:");
-  col2Y += 40;
-  drawSignatureBlock(doc, col2Y, "Investor 2:");
-  col2Y += 40; // ── FOOTER ── (Page 2)
-
-  const footerY = doc.page.height - 40;
   doc
     .font("Helvetica")
     .fontSize(8)
     .fillColor("#666666")
+    .text("(Signature)", MARGIN_LEFT, yPos + 27);
+
+  doc
+    .font("Helvetica")
+    .fontSize(8)
+    .fillColor("#666666")
+    .text("(Date)", MARGIN_LEFT + 100, yPos + 27);
+
+  return yPos + 45;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  MAIN PDF GENERATOR
+// ─────────────────────────────────────────────────────────────────────────────
+function generateTermSheetPDF(doc, data) {
+  let y = MARGIN_TOP;
+
+  // Add page header on first page
+  addPageHeader(doc);
+
+  // ───────────────────────── COVER PAGE ───────────────────────────
+  y = drawMainHeading(doc, "INVESTMENT TERM SHEET", y);
+
+  doc
+    .font("Helvetica")
+    .fontSize(11)
+    .fillColor("#7c3aed")
+    .text(`${safe(data.instrumentType)}`, MARGIN_LEFT, y);
+  y = doc.y + 20;
+
+  doc
+    .font("Helvetica")
+    .fontSize(10)
+    .fillColor("#1f2937")
+    .text("Investment Agreement between Company and Investor", MARGIN_LEFT, y, {
+      width: CONTENT_WIDTH,
+    });
+  y = doc.y + 30;
+
+  y = drawKeyValue(doc, "Company:", data.companyName, y);
+  y = drawKeyValue(doc, "Investor:", data.investorName, y);
+  y = drawKeyValue(doc, "Date:", formatDate(new Date()), y);
+  y = drawKeyValue(doc, "Instrument:", data.instrumentType, y);
+
+  y = checkPageBreak(doc, y, 40);
+
+  doc
+    .font("Helvetica")
+    .fontSize(9)
+    .fillColor("#666666")
     .text(
-      "This Termsheet is non-binding, except for the clauses on Exclusivity, Governing Law, Cost Reimbursement, and Confidentiality. This is not an offer to sell or a solicitation of an offer to purchase securities. All figures are subject to final due diligence.",
-      50,
+      "This Term Sheet outlines the principal terms and conditions for the proposed investment. All terms are subject to final due diligence, execution of definitive documentation, regulatory approvals, and board/shareholder consents.",
+      MARGIN_LEFT,
+      y,
+      { width: CONTENT_WIDTH, align: "justify" }
+    );
+
+  y = doc.y + 20;
+
+  // ───────────────────────── SECTION 1 ───────────────────────────
+  y = drawMainHeading(doc, "SECTION 1: COMPANY & INVESTOR DETAILS", y);
+
+  y = drawSubHeading(doc, "1.1 Company Information", y);
+  y = drawKeyValue(doc, "Company Name:", data.companyName, y);
+  y = drawKeyValue(doc, "CIN:", data.cin, y);
+  y = drawKeyValue(doc, "Registered Address:", data.registeredAddress, y);
+  y = drawKeyValue(doc, "Contact Person:", data.contactPerson, y);
+
+  y = drawSubHeading(doc, "1.2 Investor Information", y);
+  y = drawKeyValue(doc, "Investor Name:", data.investorName, y);
+  y = drawKeyValue(doc, "Investor Type:", data.investorType, y);
+
+  // ───────────────────────── SECTION 2 ───────────────────────────
+  y = drawMainHeading(doc, "SECTION 2: INVESTMENT TERMS", y);
+
+  y = drawSubHeading(doc, "2.1 Transaction Details", y);
+  y = drawKeyValue(doc, "Instrument Type:", data.instrumentType, y);
+  y = drawKeyValue(doc, "Round Type:", data.roundType, y);
+  y = drawKeyValue(doc, "Investment Amount:", formatINR(data.investmentAmount), y);
+
+  y = drawSubHeading(doc, "2.2 Valuation Summary", y);
+  y = drawKeyValue(doc, "Pre-Money Valuation:", formatINR(data.preMoneyValuation), y);
+
+  const postMoney = toNum(data.preMoneyValuation) + toNum(data.investmentAmount);
+  y = drawKeyValue(doc, "Post-Money Valuation:", formatINR(postMoney), y);
+
+  const equityDilution =
+    postMoney > 0
+      ? ((toNum(data.investmentAmount) / postMoney) * 100).toFixed(2)
+      : 0;
+  y = drawKeyValue(doc, "Equity Dilution (%):", formatPercent(equityDilution), y);
+
+  const pricePerShare =
+    data.totalSharesPre && data.preMoneyValuation
+      ? (toNum(data.preMoneyValuation) / toNum(data.totalSharesPre)).toFixed(2)
+      : 0;
+  y = drawKeyValue(doc, "Price per Share:", formatINR(pricePerShare), y);
+
+  const sharesToBeIssued =
+    data.investmentAmount && pricePerShare > 0
+      ? (toNum(data.investmentAmount) / toNum(pricePerShare)).toFixed(0)
+      : 0;
+  y = drawKeyValue(doc, "Shares to be Issued:", sharesToBeIssued, y);
+
+  // ───────────────────────── SECTION 3 ───────────────────────────
+  y = drawMainHeading(doc, "SECTION 3: CAPITALIZATION TABLE", y);
+
+  y = drawSubHeading(doc, "3.1 Shareholding Structure", y);
+
+  const capTableHeaders = ["Shareholder", "Shares (Pre)", "Ownership (%)"];
+  const capTableData = [
+    ["Founder A", data.totalSharesPre ? Math.round(toNum(data.totalSharesPre) / 2) : "50000", "50"],
+    ["Founder B", data.totalSharesPre ? Math.round(toNum(data.totalSharesPre) / 2) : "50000", "50"],
+    ["TOTAL (Pre)", data.totalSharesPre || "100000", "100"],
+  ];
+
+  y = drawTable(doc, capTableHeaders, capTableData, y);
+
+  y = drawSubHeading(doc, "3.2 Post-Investment Structure", y);
+
+  const postCapTableData = [
+    ["Founder A", Math.round(toNum(data.totalSharesPre) / 2), ((50 * (100 - equityDilution)) / 100).toFixed(1)],
+    ["Founder B", Math.round(toNum(data.totalSharesPre) / 2), ((50 * (100 - equityDilution)) / 100).toFixed(1)],
+    [safe(data.investorName), sharesToBeIssued, equityDilution],
+    ["TOTAL (Post)", (toNum(data.totalSharesPre) + toNum(sharesToBeIssued)).toFixed(0), "100"],
+  ];
+
+  y = drawTable(doc, ["Shareholder", "Shares (Post)", "Ownership (%)"], postCapTableData, y);
+
+  // ───────────────────────── SECTION 4 ───────────────────────────
+  y = drawMainHeading(doc, `SECTION 4: ${data.instrumentType.toUpperCase()} SPECIFIC TERMS`, y);
+
+  if (data.liquidationPreference) {
+    y = drawKeyValue(doc, "Liquidation Preference:", data.liquidationPreference, y);
+  }
+  if (data.antiDilution) {
+    y = drawKeyValue(doc, "Anti-Dilution Protection:", data.antiDilution, y);
+  }
+  if (data.proRataRights) {
+    y = drawKeyValue(doc, "Pro-Rata Rights:", data.proRataRights, y);
+  }
+  if (data.votingRights) {
+    y = drawKeyValue(doc, "Voting Rights:", data.votingRights, y);
+  }
+  if (data.inspectionRights) {
+    y = drawKeyValue(doc, "Inspection Rights:", data.inspectionRights, y);
+  }
+
+  if (data.boardRepresentation) {
+    y = drawKeyValue(doc, "Board Representation:", data.boardRepresentation, y);
+  }
+  if (data.conversionRatio) {
+    y = drawKeyValue(doc, "Conversion Ratio:", data.conversionRatio, y);
+  }
+  if (data.conversionTrigger) {
+    y = drawKeyValue(doc, "Conversion Trigger:", data.conversionTrigger, y);
+  }
+
+  // ───────────────────────── SECTION 5 ───────────────────────────
+  y = drawMainHeading(doc, "SECTION 5: INVESTOR RIGHTS & GOVERNANCE", y);
+
+  y = drawSubHeading(doc, "5.1 Board & Governance Rights", y);
+
+  if (data.boardSeat === true || data.boardSeat === "true") {
+    y = drawBulletPoint(doc, `Board Seat: ${data.boardSeatCount ? data.boardSeatCount + " seat(s)" : "1 seat"}`, y);
+  } else {
+    y = drawBulletPoint(doc, "Board Seat: No", y);
+  }
+
+  if (data.boardObserver === true || data.boardObserver === "true") {
+    y = drawBulletPoint(doc, "Board Observer Rights: Yes", y);
+  }
+
+  y = drawSubHeading(doc, "5.2 Information & Protective Rights", y);
+
+  if (data.informationRights) {
+    y = drawBulletPoint(doc, `Information Rights: ${data.informationRights}`, y);
+  } else {
+    y = drawBulletPoint(doc, "Information Rights: Quarterly MIS", y);
+  }
+
+  if (data.protectiveProvisions) {
+    y = drawBulletPoint(doc, `Protective Provisions: Yes`, y);
+  } else {
+    y = drawBulletPoint(doc, "Protective Provisions: Standard reserved matters", y);
+  }
+
+  if (data.dragAlongThreshold) {
+    y = drawBulletPoint(
+      doc,
+      `Drag-Along Threshold: ${formatPercent(data.dragAlongThreshold)} shareholder majority`,
+      y
+    );
+  }
+
+  // ───────────────────────── SECTION 6 ───────────────────────────
+  y = drawMainHeading(doc, "SECTION 6: COMPANY OBLIGATIONS", y);
+
+  y = drawSubHeading(doc, "6.1 Founder Commitments", y);
+
+  if (data.founderCommitment === true || data.founderCommitment === "true") {
+    y = drawBulletPoint(doc, "Full-Time Commitment: Confirmed", y);
+  } else {
+    y = drawBulletPoint(doc, "Full-Time Commitment: Required", y);
+  }
+
+  if (data.vestingSchedule) {
+    y = drawBulletPoint(doc, `Vesting Schedule: ${data.vestingSchedule}`, y);
+  } else {
+    y = drawBulletPoint(doc, "Vesting Schedule: 4-year with 1-year cliff", y);
+  }
+
+  y = drawSubHeading(doc, "6.2 Capital Structure Management", y);
+
+  if (data.esopPoolSize) {
+    y = drawBulletPoint(doc, `ESOP Pool Size: ${formatPercent(data.esopPoolSize)} of post-money`, y);
+  } else {
+    y = drawBulletPoint(doc, "ESOP Pool Size: Up to 10% of post-money valuation", y);
+  }
+
+  y = drawBulletPoint(doc, "No additional issuances without investor consent", y);
+
+  y = drawSubHeading(doc, "6.3 Operational Covenants", y);
+
+  if (data.managementCovenants) {
+    y = drawBulletPoint(doc, `Management Covenants: ${data.managementCovenants}`, y);
+  } else {
+    y = drawBulletPoint(doc, "Company shall maintain financial controls and reporting", y);
+  }
+
+  if (data.reportingObligations) {
+    y = drawBulletPoint(doc, `Reporting Requirements: ${data.reportingObligations}`, y);
+  } else {
+    y = drawBulletPoint(doc, "Quarterly financial statements and annual audit", y);
+  }
+
+  if (data.debtRestrictions) {
+    y = drawBulletPoint(doc, `Debt Restrictions: ${data.debtRestrictions}`, y);
+  } else {
+    y = drawBulletPoint(doc, "No external debt without investor approval", y);
+  }
+
+  // ───────────────────────── SECTION 7 ───────────────────────────
+  y = drawMainHeading(doc, "SECTION 7: CONDITIONS & CLOSING", y);
+
+  y = drawSubHeading(doc, "7.1 Closing Timeline", y);
+  y = drawKeyValue(doc, "Expected Closing Date:", formatDate(data.closingDate), y);
+
+  if (data.conditionsPrecedent) {
+    y = drawSubHeading(doc, "7.2 Conditions Precedent", y);
+    y = drawBulletPoint(doc, data.conditionsPrecedent, y);
+  } else {
+    y = drawSubHeading(doc, "7.2 Conditions Precedent", y);
+    y = drawBulletPoint(doc, "Execution of definitive legal documents", y);
+    y = drawBulletPoint(doc, "Cap table certification and share approvals", y);
+    y = drawBulletPoint(doc, "Compliance with all regulatory requirements", y);
+  }
+
+  if (data.conditionsSubsequent) {
+    y = drawSubHeading(doc, "7.3 Conditions Subsequent", y);
+    y = drawBulletPoint(doc, data.conditionsSubsequent, y);
+  } else {
+    y = drawSubHeading(doc, "7.3 Conditions Subsequent", y);
+    y = drawBulletPoint(doc, "Share certificate issuance", y);
+    y = drawBulletPoint(doc, "Board seat/observer appointment", y);
+  }
+
+  // ───────────────────────── SECTION 8 ───────────────────────────
+  y = drawMainHeading(doc, "SECTION 8: REPRESENTATIONS & WARRANTIES", y);
+
+  y = drawSubHeading(doc, "8.1 Company Representations", y);
+
+  const repsWarranties = [
+    { value: data.companiesActCompliance, text: "Company complies with Companies Act, 2013" },
+    { value: data.femaCompliance, text: "FEMA compliance verified (if applicable)" },
+    { value: data.noLitigation, text: "No material litigation or legal disputes pending" },
+    { value: data.noOtherTermsheet, text: "No conflicting investment agreements exist" },
+    { value: data.ipOwnership, text: "Company owns all material intellectual property" },
+    { value: data.founderDocs, text: "Founders will execute all necessary legal documents" },
+    { value: data.taxCompliance, text: "Company is compliant with all tax obligations" },
+  ];
+
+  repsWarranties.forEach((rep) => {
+    if (rep.value === true || rep.value === "true") {
+      y = drawBulletPoint(doc, `✓ ${rep.text}`, y);
+    } else {
+      y = drawBulletPoint(doc, `○ ${rep.text}`, y);
+    }
+  });
+
+  // ───────────────────────── SECTION 9 ───────────────────────────
+  y = drawMainHeading(doc, "SECTION 9: GOVERNING LAW & JURISDICTION", y);
+
+  y = drawKeyValue(doc, "Governing Law:", "Laws of India", y);
+  y = drawKeyValue(doc, "Jurisdiction:", "Courts of India", y);
+  y = drawKeyValue(doc, "Dispute Resolution:", "Mutual negotiation followed by arbitration if required", y);
+
+  // ───────────────────────── SIGNATURES ───────────────────────────
+  y = drawMainHeading(doc, "EXECUTION", y);
+
+  doc
+    .font("Helvetica")
+    .fontSize(9)
+    .fillColor("#666666")
+    .text(
+      "By signing below, all parties confirm their agreement to the terms contained herein, subject to the conditions mentioned.",
+      MARGIN_LEFT,
+      y,
+      { width: CONTENT_WIDTH, align: "justify" }
+    );
+  y = doc.y + 15;
+
+  // Company signature
+  y = drawSignatureBlock(doc, `For & On Behalf of ${safe(data.companyName)}`, y);
+  y += 5;
+  doc
+    .font("Helvetica")
+    .fontSize(8)
+    .fillColor("#666666")
+    .text("Authorized Signatory", MARGIN_LEFT, y);
+
+  // Investor signature
+  y = checkPageBreak(doc, y + 10, 50);
+  y = drawSignatureBlock(doc, `For & On Behalf of ${safe(data.investorName)}`, y);
+  y += 5;
+  doc
+    .font("Helvetica")
+    .fontSize(8)
+    .fillColor("#666666")
+    .text("Authorized Signatory", MARGIN_LEFT, y);
+
+  // Footer
+  const footerY = PAGE_HEIGHT - 50;
+  doc
+    .font("Helvetica")
+    .fontSize(7)
+    .fillColor("#999999")
+    .text(
+      "This Term Sheet is confidential and non-binding except for Confidentiality, Exclusivity, Governing Law, and Cost Reimbursement clauses. This is not an offer to sell securities.",
+      MARGIN_LEFT,
       footerY,
-      { align: "left", width: 500 }
+      { width: CONTENT_WIDTH, align: "center" }
     );
 }
 
