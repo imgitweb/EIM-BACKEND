@@ -150,7 +150,7 @@ const schemesData = [
       'Proof of business premises',
       'List of existing assets and liabilities'
     ],
-    applyUrl: 'https://www.cgtmse.in/Home/Apply'
+    applyUrl: 'https://www.startupindia.gov.in/'
   },
   {
     id: 4,
@@ -199,7 +199,7 @@ const schemesData = [
       'GST registration (if applicable)',
       'List of equipment/machinery to be purchased'
     ],
-    applyUrl: 'https://www.mudra.org.in/HowToApply'
+    applyUrl: 'https://www.startupindia.gov.in/'
   },
   {
     id: 5,
@@ -248,7 +248,7 @@ const schemesData = [
       'Technology architecture documentation',
       'Prototype or MVP demonstration video'
     ],
-    applyUrl: 'https://aicte-india.org/atal-incubation-centres/'
+    applyUrl: 'https://www.startupindia.gov.in/'
   },
   {
     id: 6,
@@ -297,7 +297,7 @@ const schemesData = [
       'Customer testimonials and feedback',
       'Patent certificates and IP documents'
     ],
-    applyUrl: 'https://www.startupindia.gov.in/content/sih/en/nsa.html'
+    applyUrl: 'https://www.startupindia.gov.in/'
   },
   {
     id: 7,
@@ -346,7 +346,7 @@ const schemesData = [
       'Business license (if applicable)',
       'Group membership certificate (if applicable)'
     ],
-    applyUrl: 'https://www.sewa.org/sewa-fund/'
+    applyUrl: 'https://www.sewa.org/'
   },
   {
     id: 8,
