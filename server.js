@@ -63,6 +63,8 @@ const routes = {
   clientPersonaRoutes: require("./routes/sales/clientPersonas"),
   complianceRoutes: require("./routes/complianceRoutes"),
   feedbackRoutes: require("./routes/feedbackRoutes"),
+  captableRoutes: require("./routes/captableRoutes"),
+  schemeRoutes: require("./routes/schemeRoutes")
 };
 const { ActivityRoute } = require("./routes/Activity/activityRoute");
 const { seedDeliverables } = require("./seeding/deliverablesSeeder");
@@ -281,6 +283,8 @@ app.use("/api/payment", paymentRouters);
 app.use("/api/deliverable", DeliverableRoutes(upload));
 app.use("/api/feedback", routes.feedbackRoutes);
 app.use("/api/milestones", milestoneRoutes);
+app.use("/api/captable", routes.captableRoutes);
+app.use('/api/schemes', routes.schemeRoutes);
 // ─────────────────────────────────────────────────────────────
 // ✅ Error Handlers
 // ─────────────────────────────────────────────────────────────
