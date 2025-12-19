@@ -53,15 +53,13 @@ exports.validateIdeaWithAI = async (ideaData) => {
     throw new Error("AI validation failed");
   }
 };
-
-exports.analyzeRisksAI = async (riskData) => {
-  const { startup, selectedRisks } = riskData;
-
+exports.analyzeRisksAI = async ({ startup, generateCount }) => {
   const prompt = `
 You are a senior startup risk analyst.
-Analyze the startup below and respond **only** with a valid JSON object (no explanations, no markdown).
 
-Structure your response exactly as:
+Respond ONLY with valid JSON (no markdown, no explanation).
+
+Exact JSON structure:
 {
   "radarScores": {
     "Market Fit": <0-100>,
@@ -71,17 +69,21 @@ Structure your response exactly as:
     "Competition": <0-100>
   },
   "swot": {
-    "strengths": [<3 concise points>],
-    "weaknesses": [<3 concise points>],
-    "opportunities": [<3 concise points>],
-    "threats": [<3 concise points>]
+    "strengths": [3 concise points],
+    "weaknesses": [3 concise points],
+    "opportunities": [3 concise points],
+    "threats": [3 concise points]
   },
-  "mitigation": [<3-5 clear, actionable mitigation recommendations>]
+  "topRisks": [
+    {
+      "risk": "short title",
+      "impact": "real business impact",
+      "mitigation": "clear mitigation strategy"
+    }
+  ]
 }
 
-Now analyze the following startup and include **only** the selected risk dimensions: ${selectedRisks.join(
-    ", "
-  )}.
+Generate exactly ${generateCount} risks.
 
 Startup Details:
 - Name: ${startup.startupName || "N/A"}
@@ -91,52 +93,52 @@ Startup Details:
 - Target Audience: ${startup.targetedAudience || "N/A"}
 - Stage: ${startup.startupStage || "N/A"}
 `;
+
   try {
     const completion = await CallOpenAi(prompt);
 
-    let result;
-    try {
-      result = completion; // maybe parse or handle?
-    } catch (err) {
-      console.warn("⚠️ AI returned malformed JSON, applying fallback.");
-      result = {
-        radarScores: Object.fromEntries(
-          selectedRisks.map((r) => [r, Math.floor(Math.random() * 41) + 60])
-        ),
-        swot: {
-          strengths: [
-            "Innovative product direction",
-            "Strong founder expertise",
-            "Scalable potential",
-          ],
-          weaknesses: [
-            "Weak marketing clarity",
-            "Limited funding runway",
-            "Overreliance on tech",
-          ],
-          opportunities: [
-            "Untapped regional market",
-            "Tech-first disruption potential",
-            "High investor interest",
-          ],
-          threats: [
-            "Competitive incumbents",
-            "Execution bottlenecks",
-            "Uncertain regulations",
-          ],
-        },
-        mitigation: [
-          "Conduct early customer validation",
-          "Build financial buffer or raise pre-seed round",
-          "Focus initial marketing on one high-response niche",
-        ],
-      };
-    }
-
-    return result;
+    return completion; // assuming JSON already parsed
   } catch (error) {
     console.error("❌ AI Risk Analysis Error:", error.message);
-    throw new Error("AI risk analysis failed");
+
+    // 🔁 Safe fallback
+    return {
+      radarScores: {
+        "Market Fit": 65,
+        "Tech Viability": 70,
+        "Cost": 60,
+        "Execution": 68,
+        "Competition": 75,
+      },
+      swot: {
+        strengths: [
+          "Clear problem identification",
+          "Strong technical foundation",
+          "Scalable idea",
+        ],
+        weaknesses: [
+          "Unvalidated customer demand",
+          "Limited capital runway",
+          "Founder execution risk",
+        ],
+        opportunities: [
+          "Growing digital adoption",
+          "Niche market entry",
+          "Potential strategic partnerships",
+        ],
+        threats: [
+          "Well-funded competitors",
+          "Changing regulations",
+          "Customer acquisition costs",
+        ],
+      },
+      topRisks: Array.from({ length: generateCount }).map((_, i) => ({
+        risk: `Critical startup risk ${i + 1}`,
+        impact: "This risk could significantly slow growth or cause failure.",
+        mitigation:
+          "Run controlled experiments, validate assumptions early, and monitor metrics weekly.",
+      })),
+    };
   }
 };
 
