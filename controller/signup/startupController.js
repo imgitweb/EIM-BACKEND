@@ -15,6 +15,7 @@ const {
   deliverableModel,
 } = require("../../models/DeliverablesModel/deliverables.js");
 const templateModel = require("../../models/templateModel.js");
+const wellcomeEmails = require("../../utils/wellcomeEmails");
 
 // Load plans with error handling
 const getPlans = () => {
@@ -121,6 +122,7 @@ exports.createStartup = async (req, res) => {
 
     const startup = new StartupModel(startupData);
     await startup.save();
+
     const { password: pwd, ...startupDataWithoutPassword } = startup.toObject();
     // Generate JWT token for authentication
     const token = jwt.sign(
@@ -201,6 +203,7 @@ exports.createStartup = async (req, res) => {
         console.error("Error saving milestone data to the database:", dbError);
       }
     }
+    await wellcomeEmails({ email: startup.email, startupName: startupName });
     res.status(201).json({
       success: true,
       startupId: startup._id,

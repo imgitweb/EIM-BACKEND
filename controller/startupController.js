@@ -1,7 +1,12 @@
 const User = require("./../models/signup/StartupModel");
 const mongoose = require("mongoose");
 const nodemailer = require("nodemailer");
-const { validateIdeaWithAI, analyzeRisksAI, generateMarketCaseStudiesAI } = require("../utils/aiValidationService");
+const {
+  validateIdeaWithAI,
+  analyzeRisksAI,
+  generateMarketCaseStudiesAI,
+} = require("../utils/aiValidationService");
+const { sendMail } = require("../utils/wellcomeEmails");
 exports.getUsersByIndustry = async (req, res) => {
   try {
     const { industry } = req.params; // Get the industry from URL parameter
@@ -26,7 +31,6 @@ exports.getStartupById = async (req, res) => {
   try {
     const startupId = req.params.id;
 
-
     // Validate the ObjectId format
     if (!mongoose.Types.ObjectId.isValid(startupId)) {
       return res.status(400).json({ message: "Invalid ObjectId format" });
@@ -37,7 +41,6 @@ exports.getStartupById = async (req, res) => {
       _id: new mongoose.Types.ObjectId(startupId),
     });
 
-
     if (!startup) {
       return res.status(404).json({ message: "Startup not found" });
     }
@@ -47,7 +50,6 @@ exports.getStartupById = async (req, res) => {
       industry: startup.industry,
       _id: { $ne: startup._id }, // Exclude the current startup
     }).limit(4); // Limit to 3 startups
-
 
     // Respond with the found startup and other startups in the same industry
     res.status(200).json({
@@ -66,7 +68,6 @@ exports.sendStartupExchangeEmail = async (req, res) => {
     const startupId1 = req.params.startupId1;
     const startupId2 = req.params.startupId2;
 
-
     // Validate ObjectId format
     if (
       !mongoose.Types.ObjectId.isValid(startupId1) ||
@@ -84,7 +85,6 @@ exports.sendStartupExchangeEmail = async (req, res) => {
         .status(404)
         .json({ message: "One or both startups not found" });
     }
-
 
     // Create the email transporter
     const transporter = nodemailer.createTransport({
@@ -140,7 +140,6 @@ exports.sendStartupExchangeEmail = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
 
 exports.updateStartupDetails = async (req, res) => {
   try {
@@ -206,7 +205,6 @@ exports.updateStartupDetails = async (req, res) => {
   }
 };
 
-
 exports.validateStartup = async (req, res) => {
   try {
     const startupId = req.params.id;
@@ -261,7 +259,8 @@ exports.analyzeRisks = async (req, res) => {
     // Merge audience override
     const startupData = {
       ...startup.toObject(),
-      targetedAudience: targetedAudience || startup.targetedAudience || "General Audience",
+      targetedAudience:
+        targetedAudience || startup.targetedAudience || "General Audience",
     };
 
     // 🧠 Call AI analysis service
@@ -293,9 +292,6 @@ exports.generateMarketCaseStudies = async (req, res) => {
       solution,
       sector,
     });
-
-
-
 
     res.status(200).json({ success: true, data: result });
   } catch (error) {
