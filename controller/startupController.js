@@ -239,7 +239,7 @@ exports.validateStartup = async (req, res) => {
 exports.analyzeRisks = async (req, res) => {
   try {
     const startupId = req.params.id;
-    const { selectedRisks, targetedAudience } = req.body;
+    const { targetedAudience, generateCount = 10 } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(startupId)) {
       return res.status(400).json({ message: "Invalid startup ID" });
@@ -250,23 +250,16 @@ exports.analyzeRisks = async (req, res) => {
       return res.status(404).json({ message: "Startup not found" });
     }
 
-    if (!Array.isArray(selectedRisks) || selectedRisks.length === 0) {
-      return res
-        .status(400)
-        .json({ message: "selectedRisks must be a non-empty array" });
-    }
-
-    // Merge audience override
+    // Merge targeted audience override
     const startupData = {
       ...startup.toObject(),
       targetedAudience:
         targetedAudience || startup.targetedAudience || "General Audience",
     };
 
-    // 🧠 Call AI analysis service
     const aiResult = await analyzeRisksAI({
       startup: startupData,
-      selectedRisks,
+      generateCount,
     });
 
     res.status(200).json({
@@ -281,6 +274,7 @@ exports.analyzeRisks = async (req, res) => {
     });
   }
 };
+
 
 exports.generateMarketCaseStudies = async (req, res) => {
   try {
