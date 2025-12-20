@@ -16,7 +16,6 @@ const schemeSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    enum: ['government-of-india', 'state-government', 'international'],
     required: true
   },
   description: {
@@ -27,22 +26,39 @@ const schemeSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  detailedBenefits: [{
+  image: {
     type: String,
-    required: true
-  }],
-  detailedEligibility: [{
-    type: String,
-    required: true
-  }],
-  applicationProcess: [{
-    type: String,
-    required: true
-  }],
-  documentsRequired: [{
-    type: String,
-    required: true
-  }],
+    required: false,
+    default: null,
+    validate: {
+      validator: function(v) {
+        if (v === null || v === undefined) return true;
+        try {
+          new URL(v);
+          return true;
+        } catch (err) {
+          return false;
+        }
+      },
+      message: 'Image must be a valid URL'
+    }
+  },
+  detailedBenefits: {
+    type: [String],
+    default: [],
+  },
+  detailedEligibility: {
+    type: [String],
+    default: [],
+  },
+  applicationProcess: {
+    type: [String],
+    default: [],
+  },
+  documentsRequired: {
+    type: [String],
+    default: [],
+  },
   applyUrl: {  
     type: String,
     required: false,

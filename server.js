@@ -285,6 +285,8 @@ app.use("/api/feedback", routes.feedbackRoutes);
 app.use("/api/milestones", milestoneRoutes);
 app.use("/api/captable", routes.captableRoutes);
 app.use('/api/schemes', routes.schemeRoutes);
+// contact endpoint
+app.use('/api/contact', require('./routes/contactRoutes'));
 // ─────────────────────────────────────────────────────────────
 // ✅ Error Handlers
 // ─────────────────────────────────────────────────────────────

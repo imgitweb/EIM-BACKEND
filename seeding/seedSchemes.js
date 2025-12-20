@@ -1,4 +1,3 @@
-// seeders/seedSchemes.js
 require('dotenv').config();
 const mongoose = require('mongoose');
 const Scheme = require('../models/Scheme');
@@ -6,110 +5,367 @@ const Scheme = require('../models/Scheme');
 
 const MONGO_URI = process.env.MONGO_URI
 const schemesData = [
+  // Government of India Schemes
   {
     id: 1,
-    name: 'Prime Minister Startup India',
-    shortName: 'PM Startup',
+    name: 'Startup India (DPIIT Recognition)',
+    shortName: 'DPIIT Recognition',
     category: 'government-of-india',
-    description: 'Comprehensive support through funding, mentoring, and networking.',
-    fullDescription: 'The Prime Minister Startup India Scheme is a flagship initiative launched by the Government of India to foster innovation and entrepreneurship across the country. This comprehensive scheme provides financial support, mentoring, and networking opportunities to budding entrepreneurs.',
+    description: 'Official Government of India recognition that unlocks tax, funding, and regulatory benefits for startups.',
+    fullDescription: 'Official Government of India recognition that unlocks tax, funding, and regulatory benefits for startups. This is the flagship recognition program that provides income tax exemption, angel tax exemption, IPR support, and government tender access.',
     detailedBenefits: [
-      'Interest-free loans up to ₹10 lakhs with zero collateral',
-      'Free business registration and simplified compliance procedures',
-      'Complete support for patent filing and intellectual property protection',
-      'Dedicated incubation support for up to 5 years',
-      'Access to industry mentors and expert guidance',
-      'Networking opportunities with successful entrepreneurs',
-      'Free legal and financial advisory services',
-      'Tax benefits and subsidies on various services'
+      'Income Tax Exemption (Section 80-IAC) - 100% tax exemption for any 3 consecutive years out of first 10 years',
+      'Angel Tax Exemption (Section 56) - Investments above FMV not taxed',
+      'IPR Support - 80% rebate on patent filing with fast-track examination',
+      'Government Tender Access - No prior experience and no turnover requirement',
+      'Easy compliance - Self-certification under labour and environment laws'
     ],
     detailedEligibility: [
-      'Company must be incorporated within the last 7 years',
-      'Must be developing innovative products or services',
-      'Annual turnover should be less than ₹100 crores',
-      'Committed to profit generation and business growth',
-      'Must be registered with the government',
-      'Team should have relevant business experience',
-      'Business idea should have market viability',
-      'Indian entity with Indian incorporation'
+      'Incorporated in India (Pvt Ltd / LLP / Partnership)',
+      'Less than 10 years from incorporation',
+      'Annual turnover ≤ ₹100 Cr',
+      'Working on innovation, improvement, or scalable model'
     ],
     applicationProcess: [
-      '1. Register on the official Startup India portal',
-      '2. Create your startup profile with detailed information',
-      '3. Upload necessary documents (Certificate of Incorporation, Pan Card, etc.)',
-      '4. Submit your business plan and financial projections',
-      '5. Wait for verification and approval from authorities',
-      '6. Once approved, receive your Startup India Certificate',
-      '7. Start availing benefits from day one'
+      '1. Visit: https://www.startupindia.gov.in',
+      '2. Create startup login',
+      '3. Fill "Apply for DPIIT Recognition"',
+      '4. Upload documents & self-certification',
+      '5. Submit application',
+      '6. DPIIT reviews → Recognition certificate issued'
     ],
     documentsRequired: [
       'Certificate of Incorporation',
-      'PAN Card of the company',
-      'Aadhar Card of all partners/directors',
-      'Business plan and financial projections',
-      'Proof of business address',
-      'Bank statements (last 6 months)',
-      'List of products/services offered',
-      'Team resume and qualifications'
+      'PAN of entity',
+      'Founder/Director details',
+      'Innovation & scalability write-up',
+      'Website/app link (if any)'
     ],
     applyUrl: 'https://www.startupindia.gov.in/'
   },
   {
     id: 2,
-    name: 'Startup India Seed Fund',
-    shortName: 'Seed Fund',
+    name: 'Startup India Seed Fund Scheme',
+    shortName: 'SISFS',
     category: 'government-of-india',
-    description: 'Seed funding to convert ideas into prototypes and commercial products.',
-    fullDescription: 'The Startup India Seed Fund Scheme provides financial assistance to help startups convert their ideas into viable prototypes and commercially successful products. This scheme is designed to bridge the gap between ideation and product development.',
+    description: 'Government seed funding for early-stage startups via approved incubators.',
+    fullDescription: 'Government seed funding for early-stage startups via approved incubators. Provides prototype/PoC grants up to ₹20 lakh and market entry support up to ₹50 lakh through convertible debentures without equity dilution.',
     detailedBenefits: [
-      'Funding ranging from ₹10 lakhs to ₹50 lakhs',
-      'Support for proof of concept development',
-      'Assistance with prototype testing and refinement',
-      'Market validation and customer feedback analysis',
-      'Business planning and strategy development',
-      'Access to technical expertise and resources',
-      'Mentoring from experienced startup advisors',
-      'Networking with potential investors and partners'
+      'Prototype / PoC Grant: Up to ₹20 lakh',
+      'Market entry / scaling support: Up to ₹50 lakh (convertible debenture / debt)',
+      'Mentorship and incubation support',
+      'No equity taken directly by Government'
     ],
     detailedEligibility: [
-      'Registered startup with maximum 2 years of registration',
-      'Technology-based or innovation-driven business',
-      'Minimum ₹10 lakhs in equity required',
-      'Viable business model with scalability potential',
-      'Strong founding team with relevant experience',
-      'Clear technology roadmap and milestones',
-      'Prototype or minimum viable product available',
-      'Commitment to full-time business development'
+      'DPIIT-recognized startup',
+      'Incorporated within last 2 years',
+      'Not received more than ₹10 lakh from any government scheme',
+      'Innovative & scalable business model'
     ],
     applicationProcess: [
-      '1. Ensure your startup is registered and eligible',
-      '2. Prepare detailed business plan and pitch deck',
-      '3. Create proof of concept or prototype',
-      '4. Visit the nearest incubation center',
-      '5. Submit application with required documents',
-      '6. Present your idea to evaluation committee',
-      '7. Receive feedback and improvement suggestions',
-      '8. Final approval and fund disbursement'
+      '1. Visit: https://www.startupindia.gov.in',
+      '2. Login → Seed Fund Scheme section',
+      '3. Choose preferred incubator',
+      '4. Submit application with documents',
+      '5. Incubator Screening Committee evaluation',
+      '6. Approval → Milestone-based fund release'
     ],
     documentsRequired: [
-      'Startup registration certificate',
-      'Detailed business plan (5 years)',
-      'Financial projections and break-even analysis',
-      'Prototype or PoC documentation',
-      'Team member details and CVs',
-      'Market research and competitor analysis',
-      'IP ownership and patent details (if any)',
-      'Bank account and GSTIN details'
+      'DPIIT recognition certificate',
+      'Pitch deck',
+      'Detailed business plan',
+      'Founder KYC',
+      'Bank details'
     ],
     applyUrl: 'https://www.startupindia.gov.in/'
   },
   {
     id: 3,
+    name: 'Fund of Funds for Startups',
+    shortName: 'FFS – SIDBI',
+    category: 'government-of-india',
+    description: 'Government capital deployed into startups indirectly through VC funds.',
+    fullDescription: 'Government capital deployed into startups indirectly through VC funds. Enables large equity funding (₹1 Cr+) without direct government equity dilution and increases investor confidence.',
+    detailedBenefits: [
+      'Large equity funding (₹1 Cr+ possible)',
+      'Government does not directly dilute founder equity',
+      'Higher investor confidence',
+      'Long-term capital availability'
+    ],
+    detailedEligibility: [
+      'DPIIT-recognized startup',
+      'VC-fundable business model',
+      'High growth & scalability potential'
+    ],
+    applicationProcess: [
+      '1. Visit: https://www.sidbi.in',
+      '2. Identify SIDBI-empanelled VC fund',
+      '3. Pitch startup to VC',
+      '4. VC conducts due diligence',
+      '5. SIDBI invests in VC → VC invests in startup'
+    ],
+    documentsRequired: [
+      'Pitch deck',
+      'Financial projections',
+      'Cap table',
+      'DPIIT certificate'
+    ],
+    applyUrl: 'https://www.sidbi.in/'
+  },
+  {
+    id: 4,
+    name: 'Credit Guarantee Scheme for Startups',
+    shortName: 'CGSS',
+    category: 'government-of-india',
+    description: 'Government guarantee enabling collateral-free loans for startups.',
+    fullDescription: 'Government guarantee enabling collateral-free loans for startups. Reduces risk for banks and enables faster loan approvals with easier access to working capital and term loans.',
+    detailedBenefits: [
+      'Collateral-free bank loans',
+      'Reduced risk for banks',
+      'Easier access to working capital & term loans',
+      'Faster loan approvals'
+    ],
+    detailedEligibility: [
+      'DPIIT-recognized startup',
+      'Loan from scheduled bank / NBFC',
+      'Loan used for business purposes'
+    ],
+    applicationProcess: [
+      '1. Startup applies for loan at bank',
+      '2. Bank evaluates proposal',
+      '3. Bank applies for CGSS guarantee',
+      '4. Guarantee approved by NCGTC',
+      '5. Loan disbursed to startup'
+    ],
+    documentsRequired: [
+      'DPIIT certificate',
+      'Loan proposal',
+      'Financial projections',
+      'Bank KYC'
+    ],
+    applyUrl: 'https://www.startupindia.gov.in/'
+  },
+  {
+    id: 5,
+    name: 'Pradhan Mantri MUDRA Yojana',
+    shortName: 'PMMY',
+    category: 'government-of-india',
+    description: 'Collateral-free loans for micro and early-stage businesses.',
+    fullDescription: 'Collateral-free loans for micro and early-stage businesses. Offers loans from ₹50,000 to ₹20 lakh with low documentation requirements suitable for very early-stage startups.',
+    detailedBenefits: [
+      'Loan up to ₹20 lakh',
+      'No collateral required',
+      'Suitable for very early-stage startups',
+      'Low documentation',
+      'Flexible repayment terms up to 5 years',
+      'Available through all nationalized banks',
+      'Competitive interest rates (typically 8-12%)',
+      'Easy and quick application process'
+    ],
+    detailedEligibility: [
+      'Must be an Indian citizen',
+      'Non-agricultural business enterprise',
+      'No collateral security required',
+      'Profit-making or viable business venture',
+      'Business plan and financial documentation',
+      'Age criteria: 18 years or above',
+      'No prior loan defaults or negative credit history'
+    ],
+    applicationProcess: [
+      '1. Visit: https://www.mudra.org.in',
+      '2. Choose loan type: Shishu (up to ₹50k), Kishore (₹50k–₹5L), Tarun (₹5L–₹10L), Tarun plus (₹10L–₹20L)',
+      '3. Apply via bank/NBFC',
+      '4. Bank appraisal',
+      '5. Loan sanction & disbursement'
+    ],
+    documentsRequired: [
+      'Aadhar Card or PAN Card',
+      'Proof of residence (electricity bill/water bill)',
+      'Passport size photographs (4)',
+      'Business plan document',
+      'Proof of business address',
+      'Bank statement (last 6 months)',
+      'GST registration (if applicable)',
+      'List of equipment/machinery to be purchased'
+    ],
+    applyUrl: 'https://www.mudra.org.in/'
+  },
+  {
+    id: 6,
+    name: 'SAMRIDH Scheme',
+    shortName: 'SAMRIDH',
+    category: 'government-of-india',
+    description: 'Acceleration and funding support for software product startups.',
+    fullDescription: 'Acceleration and funding support for software product startups under MeitY. Provides funding up to ₹40 lakh with 50% government support, market access, and accelerator mentorship.',
+    detailedBenefits: [
+      'Funding up to ₹40 lakh (50% govt support)',
+      'Market access & enterprise customers',
+      'Accelerator mentorship',
+      'Product commercialization support'
+    ],
+    detailedEligibility: [
+      'Software product startup',
+      'DPIIT-recognized',
+      'Revenue or pilot customers preferred'
+    ],
+    applicationProcess: [
+      '1. Visit: https://www.meity.gov.in/samridh',
+      '2. Apply through empaneled accelerator',
+      '3. Screening & evaluation',
+      '4. Cohort selection',
+      '5. Funding + acceleration support'
+    ],
+    documentsRequired: [
+      'Product demo',
+      'Pitch deck',
+      'Incorporation certificate',
+      'Financial details'
+    ],
+    applyUrl: 'https://www.meity.gov.in/samridh'
+  },
+  {
+    id: 7,
+    name: 'MSME Innovative / Incubation Scheme',
+    shortName: 'MSME Innovation',
+    category: 'government-of-india',
+    description: 'Grant support for MSMEs working on innovation and commercialization.',
+    fullDescription: 'Grant support for MSMEs working on innovation and commercialization. Provides grants up to ₹15 lakh for prototype and pilot funding through approved incubators.',
+    detailedBenefits: [
+      'Grant up to ₹15 lakh',
+      'Prototype & pilot funding',
+      'Industry & market linkage',
+      'Support through approved incubators'
+    ],
+    detailedEligibility: [
+      'Udyam-registered MSME',
+      'Innovative product/service',
+      'Indian entity'
+    ],
+    applicationProcess: [
+      '1. Visit: https://www.msme.gov.in',
+      '2. Apply under MSME Innovative Scheme',
+      '3. Select incubator / host institution',
+      '4. Proposal evaluation',
+      '5. Grant approval & release'
+    ],
+    documentsRequired: [
+      'Udyam registration',
+      'Project proposal',
+      'Bank account details'
+    ],
+    applyUrl: 'https://www.msme.gov.in/'
+  },
+  {
+    id: 8,
+    name: 'NIDHI – National Initiative for Developing and Harnessing Innovations',
+    shortName: 'NIDHI',
+    category: 'government-of-india',
+    description: 'Umbrella programme by Department of Science & Technology to support startup idea → prototype → commercialization.',
+    fullDescription: 'Umbrella programme by Department of Science & Technology (DST) to support startup idea → prototype → commercialization through multiple sub-programs including NIDHI-SSP, PRAYAS, and TBI network.',
+    detailedBenefits: [
+      'Early-stage seed funding through incubator support (up to ₹1 Cr via NIDHI-SSP)',
+      'Prototype/Proof-of-Concept grants (e.g., PRAYAS, NIDHI-PRAYAS up to ₹10L)',
+      'Incubator/accelerator support & mentoring through TBI/CoE network',
+      'Structured pathways from idea to scaled technology',
+      'Access to investor networks'
+    ],
+    detailedEligibility: [
+      'Indian startup or individual innovator (Indian citizen)',
+      'Startup should be eligible under respective sub-program rules',
+      'Registered/incubated with a DST-recognized incubator (for some programs)'
+    ],
+    applicationProcess: [
+      '1. Identify sub-program under NIDHI (e.g., SSP, PRAYAS, TBI) relevant to your stage',
+      '2. Visit the official NIDHI portal: https://nidhi.dst.gov.in',
+      '3. Look for open calls for applications under the chosen sub-program',
+      '4. Submit application/form to the listed incubator/TBI associated with NIDHI',
+      '5. Incubator/TBI conducts initial screening & technical review',
+      '6. Final selection and release of funds/support to startup'
+    ],
+    documentsRequired: [
+      'Business/pitch proposal',
+      'Proof of concept/innovation document',
+      'Founder KYC (PAN/Aadhaar)',
+      'Company incorporation certificate (if applicable)',
+      'Incubator/TBI endorsement where required'
+    ],
+    applyUrl: 'https://nidhi.dst.gov.in/'
+  },
+  {
+    id: 9,
+    name: 'Biotechnology Ignition Grant',
+    shortName: 'BIG',
+    category: 'government-of-india',
+    description: 'Grant support of up to ₹50 lakh to biotech/healthcare/biomedical startups for proof-of-concept and early development.',
+    fullDescription: 'Grant support from BIRAC, DBT of up to ₹50 lakh to biotech/healthcare/biomedical startups for proof-of-concept and early development over 18 months with mentorship support.',
+    detailedBenefits: [
+      'Up to ₹50 lakh grant-in-aid over 18 months for early stage innovation',
+      'Mentorship, networking, and commercialization support via BIG partners nationwide',
+      'Focused on biotechnology, diagnostics, medical devices, bio-materials, etc.'
+    ],
+    detailedEligibility: [
+      'Indian startup/company incorporated in India (LLP/Pvt Ltd)',
+      'Must be incubated in a recognized incubator (for lack of own lab)',
+      'Project should aim for commercially viable proof-of-concept'
+    ],
+    applicationProcess: [
+      '1. Visit the official BIG page: https://birac.nic.in/big.php',
+      '2. Check open call notifications (usually 2x per year)',
+      '3. Download the application form and guidelines',
+      '4. Prepare a technical proposal with commercialization plan',
+      '5. Submit application through the BIG partner/incubator portal',
+      '6. Proposal undergoes technical review → expert committee evaluation',
+      '7. Upon selection, grant released and mentoring support begins'
+    ],
+    documentsRequired: [
+      'Detailed biotech project proposal/abstract',
+      'Company incorporation certificate',
+      'Founder/PI KYC and CVs',
+      'Incubator endorsement & MoU (if incubated)'
+    ],
+    applyUrl: 'https://birac.nic.in/big.php'
+  },
+  {
+    id: 10,
+    name: 'GENESIS (Gen-Next Support for Innovative Startups)',
+    shortName: 'GENESIS',
+    category: 'government-of-india',
+    description: 'Support and scaling programme under MeitY for tech startups, focused on growth, market penetration and sustained operation.',
+    fullDescription: 'Support and scaling programme under MeitY / NSTEDB for tech startups, focused on growth, market penetration and sustained operation with funding for early commercial scaling.',
+    detailedBenefits: [
+      'Funding support for early commercial scaling (quantum varies by call)',
+      'Mentorship & ecosystem access through government partners',
+      'Encourages digital and deep tech innovation alignment with national priorities'
+    ],
+    detailedEligibility: [
+      'Indian tech startup focused on digital or emerging technologies',
+      'Should be registered (Pvt Ltd / LLP) in India',
+      'Typically DPIIT recognition helps but specific calls list precise requirements'
+    ],
+    applicationProcess: [
+      '1. Visit the GENESIS scheme page: https://msh.meity.gov.in/schemes/genesis',
+      '2. Check open Application Calls and guidelines',
+      '3. Create an account (if needed) on the portal',
+      '4. Fill the online application form with required details',
+      '5. Upload documents as per checklist',
+      '6. Submission → evaluation by expert panel → selection',
+      '7. Funding + support is disbursed to selected startups'
+    ],
+    documentsRequired: [
+      'Innovation/tech product pitch deck',
+      'Incorporation & KYC',
+      'Financial projections',
+      'Technical whitepaper/product details'
+    ],
+    applyUrl: 'https://msh.meity.gov.in/schemes/genesis'
+  },
+  {
+    id: 11,
     name: 'Credit Guarantee Trust Fund',
     shortName: 'CGTMSE',
     category: 'government-of-india',
-    description: 'Guarantee coverage for collateral-free loans to startups.',
-    fullDescription: 'The Credit Guarantee Trust Fund for Micro and Small Enterprises (CGTMSE) is a government-backed guarantee scheme that enables micro and small enterprises to access credit from banks without submitting collateral or third-party guarantees.',
+    description: 'Guarantee coverage for collateral-free loans to startups and micro enterprises.',
+    fullDescription: 'The Credit Guarantee Trust Fund for Micro and Small Enterprises (CGTMSE) is a government-backed guarantee scheme that enables micro and small enterprises to access credit from banks without submitting collateral.',
     detailedBenefits: [
       'Credit facility available up to ₹2 crores',
       'Up to 85% guarantee coverage on loan amount',
@@ -153,60 +409,11 @@ const schemesData = [
     applyUrl: 'https://www.startupindia.gov.in/'
   },
   {
-    id: 4,
-    name: 'Pradhan Mantri Mudra',
-    shortName: 'Mudra Loan',
-    category: 'government-of-india',
-    description: 'Loans for non-corporate, non-farm micro enterprises.',
-    fullDescription: 'The Pradhan Mantri Mudra Yojana (PMMY) is a flagship scheme launched to provide loans to non-corporate and non-farm small/micro enterprises for growth and expansion without any collateral requirement.',
-    detailedBenefits: [
-      'Loans available from ₹50,000 to ₹10 lakhs',
-      'Zero collateral requirement for loan',
-      'Flexible repayment terms up to 5 years',
-      'Government-backed loan security',
-      'Available through all nationalized banks',
-      'Competitive interest rates (typically 8-12%)',
-      'Easy and quick application process',
-      'Can be used for expansion and equipment purchase'
-    ],
-    detailedEligibility: [
-      'Must be an Indian citizen',
-      'Non-agricultural business enterprise',
-      'No collateral security required',
-      'Profit-making or viable business venture',
-      'Business plan and financial documentation',
-      'Not a service sector (in some cases)',
-      'Age criteria: 18 years or above',
-      'No prior loan defaults or negative credit history'
-    ],
-    applicationProcess: [
-      '1. Visit your nearest bank branch',
-      '2. Collect MUDRA loan application form',
-      '3. Fill form with business details and loan amount',
-      '4. Attach business plan and supporting documents',
-      '5. Submit to bank with required photographs',
-      '6. Bank verifies information and contacts you',
-      '7. Loan approval and amount sanctioned',
-      '8. Amount credited to your business account'
-    ],
-    documentsRequired: [
-      'Aadhar Card or PAN Card',
-      'Proof of residence (electricity bill/water bill)',
-      'Passport size photographs (4)',
-      'Business plan document',
-      'Proof of business address',
-      'Bank statement (last 6 months)',
-      'GST registration (if applicable)',
-      'List of equipment/machinery to be purchased'
-    ],
-    applyUrl: 'https://www.startupindia.gov.in/'
-  },
-  {
-    id: 5,
+    id: 12,
     name: 'Atal Incubation Centre',
     shortName: 'AIC',
     category: 'government-of-india',
-    description: 'Comprehensive support for tech-based early-stage startups.',
+    description: 'Comprehensive support for tech-based early-stage startups through incubation centers.',
     fullDescription: 'The Atal Incubation Centre (AIC) initiative aims to create and nurture high-quality early-stage tech startups and entrepreneurs through world-class incubation facilities and mentoring support.',
     detailedBenefits: [
       'Subsidized office space in state-of-the-art incubation centers',
@@ -251,11 +458,11 @@ const schemesData = [
     applyUrl: 'https://www.startupindia.gov.in/'
   },
   {
-    id: 6,
+    id: 13,
     name: 'National Startup Award',
     shortName: 'NSA',
     category: 'government-of-india',
-    description: 'Recognition and awards for outstanding startup impact.',
+    description: 'Recognition and awards for outstanding startup impact and innovation.',
     fullDescription: 'The National Startup Award is a prestigious recognition program that honors exceptional startups that have demonstrated outstanding innovation, growth, and positive impact on society and the economy.',
     detailedBenefits: [
       'National recognition and visibility on government platform',
@@ -300,11 +507,111 @@ const schemesData = [
     applyUrl: 'https://www.startupindia.gov.in/'
   },
   {
-    id: 7,
+    id: 14,
+    name: 'Stand Up India Scheme',
+    shortName: 'Stand Up',
+    category: 'government-of-india',
+    description: 'Bank loans for SC/ST and women entrepreneurs for greenfield enterprises.',
+    fullDescription: 'The Stand Up India Scheme aims to promote entrepreneurship among SC/ST communities and women by providing bank loans for greenfield enterprises in manufacturing, services, or trading sectors.',
+    detailedBenefits: [
+      'Bank loans available up to ₹1 crore',
+      'Flexible and manageable repayment terms',
+      'Business mentoring and support',
+      'Collateral-light lending approach',
+      'Priority sector lending benefits',
+      'Concessional interest rates (up to 0.5% discount)',
+      'Government guarantee on loan',
+      'Assistance with business planning'
+    ],
+    detailedEligibility: [
+      'SC/ST category individual OR woman entrepreneur',
+      'Greenfield enterprise (first-time business)',
+      'Minimum debt contribution of ₹10 lakhs',
+      'Business plan for manufacturing/services/trading',
+      'Age between 18-65 years',
+      'Not an undischarged insolvent',
+      'No default in any government scheme',
+      'Indian citizen'
+    ],
+    applicationProcess: [
+      '1. Identify participating bank for Stand Up scheme',
+      '2. Prepare detailed business plan',
+      '3. Approach bank with complete documentation',
+      '4. Bank verifies SC/ST/woman entrepreneur status',
+      '5. Formal loan application submission',
+      '6. Bank conducts appraisal and assessment',
+      '7. Loan approval and disbursement',
+      '8. Ongoing mentoring support from bank'
+    ],
+    documentsRequired: [
+      'Aadhar Card and PAN Card',
+      'SC/ST certificate or woman entrepreneur proof',
+      'Detailed project report',
+      'Cost estimate and financial projections',
+      'Bank statements (last 6 months)',
+      'Technical qualifications and experience',
+      'Business address and location details',
+      'ITR (if any previous income)'
+    ],
+    applyUrl: 'https://www.standupmitra.in/'
+  },
+  {
+    id: 15,
+    name: 'Startup India IP Protection',
+    shortName: 'IP Protection',
+    category: 'government-of-india',
+    description: 'Support for patent filings and intellectual property protection for startups.',
+    fullDescription: 'The Startup India Intellectual Property Protection Scheme provides financial and technical support to help startups file patents, copyrights, and trademarks for their innovations.',
+    detailedBenefits: [
+      '80% rebate on patent filing and prosecution fees',
+      'Fast-track examination facilities',
+      'Expert legal assistance for IP filings',
+      'Support for 5 years from registration',
+      'Design and trademark filing support',
+      'Copyright registration assistance',
+      'IP audit and valuation services',
+      'International patent filing support (partial)'
+    ],
+    detailedEligibility: [
+      'Registered startup in India',
+      'Unique and innovative technology/product',
+      'Feasible and commercially viable invention',
+      'Clear ownership and IP documentation',
+      'Team with relevant technical expertise',
+      'No previous IP filing or minimal filings',
+      'First-time applicants get priority',
+      'Technology not publicly disclosed'
+    ],
+    applicationProcess: [
+      '1. Register on Startup India portal',
+      '2. Get Startup India certificate',
+      '3. Identify intellectual property to protect',
+      '4. Consult with patent agent/lawyer',
+      '5. Prepare complete patent specification',
+      '6. Apply for registration with IP office',
+      '7. Startup India provides rebate documentation',
+      '8. Receive IP protection and certificate'
+    ],
+    documentsRequired: [
+      'Startup registration certificate',
+      'Detailed description of innovation',
+      'Technical documentation and drawings',
+      'Patent specification (if applicable)',
+      'Proof of non-disclosure (if applicable)',
+      'Claim of small entity status',
+      'Identity proof of inventors',
+      'Company registration documents'
+    ],
+    applyUrl: 'https://www.startupindia.gov.in/content/sih/en/ip-protection.html'
+  },
+
+  // State Government Schemes
+  {
+    id: 16,
     name: 'SEWA Fund for Women',
     shortName: 'SEWA',
     category: 'state-government',
-    description: 'Specialized support for women entrepreneurs.',
+    description: 'Specialized financial and non-financial support for women entrepreneurs.',
     fullDescription: 'The Self-Employed Women Association (SEWA) Fund provides specialized financial and non-financial support to encourage and empower women entrepreneurs in starting and scaling their businesses.',
     detailedBenefits: [
       'Microfinance loans and credit facilities',
@@ -349,11 +656,11 @@ const schemesData = [
     applyUrl: 'https://www.sewa.org/'
   },
   {
-    id: 8,
+    id: 17,
     name: 'District Industry Centre',
     shortName: 'DIC',
     category: 'state-government',
-    description: 'Local support and resources for startups and enterprises.',
+    description: 'Local support and resources for startups and enterprises at district level.',
     fullDescription: 'District Industry Centers (DICs) are government institutions that provide localized support, guidance, and resources to help startups and small enterprises succeed at the district level.',
     detailedBenefits: [
       'Free business registration and licensing assistance',
@@ -395,138 +702,313 @@ const schemesData = [
       'Experience and past achievements (if any)',
       'List of machinery and equipment'
     ],
-    applyUrl: 'https://dcmsme.gov.in/dic.htm' 
+    applyUrl: 'https://dcmsme.gov.in/dic.htm'
   },
+
+  // Madhya Pradesh Government Schemes
   {
-    id: 9,
-    name: 'Stand Up India Scheme',
-    shortName: 'Stand Up',
-    category: 'government-of-india',
-    description: 'Loans for SC/ST and women entrepreneurs.',
-    fullDescription: 'The Stand Up India Scheme aims to promote entrepreneurship among SC/ST communities and women by providing bank loans for greenfield enterprises in the manufacturing, services, or trading sectors.',
+    id: 18,
+    name: 'MP Startup Policy Incentives',
+    shortName: 'MP Startup',
+    category: 'state-government-madhya-pradesh',
+    description: 'Financial and non-financial assistance for startups registered and operating in Madhya Pradesh.',
+    fullDescription: 'Financial and non-financial assistance for startups registered and operating in Madhya Pradesh through seed funding, marketing support, and IPR cost reimbursement.',
     detailedBenefits: [
-      'Bank loans available up to ₹1 crore',
-      'Flexible and manageable repayment terms',
-      'Business mentoring and support',
-      'Collateral-light lending approach',
-      'Priority sector lending benefits',
-      'Concessional interest rates (up to 0.5% discount)',
-      'Government guarantee on loan',
-      'Assistance with business planning'
+      'Seed funding up to ₹30 lakh for product development, testing, commercialization',
+      'Monthly sustenance allowance for eligible startups during incubation',
+      'IPR cost reimbursement',
+      'Marketing support',
+      'Tender preference'
     ],
     detailedEligibility: [
-      'SC/ST category individual OR woman entrepreneur',
-      'Greenfield enterprise (first-time business)',
-      'Minimum debt contribution of ₹10 lakhs',
-      'Business plan for manufacturing/services/trading',
-      'Age between 18-65 years',
-      'Not an undischarged insolvent',
-      'No default in any government scheme',
-      'Indian citizen'
+      'DPIIT-recognized startup in MP',
+      'Incorporated entity operating in MP',
+      'Innovative/scalable product/service'
     ],
     applicationProcess: [
-      '1. Identify participating bank for Stand Up scheme',
-      '2. Prepare detailed business plan',
-      '3. Approach bank with complete documentation',
-      '4. Bank verifies SC/ST/woman entrepreneur status',
-      '5. Formal loan application submission',
-      '6. Bank conducts appraisal and assessment',
-      '7. Loan approval and disbursement',
-      '8. Ongoing mentoring support from bank'
+      '1. Open your browser and go to: https://startupmp.mygov.co.in/',
+      '2. Click "Register" and complete signup with email/phone',
+      '3. Login using your credentials',
+      '4. Complete your startup profile',
+      '5. Navigate to "Apply for Policy Incentives"',
+      '6. Choose the benefit category you want',
+      '7. Upload required documents',
+      '8. Submit for review and track status'
     ],
     documentsRequired: [
-      'Aadhar Card and PAN Card',
-      'SC/ST certificate or woman entrepreneur proof',
-      'Detailed project report',
-      'Cost estimate and financial projections',
-      'Bank statements (last 6 months)',
-      'Technical qualifications and experience',
-      'Business address and location details',
-      'ITR (if any previous income)'
+      'DPIIT certificate',
+      'Incorporation certificate',
+      'Pitch deck & business plan',
+      'Bank account details',
+      'Proof of operation in MP'
     ],
-    applyUrl: 'https://www.standupmitra.in/'
+    applyUrl: 'https://startupmp.mygov.co.in/'
   },
   {
-    id: 10,
-    name: 'Startup India IP Protection',
-    shortName: 'IP Protection',
-    category: 'government-of-india',
-    description: 'Support for patent filings and IP protection.',
-    fullDescription: 'The Startup India Intellectual Property Protection Scheme provides financial and technical support to help startups file patents, copyrights, and trademarks for their innovations and intellectual property.',
+    id: 19,
+    name: 'Mukhya Mantri Yuva Udyami Yojana',
+    shortName: 'Yuva Udyami',
+    category: 'state-government-madhya-pradesh',
+    description: 'Loan support scheme for youth entrepreneurs in MP for business setup with margin and interest assistance.',
+    fullDescription: 'Loan support scheme for youth entrepreneurs in MP for business setup with margin and interest assistance to promote self-employment.',
     detailedBenefits: [
-      '80% rebate on patent filing and prosecution fees',
-      'Fast-track examination facilities',
-      'Expert legal assistance for IP filings',
-      'Support for 5 years from registration',
-      'Design and trademark filing support',
-      'Copyright registration assistance',
-      'IP audit and valuation services',
-      'International patent filing support (partial)'
+      'Loan support ₹10 lakh to ₹2 crore',
+      'Margin money subsidy (state support)',
+      'Interest subsidy for defined period for reduced cost'
     ],
     detailedEligibility: [
-      'Registered startup in India',
-      'Unique and innovative technology/product',
-      'Feasible and commercially viable invention',
-      'Clear ownership and IP documentation',
-      'Team with relevant technical expertise',
-      'No previous IP filing or minimal filings',
-      'First-time applicants get priority',
-      'Technology not publicly disclosed'
+      'MP resident',
+      'Entrepreneur seeking to start/expand business'
     ],
     applicationProcess: [
-      '1. Register on Startup India portal',
-      '2. Get Startup India certificate',
-      '3. Identify intellectual property to protect',
-      '4. Consult with patent agent/lawyer',
-      '5. Prepare complete patent specification',
-      '6. Apply for registration with IP office',
-      '7. Startup India provides rebate documentation',
-      '8. Receive IP protection and certificate'
+      '1. Go to MP Online portal: https://msme.mponline.gov.in/',
+      '2. Create account or Login',
+      '3. Search for "Mukhyamantri Udyam Kranti Yojana"',
+      '4. Click Apply Online',
+      '5. Complete form with personal and business details',
+      '6. Upload required documents',
+      '7. Submit application',
+      '8. Verification and approval process',
+      '9. Loan sanction and fund release'
     ],
     documentsRequired: [
-      'Startup registration certificate',
-      'Detailed description of innovation',
-      'Technical documentation and drawings',
-      'Patent specification (if applicable)',
-      'Proof of non-disclosure (if applicable)',
-      'Claim of small entity status',
-      'Identity proof of inventors',
-      'Company registration documents'
+      'Aadhaar & PAN',
+      'Domicile proof',
+      'Project report (cost, revenue)',
+      'Bank account details',
+      'Educational proof'
     ],
-    applyUrl: 'https://www.startupindia.gov.in/content/sih/en/ip-protection.html'
+    applyUrl: 'https://msme.mponline.gov.in/'
   },
   {
-    id: 11,
-    name: 'Example International Scheme',
-    shortName: 'International',
-    category: 'international',
-    description: 'Global opportunities for Indian startups.',
-    fullDescription: 'This is an example international scheme that provides global opportunities and support for Indian startups looking to expand internationally.',
+    id: 20,
+    name: 'Mukhyamantri Udyam Kranti Yojana',
+    shortName: 'Udyam Kranti',
+    category: 'state-government-madhya-pradesh',
+    description: 'Self-employment loan scheme for MP residents for business establishment.',
+    fullDescription: 'Self-employment loan scheme for MP residents for business establishment providing loans from ₹50,000 to ₹50 lakh.',
     detailedBenefits: [
-      'International market access',
-      'Global networking opportunities',
-      'Cross-border funding support',
-      'International mentorship programs'
+      'Loan from ₹50,000 up to ₹50 lakh for MSME/business',
+      'Encourages self-employment and enterprise growth'
     ],
     detailedEligibility: [
-      'Registered Indian startup',
-      'International expansion plans',
-      'Scalable business model',
-      'Strong financial records'
+      'MP resident (individual/entrepreneur)',
+      'Viable business plan'
     ],
     applicationProcess: [
-      '1. Register on the international portal',
-      '2. Submit business plan',
-      '3. Attend virtual interview',
-      '4. Receive approval and support'
+      '1. Go to MP Online portal: https://msme.mponline.gov.in/',
+      '2. Create account or Login',
+      '3. Search for "Mukhyamantri Udyam Kranti Yojana"',
+      '4. Click Apply Online',
+      '5. Complete form with personal and business details',
+      '6. Upload required documents',
+      '7. Submit application',
+      '8. Verification and approval process',
+      '9. Loan sanction and fund release'
     ],
     documentsRequired: [
-      'Company registration',
-      'Business plan',
-      'Financial statements',
-      'Passport copies of founders'
+      'Aadhaar & PAN',
+      'Address proof',
+      'Bank account details',
+      'Project report & quotations'
     ],
-    applyUrl: 'https://example-international.org/apply'
+    applyUrl: 'https://msme.mponline.gov.in/'
+  },
+  {
+    id: 21,
+    name: 'Mukhya Mantri Krishak Udyami Yojana',
+    shortName: 'Krishak Udyami',
+    category: 'state-government-madhya-pradesh',
+    description: 'Financial assistance for sons/daughters of farmers in MP to start an enterprise.',
+    fullDescription: 'Financial assistance for sons/daughters of farmers in MP to start an enterprise linked to agriculture/business.',
+    detailedBenefits: [
+      'Loan up to ₹50,000 – ₹10 lakh for agribusiness'
+    ],
+    detailedEligibility: [
+      'Son/daughter of farmer and MP resident',
+      'Proposed business linked to agriculture/enterprise'
+    ],
+    applicationProcess: [
+      '1. Visit Mera Yuva MP Portal: https://www.merayuva.mp.gov.in/scheme/mukhya-mantri-krishak-udyami-yojana',
+      '2. Login with registered credentials',
+      '3. Find application form for the scheme',
+      '4. Fill applicant details and business plan',
+      '5. Upload required documents',
+      '6. Submit form',
+      '7. Bank evaluation and appraisal',
+      '8. Loan sanction and disbursement'
+    ],
+    documentsRequired: [
+      'Proof of farmer family (land record or certificate)',
+      'Aadhaar & PAN',
+      'Bank account details',
+      'Business project plan'
+    ],
+    applyUrl: 'https://www.merayuva.mp.gov.in/'
+  },
+  {
+    id: 22,
+    name: 'MP MSME Capital Subsidy & Enterprise Promotion',
+    shortName: 'Capital Subsidy',
+    category: 'state-government-madhya-pradesh',
+    description: 'State MSME support scheme offering capital investment subsidy and technology adoption incentives.',
+    fullDescription: 'State MSME support scheme offering capital investment subsidy and technology adoption incentives under MP Industrial Policy.',
+    detailedBenefits: [
+      'Capital subsidy up to ~40–48% of eligible investment (depends on category)',
+      'Support for tech upgrades and quality certification'
+    ],
+    detailedEligibility: [
+      'Udyam-registered MSME in Madhya Pradesh'
+    ],
+    applicationProcess: [
+      '1. Open MSME/Industrial Promotion Portal: https://msme.mponline.gov.in/',
+      '2. Register or Login',
+      '3. Search for capital subsidy/enterprise support scheme',
+      '4. Click Apply Online',
+      '5. Complete application with project details',
+      '6. Upload documents: Udyam registration, GST, bank details, project invoices',
+      '7. Submit for verification',
+      '8. State MSME/Industrial Department reviews',
+      '9. Subsidy amount transferred to bank account'
+    ],
+    documentsRequired: [
+      'Udyam registration certificate',
+      'Project investment plan & invoices',
+      'GST & bank details',
+      'Lease/land proof'
+    ],
+    applyUrl: 'https://msme.mponline.gov.in/'
+  },
+  {
+    id: 23,
+    name: 'MP Startup Patent & IPR Support',
+    shortName: 'MP IPR Support',
+    category: 'state-government-madhya-pradesh',
+    description: 'State support for reimbursement of patent and intellectual property costs for startups.',
+    fullDescription: 'State support for reimbursement of patent and intellectual property costs for startups operating in Madhya Pradesh.',
+    detailedBenefits: [
+      'Partial reimbursement of patent filing/prosecution fees'
+    ],
+    detailedEligibility: [
+      'DPIIT-recognized MP startup'
+    ],
+    applicationProcess: [
+      '1. Go to Startup MP Policy Portal: https://startupmp.mygov.co.in/',
+      '2. Login with registered credentials',
+      '3. Find section for IPR/Patent Support',
+      '4. Select patent or IPR type for reimbursement',
+      '5. Upload patent filing receipts, fee invoices, DPIIT certificate, bank details',
+      '6. Submit application',
+      '7. Nodal agency reviews and approves',
+      '8. Reimbursement credited to bank account'
+    ],
+    documentsRequired: [
+      'Patent fee receipts/policy claims',
+      'Startup registration details'
+    ],
+    applyUrl: 'https://startupmp.mygov.co.in/'
+  },
+  {
+    id: 24,
+    name: 'MP Marketing & Branding Assistance',
+    shortName: 'Marketing Assistance',
+    category: 'state-government-madhya-pradesh',
+    description: 'Subsidy support for MP startups to attend trade shows, exhibitions, and market outreach events.',
+    fullDescription: 'Subsidy support for MP startups to attend trade shows, exhibitions, and market outreach events for brand building and market expansion.',
+    detailedBenefits: [
+      'Partial subsidy for stall fees, travel, marketing materials'
+    ],
+    detailedEligibility: [
+      'DPIIT-recognized startup based in MP'
+    ],
+    applicationProcess: [
+      '1. Login on the Startup MP portal',
+      '2. Choose Marketing & Branding Assistance',
+      '3. Input event details and upload fees/quotations',
+      '4. Submit for approval',
+      '5. Upon approval, subsidy released to startup'
+    ],
+    documentsRequired: [
+      'Event quotes/invoices',
+      'Startup registration proof'
+    ],
+    applyUrl: 'https://startupmp.mygov.co.in/'
+  },
+  {
+    id: 25,
+    name: 'MP Tender Preference for Startups',
+    shortName: 'Tender Preference',
+    category: 'state-government-madhya-pradesh',
+    description: 'Procurement preference in state tenders by relaxing prior experience/turnover conditions.',
+    fullDescription: 'Procurement preference in state tenders by relaxing prior experience/turnover conditions to help MP startups win government contracts.',
+    detailedBenefits: [
+      'Helps MP startups win government contracts with relaxed criteria'
+    ],
+    detailedEligibility: [
+      'Startup registered and operational in MP with DPIIT recognition'
+    ],
+    applicationProcess: [
+      '1. Register/verify startup on Startup MP portal',
+      '2. Use registration proof when submitting tender bid',
+      '3. Tendering authority evaluates with preference benefits'
+    ],
+    documentsRequired: [
+      'Startup registration proof'
+    ],
+    applyUrl: 'https://startupmp.mygov.co.in/'
+  },
+  {
+    id: 26,
+    name: 'MP Incubator & Mentoring Network',
+    shortName: 'Incubator Network',
+    category: 'state-government-madhya-pradesh',
+    description: 'Structured incubation program connecting startups with mentors, workspace, and investors.',
+    fullDescription: 'Structured incubation program connecting startups with mentors, workspace, and investors through dedicated MP incubation network.',
+    detailedBenefits: [
+      'Mentoring from experienced entrepreneurs',
+      'Workspace support and facilities',
+      'Investor connect & demo platforms'
+    ],
+    detailedEligibility: [
+      'Startup registered on Startup MP portal'
+    ],
+    applicationProcess: [
+      '1. Register on Startup MP portal',
+      '2. Apply under Incubator & Mentoring Network',
+      '3. Submit business plan, team details',
+      '4. Incubator reviews and onboards selected startups'
+    ],
+    documentsRequired: [
+      'Startup KYC',
+      'Pitch deck'
+    ],
+    applyUrl: 'https://startupmp.mygov.co.in/'
+  },
+  {
+    id: 27,
+    name: 'MP Utility/Lease Subsidy',
+    shortName: 'Lease Subsidy',
+    category: 'state-government-madhya-pradesh',
+    description: 'Partial reimbursement of office lease and utility costs for eligible MP startups.',
+    fullDescription: 'Partial reimbursement of office lease and utility costs for eligible MP startups to reduce operating expenses.',
+    detailedBenefits: [
+      'Reduces operating expenses through state subsidy'
+    ],
+    detailedEligibility: [
+      'DPIIT-recognized startup operational in MP'
+    ],
+    applicationProcess: [
+      '1. Login on Startup MP portal',
+      '2. Go to Utility/Lease Subsidy section',
+      '3. Upload lease agreement & utility bills',
+      '4. Submit for verification and approval',
+      '5. Subsidy is disbursed post-approval'
+    ],
+    documentsRequired: [
+      'Lease agreement',
+      'Utility bills'
+    ],
+    applyUrl: 'https://startupmp.mygov.co.in/'
   }
 ];
 

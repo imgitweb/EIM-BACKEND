@@ -1,6 +1,5 @@
 const Scheme = require('../models/Scheme');
 
-// Get all schemes
 const getAllSchemes = async (req, res) => {
   try {
     const schemes = await Scheme.find({}).sort({ id: 1 });
@@ -11,17 +10,14 @@ const getAllSchemes = async (req, res) => {
   }
 };
 
-// Get schemes by category
 const getSchemesByCategory = async (req, res) => {
   try {
     const category = req.params.category;
     let schemes;
-    
-    if (category === 'government-of-india') {
-      // Show all schemes for government-of-india tab
-      schemes = await Scheme.find({});
+    // Show all state-specific categories when frontend requests "state-government"
+    if (category === 'state-government') {
+      schemes = await Scheme.find({ category: { $regex: '^state-government', $options: 'i' } });
     } else {
-      // Filter by specific category
       schemes = await Scheme.find({ category: category });
     }
     
@@ -33,7 +29,6 @@ const getSchemesByCategory = async (req, res) => {
   }
 };
 
-// Get single scheme by ID
 const getSchemeById = async (req, res) => {
   try {
     const scheme = await Scheme.findOne({ id: parseInt(req.params.id) });
