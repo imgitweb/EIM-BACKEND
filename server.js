@@ -24,6 +24,7 @@ const seedPartnerData = require("./seeding/partnerSeed");
 const courseRoutes = require("./routes/CourseRoutes");
 const SeedMVPTeam = require("./seeding/MVPSeed");
 const { seedActivities } = require("./seeding/activitySeeder");
+const eilaRoutes = require('./routes/EILACofounderRoutes');
 
 // ─────────────────────────────────────────────────────────────
 // ✅ Import Routes
@@ -281,6 +282,7 @@ app.use("/api/payment", paymentRouters);
 app.use("/api/deliverable", DeliverableRoutes(upload));
 app.use("/api/feedback", routes.feedbackRoutes);
 app.use("/api/milestones", milestoneRoutes);
+app.use("/api/ask-eila", eilaRoutes)
 // ─────────────────────────────────────────────────────────────
 // ✅ Error Handlers
 // ─────────────────────────────────────────────────────────────
