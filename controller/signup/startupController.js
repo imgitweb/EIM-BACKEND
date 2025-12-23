@@ -65,6 +65,8 @@ exports.createStartup = async (req, res) => {
       email,
       password,
       startupName,
+      problemStatement,
+      revenueStarted,
       contactPersonName,
       country,
       state,
@@ -110,6 +112,8 @@ exports.createStartup = async (req, res) => {
 
     // Add optional fields if provided
     if (startupName) startupData.startupName = startupName;
+    if (problemStatement) startupData.problemStatement = problemStatement;
+    if (revenueStarted) startupData.revenueStarted = revenueStarted;
     if (contactPersonName) startupData.contactPersonName = contactPersonName;
     if (country) startupData.country = country;
     if (state) startupData.state = state;
@@ -220,17 +224,17 @@ exports.updateStartupProfile = async (req, res) => {
   try {
     const startupId = req.params.id;
 
-    // Find existing startup
     const startup = await StartupModel.findById(startupId);
     if (!startup) {
       return res.status(404).json({ error: "Startup not found" });
     }
-
     const {
       firstName,
       lastName,
       email,
       startupName,
+      problemStatement,
+      revenueStarted,
       contactPersonName,
       country,
       state,
@@ -254,6 +258,8 @@ exports.updateStartupProfile = async (req, res) => {
     if (lastName) startup.lastName = lastName;
     if (email) startup.email = email;
     if (startupName) startup.startupName = startupName;
+    if (problemStatement) startup.problemStatement = problemStatement;
+    if (revenueStarted) startup.revenueStarted = revenueStarted;
     if (contactPersonName) startup.contactPersonName = contactPersonName;
     if (country) startup.country = country;
     if (state) startup.state = state;

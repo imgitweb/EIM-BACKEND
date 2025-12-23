@@ -87,14 +87,19 @@ const startupSchema = new mongoose.Schema(
     logoUrl: {
       type: String,
     },
-     businessModel: {
+    businessModel: {
       type: String,
       trim: true,
     },
-     problemStatement: {
+    problemStatement: {
       type: String,
       trim: true,
     },
+    revenueStarted: {
+      type: Boolean,
+      default: false,
+    },
+
     solutionDescription: {
       type: String,
       trim: true,
@@ -111,15 +116,10 @@ const startupSchema = new mongoose.Schema(
       },
     ],
 
-
-
- createdBy: {
+    createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
-
-
-
   },
   { timestamps: true }
 );

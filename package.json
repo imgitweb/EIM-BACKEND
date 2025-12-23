@@ -36,7 +36,7 @@
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.10.0",
     "nodemon": "^3.1.10",
-    "openai": "^5.11.0",
+    "openai": "^6.15.0",
     "pdfkit": "^0.17.2",
     "pm2": "^5.4.3",
     "razorpay": "^2.9.6",

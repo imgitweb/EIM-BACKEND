@@ -64,7 +64,7 @@ const routes = {
   complianceRoutes: require("./routes/complianceRoutes"),
   feedbackRoutes: require("./routes/feedbackRoutes"),
   captableRoutes: require("./routes/captableRoutes"),
-  schemeRoutes: require("./routes/schemeRoutes")
+  schemeRoutes: require("./routes/schemeRoutes"),
 };
 const { ActivityRoute } = require("./routes/Activity/activityRoute");
 const { seedDeliverables } = require("./seeding/deliverablesSeeder");
@@ -156,7 +156,7 @@ app.use(
 app.use(
   session({
     name: "sessionId",
-    secret: process.env.JWT_SECRET || "your-secret-key",
+    secret: process.env.SESSION_SECRET || "your-secret-key",
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({
@@ -165,9 +165,9 @@ app.use(
     }),
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: process.env.NODE_ENV === "production", // only HTTPS in prod
       sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      maxAge: 15 * 60 * 1000, // 15 minutes for OTP
     },
   })
 );
@@ -284,7 +284,7 @@ app.use("/api/deliverable", DeliverableRoutes(upload));
 app.use("/api/feedback", routes.feedbackRoutes);
 app.use("/api/milestones", milestoneRoutes);
 app.use("/api/captable", routes.captableRoutes);
-app.use('/api/schemes', routes.schemeRoutes);
+app.use("/api/schemes", routes.schemeRoutes);
 // ─────────────────────────────────────────────────────────────
 // ✅ Error Handlers
 // ─────────────────────────────────────────────────────────────
