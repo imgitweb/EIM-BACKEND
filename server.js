@@ -76,6 +76,7 @@ const { milestoneRoutes } = require("./routes/MilistonePath/milestoneRoutes");
 // ─────────────────────────────────────────────────────────────
 
 const app = express();
+app.set("trust proxy", 1);
 connectDB();
 seedMentorData();
 seedInvestorData();
@@ -156,18 +157,20 @@ app.use(
 app.use(
   session({
     name: "sessionId",
-    secret: process.env.SESSION_SECRET || "your-secret-key",
+    secret: process.env.SESSION_SECRET,
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: false, // Keep this false for security
     store: MongoStore.create({
       mongoUrl: process.env.MONGO_URI,
       collectionName: "sessions",
     }),
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // only HTTPS in prod
-      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-      maxAge: 15 * 60 * 1000, // 15 minutes for OTP
+      // Must be true in prod for browsers to accept cross-site cookies
+      secure: process.env.NODE_ENV === "production",
+      // Must be lowercase 'none' for cross-site (app vs api)
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 15 * 60 * 1000,
     },
   })
 );
