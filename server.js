@@ -64,7 +64,8 @@ const routes = {
   complianceRoutes: require("./routes/complianceRoutes"),
   feedbackRoutes: require("./routes/feedbackRoutes"),
   captableRoutes: require("./routes/captableRoutes"),
-  schemeRoutes: require("./routes/schemeRoutes")
+  schemeRoutes: require("./routes/schemeRoutes"),
+  updateCompanyDetailsRoutes: require('./routes/UpdateCompanyDetailsRoutes')
 };
 const { ActivityRoute } = require("./routes/Activity/activityRoute");
 const { seedDeliverables } = require("./seeding/deliverablesSeeder");
@@ -267,6 +268,7 @@ app.use(
   "/api/PostCoFounderRequirement",
   routes.PostCoFounderRequirementsRoutes
 );
+app.use('/api/update-company-details', routes.updateCompanyDetailsRoutes);
 app.use("/", routes.companyRegistrationRoutes);
 app.use("/api/partners", require("./routes/partnerRoutes"));
 app.use("/api/market", routes.MarketSize);

@@ -3,11 +3,11 @@ const mongoose = require("mongoose");
 const StartupHireTeamSchema = new mongoose.Schema(
   {
     startupName: { type: String, required: true },
-    website: { type: String, required: true },
-    linkedin: { type: String, required: true },
-    country: { type: String, required: true },
-    stage: { type: String, required: true },
-    sector: { type: String, required: true },
+    website: { type: String },
+    linkedin: { type: String },
+    country: { type: String },
+    stage: { type: String },
+    sector: { type: String },
 
     recruiterName: { type: String, required: true },
     email: { type: String, required: true },

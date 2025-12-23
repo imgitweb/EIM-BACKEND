@@ -30,7 +30,7 @@ exports.protect = async (req, res, next) => {
           .json({ success: false, message: "User not found" });
       }
 
-      if (!user.isVerified) {
+      if (user.isVerified) {
         return res.status(401).json({
           success: false,
           message: "Please verify your email before accessing this feature",

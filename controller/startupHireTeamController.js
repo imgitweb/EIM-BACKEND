@@ -1,8 +1,5 @@
 const StartupHireTeam = require("../models/StartupHireTeamModel");
 
-/**
- * Validate only job-post related fields
- */
 const validateHireTeamData = (data) => {
   const errors = {};
 
@@ -22,7 +19,6 @@ const validateHireTeamData = (data) => {
     errors.email = "Enter a valid email address";
   }
 
-  // ✅ FIXED: allow 10+ digits
   if (isEmpty(data.contactNumber)) {
     errors.contactNumber = "Contact Number is required";
   } else if (
@@ -31,24 +27,19 @@ const validateHireTeamData = (data) => {
     errors.contactNumber = "Enter a valid phone number";
   }
 
-  // Model-required company fields
-  if (isEmpty(data.website)) {
-    errors.website = "Website is required";
-  } else if (!/^https?:\/\//i.test(data.website) && !/^www\./i.test(data.website)) {
-    errors.website = "Enter a valid website URL (include protocol or start with www)";
+  // Company/startup info — optional for anonymous posts. Validate only if provided.
+  if (data.website) {
+    if (!/^https?:\/\//i.test(data.website) && !/^www\./i.test(data.website)) {
+      errors.website = "Enter a valid website URL (include protocol or start with www)";
+    }
   }
 
-  if (isEmpty(data.linkedin)) {
-    errors.linkedin = "LinkedIn profile is required";
-  } else if (!/linkedin\.com/i.test(data.linkedin)) {
-    errors.linkedin = "Enter a valid LinkedIn URL";
+  if (data.linkedin) {
+    if (!/linkedin\.com/i.test(data.linkedin)) {
+      errors.linkedin = "Enter a valid LinkedIn URL";
+    }
   }
 
-  if (isEmpty(data.country)) errors.country = "Country is required";
-  if (isEmpty(data.stage)) errors.stage = "Startup Stage is required";
-  if (isEmpty(data.sector)) errors.sector = "Sector is required";
-
-  // Job details
   if (isEmpty(data.jobTitle))
     errors.jobTitle = "Job Title is required";
 
@@ -94,7 +85,6 @@ const validateHireTeamData = (data) => {
   if (isEmpty(data.currency))
     errors.currency = "Currency is required";
 
-  // ✅ FIXED: allow today or future date
   if (!data.applicationDeadline) {
     errors.applicationDeadline = "Application Deadline is required";
   } else {
@@ -113,12 +103,41 @@ const validateHireTeamData = (data) => {
   return errors;
 };
 
-/**
- * CREATE JOB POST
- */
 exports.createStartupHireTeam = async (req, res) => {
   try {
-    const validationErrors = validateHireTeamData(req.body);
+    const dataToValidate = { ...req.body };
+
+    try {
+      if (req.user) {
+        if (!dataToValidate.website && req.user.website) {
+          dataToValidate.website = req.user.website;
+        }
+
+        // linkedin may be stored in socialLinks array
+        if (!dataToValidate.linkedin && Array.isArray(req.user.socialLinks)) {
+          const ln = req.user.socialLinks.find((s) => /linkedin/i.test(s.platform || "") || /linkedin\.com/i.test(s.url || ""));
+          if (ln && ln.url) dataToValidate.linkedin = ln.url;
+        }
+
+        if (!dataToValidate.country && req.user.country) {
+          dataToValidate.country = req.user.country;
+        }
+
+        if (!dataToValidate.stage && req.user.startupStage) {
+          dataToValidate.stage = req.user.startupStage;
+        }
+
+        if (!dataToValidate.sector && req.user.industry) {
+          dataToValidate.sector = req.user.industry;
+        }
+
+        dataToValidate.createdBy = req.userId || req.user._id || dataToValidate.createdBy;
+      }
+    } catch (err) {
+      console.warn("Auto-fill startup fields failed:", err.message || err);
+    }
+
+    const validationErrors = validateHireTeamData(dataToValidate);
 
     if (Object.keys(validationErrors).length > 0) {
       return res.status(400).json({
@@ -129,7 +148,7 @@ exports.createStartupHireTeam = async (req, res) => {
     }
 
     const newEntry = new StartupHireTeam({
-      ...req.body,
+      ...dataToValidate,
       isActive: true,
     });
 
@@ -150,9 +169,7 @@ exports.createStartupHireTeam = async (req, res) => {
   }
 };
 
-/**
- * GET ALL JOB POSTS
- */
+
 exports.getAllStartupHireTeams = async (req, res) => {
   try {
     const { page = 1, limit = 10, search } = req.query;
