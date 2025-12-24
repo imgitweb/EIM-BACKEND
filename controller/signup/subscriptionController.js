@@ -36,13 +36,6 @@ exports.createSubscription = async (req, res) => {
     const plans = getPlans();
     const { startupId, planId, paymentIntentId } = req.body;
 
-    // Debug: Log request payload
-    console.log("Create Subscription Request:", {
-      startupId,
-      planId,
-      paymentIntentId,
-    });
-
     // Validate inputs
     if (!startupId || !planId) {
       return res.status(400).json({
@@ -60,7 +53,7 @@ exports.createSubscription = async (req, res) => {
       });
     }
 
-    // Find and validate startup
+    // Find startup
     const startup = await StartupModel.findById(startupId);
     if (!startup) {
       return res.status(404).json({
@@ -69,17 +62,20 @@ exports.createSubscription = async (req, res) => {
       });
     }
 
-    // Check if email verification is required for paid plans
-    const isFree = plan.price === "free" || plan.price === 0;
-    // if (!isFree && !startup.emailVerified) {
-    //   return res.status(403).json({
-    //     success: false,
-    //     error: "Email verification required before subscribing to paid plans",
-    //   });
-    // }
+    /* ===============================
+       ✅ FIX: FREE PLAN DETECTION
+    =============================== */
+    const isFree =
+      plan.price === 0 ||
+      (typeof plan.price === "string" && plan.price.toLowerCase() === "free");
 
-    // Verify payment for paid plans
-    let paymentVerified = isFree; // Free plans don't need payment verification
+    const planAmount = typeof plan.price === "number" ? plan.price : 0;
+
+    /* ===============================
+       PAYMENT VERIFICATION
+    =============================== */
+    let paymentVerified = isFree;
+
     if (!isFree) {
       if (!paymentIntentId) {
         return res.status(400).json({
@@ -89,21 +85,10 @@ exports.createSubscription = async (req, res) => {
       }
 
       try {
-        console.log("Verifying payment intent:", paymentIntentId);
-
-        // Verify payment with Stripe
         const paymentIntent = await stripe.paymentIntents.retrieve(
           paymentIntentId
         );
 
-        console.log("Payment Intent Details:", {
-          id: paymentIntent.id,
-          status: paymentIntent.status,
-          amount: paymentIntent.amount,
-          metadata: paymentIntent.metadata,
-        });
-
-        // Accept multiple successful statuses
         const successfulStatuses = [
           "succeeded",
           "processing",
@@ -112,37 +97,20 @@ exports.createSubscription = async (req, res) => {
         ];
 
         if (!successfulStatuses.includes(paymentIntent.status)) {
-          console.log(
-            "Payment verification failed - status:",
-            paymentIntent.status
-          );
           return res.status(402).json({
             success: false,
-            error: `Payment status: ${paymentIntent.status}. Please try again.`,
+            error: `Payment status: ${paymentIntent.status}`,
           });
         }
 
-        // Verify payment amount matches plan price
-        const expectedAmount =
-          typeof plan.price === "number" ? plan.price * 100 : 0;
-        console.log("Amount verification:", {
-          paymentAmount: paymentIntent.amount,
-          expectedAmount: expectedAmount,
-          planPrice: plan.price,
-        });
+        const expectedAmount = planAmount * 100;
 
         if (paymentIntent.amount !== expectedAmount) {
           return res.status(400).json({
             success: false,
-            error: `Payment amount mismatch: expected ${expectedAmount}, got ${paymentIntent.amount}`,
+            error: "Payment amount mismatch",
           });
         }
-
-        // Verify metadata matches request
-        console.log("Metadata verification:", {
-          paymentMetadata: paymentIntent.metadata,
-          requestData: { startupId, planId },
-        });
 
         if (
           paymentIntent.metadata.startupId !== startupId ||
@@ -150,51 +118,30 @@ exports.createSubscription = async (req, res) => {
         ) {
           return res.status(400).json({
             success: false,
-            error: "Payment verification failed. Invalid metadata.",
+            error: "Invalid payment metadata",
           });
         }
 
-        console.log("Payment verification successful!");
         paymentVerified = true;
-      } catch (stripeError) {
-        console.error("Stripe verification error:", stripeError);
+      } catch (err) {
         return res.status(402).json({
           success: false,
-          error: "Payment verification failed. Please contact support.",
+          error: "Payment verification failed",
         });
       }
     }
 
-    let durationDays = 30; // Default duration
-
-    if (typeof plan?.duration === "string") {
-      switch (plan.duration.trim().toLowerCase()) {
-        case "30 days":
-          durationDays = 30;
-          break;
-        case "90 days":
-          durationDays = 90;
-          break;
-        default:
-          console.warn(
-            `Unknown plan duration: ${plan.duration}, defaulting to 30 days`
-          );
-          durationDays = 30;
-      }
-    } else {
-      console.warn("Missing or invalid plan.duration, defaulting to 30 days");
+    /* ===============================
+       DURATION
+    =============================== */
+    let durationDays = 30;
+    if (typeof plan.duration === "string") {
+      if (plan.duration.toLowerCase().includes("90")) durationDays = 90;
     }
 
-    // Validate durationDays
-    if (!durationDays || isNaN(durationDays) || durationDays <= 0) {
-      console.error("Invalid durationDays:", durationDays);
-      return res.status(400).json({
-        success: false,
-        error: "Invalid subscription duration",
-      });
-    }
-
-    // Check for existing active subscription
+    /* ===============================
+       CHECK ACTIVE SUBSCRIPTION
+    =============================== */
     const existingSubscription = await SubscriptionModel.findOne({
       userId: startup._id,
       status: "active",
@@ -203,86 +150,54 @@ exports.createSubscription = async (req, res) => {
     if (existingSubscription) {
       return res.status(409).json({
         success: false,
-        error: "An active subscription already exists for this startup",
+        error: "Active subscription already exists",
       });
     }
+
     const startDate = new Date();
     const endDate = new Date(
       startDate.getTime() + durationDays * 24 * 60 * 60 * 1000
     );
-    // Create subscription data
-    const subscriptionData = {
+
+    /* ===============================
+       CREATE SUBSCRIPTION
+    =============================== */
+    const subscription = await SubscriptionModel.create({
       userId: startup._id,
       planId,
       stripeSubscriptionId: paymentIntentId || null,
-      startDate: startDate,
+      startDate,
+      endDate,
       status: "active",
-      endDate: endDate,
-    };
+    });
 
-    // Create and save subscription
-    const subscription = new SubscriptionModel(subscriptionData);
-    await subscription.save();
-
-    // Create payment record
-    const paymentData = {
+    /* ===============================
+       CREATE PAYMENT RECORD
+    =============================== */
+    const payment = await PaymentModel.create({
       startupId,
       subscriptionId: subscription._id,
-      amount: isFree ? 0 : typeof plan.price === "number" ? plan.price : 0,
+      amount: isFree ? 0 : planAmount,
       currency: "usd",
       status: paymentVerified ? "succeeded" : "pending",
       stripePaymentIntentId: paymentIntentId || null,
       date: new Date(),
-    };
+    });
 
-    const payment = new PaymentModel(paymentData);
-    await payment.save();
-
-    // Update startup's selected plan
     startup.selectedPlan = planId;
     await startup.save();
 
-    // Debug: Log created subscription
-    console.log("Created Subscription:", subscription);
-
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "Subscription created successfully",
-      subscription: {
-        id: subscription._id,
-        planId: subscription.planId,
-        status: subscription.status,
-        startDate: subscription.startDate,
-        endDate: subscription.endDate,
-      },
-      payment: {
-        id: payment._id,
-        amount: payment.amount,
-        status: payment.status,
-        date: payment.date,
-      },
+      subscription,
+      payment,
     });
   } catch (error) {
-    console.error("Create Subscription Error:", error);
-
-    // Handle specific error types
-    if (error.name === "ValidationError") {
-      return res.status(400).json({
-        success: false,
-        error: error.message,
-      });
-    }
-
-    if (error.code === 11000) {
-      return res.status(409).json({
-        success: false,
-        error: "A subscription with this information already exists",
-      });
-    }
-
-    res.status(500).json({
+    console.error(error);
+    return res.status(500).json({
       success: false,
-      error: "Failed to create subscription. Please try again later.",
+      error: "Failed to create subscription",
     });
   }
 };
