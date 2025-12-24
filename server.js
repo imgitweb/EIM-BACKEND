@@ -23,7 +23,7 @@ const seedCategoryData = require("./seeding/seedCategoryData");
 const seedPartnerData = require("./seeding/partnerSeed");
 const courseRoutes = require("./routes/CourseRoutes");
 const SeedMVPTeam = require("./seeding/MVPSeed");
-const { seedActivities } = require("./seeding/activitySeeder");
+// const { seedActivities } = require("./seeding/activitySeeder");
 
 // ─────────────────────────────────────────────────────────────
 // ✅ Import Routes
@@ -80,7 +80,7 @@ seedInvestorData();
 seedCategoryData();
 seedPartnerData();
 SeedMVPTeam();
-seedActivities();
+// seedActivities();
 seedDeliverables();
 // ─────────────────────────────────────────────────────────────
 // ✅ CORS Setup

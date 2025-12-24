@@ -39,7 +39,7 @@ exports.sendOtp = async (req, res) => {
       email,
       expires: Date.now() + 5 * 60 * 1000, // 5 minutes expiry
     };
-    console.log(otp);
+    console.log("$OPT", otp);
     // Prepare email content
     const message = `<div style="max-width:500px;margin:0 auto;font-family:Arial,sans-serif;background:#f8f9fa;border-radius:12px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
                         <div style="background:linear-gradient(135deg,#667eea,#764ba2);padding:30px;text-align:center;color:white">
