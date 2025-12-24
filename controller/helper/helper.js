@@ -2,12 +2,15 @@ const { OpenAI } = require("openai");
 require("dotenv").config();
 const openAi = new OpenAI({ apiKey: process.env.OPEN_API_KEY });
 
-const CallOpenAi = async (prompt, isJson = true) => {
+const CallOpenAi = async (prompt, systemPrompt, isJson = true) => {
   // <--- 1. Default true rakha
   try {
     const response = await openAi.chat.completions.create({
       model: "gpt-4.1", // Make sure model name is correct (e.g., gpt-4o or gpt-4)
-      messages: [{ role: "user", content: prompt }],
+      messages: [
+        { role: "system", content: systemPrompt + "You must answer in JSON." }, // 'JSON' word added
+        { role: "user", content: prompt },
+      ],
     });
 
     let assistantReply = response.choices?.[0]?.message?.content;
