@@ -19,6 +19,7 @@ const {
   generateActivities,
 } = require("../ActivityController/activityController.js");
 const { CallOpenAi } = require("../helper/helper.js");
+const { openAI } = require("../milistoneController.js");
 
 // Load plans with error handling and caching
 let cachedPlans = null;
@@ -214,7 +215,7 @@ exports.createStartup = async (req, res) => {
       planData: planData,
     };
     console.log("milestoneDataassinge", data);
-    const milestoneData = await CallOpenAi(data);
+    const milestoneData = await openAI(data);
     console.log("milestoneData", milestoneData);
 
     if (milestoneData.error) {
@@ -233,7 +234,7 @@ exports.createStartup = async (req, res) => {
     }
 
     // Fixed typo: wellcomeEmails -> welcomeEmails (assuming function name is welcomeEmails)
-    await welcomeEmails({ email: startup.email, startupName: startupName }); // Adjust if function name differs
+    await wellcomeEmails({ email: startup.email, startupName: startupName }); // Adjust if function name differs
 
     res.status(201).json({
       success: true,
