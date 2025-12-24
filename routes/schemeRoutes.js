@@ -6,6 +6,7 @@ const {
   getSchemeById
 } = require('../controller/schemeController');
 
+<<<<<<< HEAD
 // Get all schemes
 router.get('/', getAllSchemes);
 
@@ -13,6 +14,12 @@ router.get('/', getAllSchemes);
 router.get('/detail/:id', getSchemeById);
 
 // Get schemes by category
+=======
+router.get('/', getAllSchemes);
+
+router.get('/detail/:id', getSchemeById);
+
+>>>>>>> 459c204bdf6256256ca54843cfd89b8d46523c27
 router.get('/:category', getSchemesByCategory);
 
 module.exports = router;

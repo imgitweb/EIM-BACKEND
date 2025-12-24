@@ -88,16 +88,16 @@ exports.sendStartupExchangeEmail = async (req, res) => {
 
     // Create the email transporter
     const transporter = nodemailer.createTransport({
-      service: "gmail", // or your preferred email service
+      service: process.env.EMAIL_SERVICE || "gmail",
       auth: {
-        user: "nitinjn07@gmail.com", // Your email address
-        pass: "vyrf ohyr btpa gnoh", // Your email password (use environment variables for production)
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
       },
     });
 
     // Email message for startup 1 to receive startup 2's details
     const mailOptions1 = {
-      from: "nitinjn07@gmail.com",
+      from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
       to: startup1.email_id,
       subject: `Exchange Info with ${startup2.startup_name}`,
       text: `Hi ${startup1.startup_name},\n\nWe wanted to introduce you to ${startup2.startup_name}, a startup in the same industry. Here are their details:\n\n
@@ -113,7 +113,7 @@ exports.sendStartupExchangeEmail = async (req, res) => {
 
     // Email message for startup 2 to receive startup 1's details
     const mailOptions2 = {
-      from: "nitinjn07@gmail.com",
+      from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
       to: startup2.email_id,
       subject: `Exchange Info with ${startup1.startup_name}`,
       text: `Hi ${startup2.startup_name},\n\nWe wanted to introduce you to ${startup1.startup_name}, a startup in the same industry. Here are their details:\n\n

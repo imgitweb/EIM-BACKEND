@@ -66,6 +66,10 @@ const routes = {
   feedbackRoutes: require("./routes/feedbackRoutes"),
   captableRoutes: require("./routes/captableRoutes"),
   schemeRoutes: require("./routes/schemeRoutes"),
+<<<<<<< HEAD
+=======
+  updateCompanyDetailsRoutes: require('./routes/UpdateCompanyDetailsRoutes')
+>>>>>>> 459c204bdf6256256ca54843cfd89b8d46523c27
 };
 const { ActivityRoute } = require("./routes/Activity/activityRoute");
 const { seedDeliverables } = require("./seeding/deliverablesSeeder");
@@ -272,6 +276,7 @@ app.use(
   "/api/PostCoFounderRequirement",
   routes.PostCoFounderRequirementsRoutes
 );
+app.use('/api/update-company-details', routes.updateCompanyDetailsRoutes);
 app.use("/", routes.companyRegistrationRoutes);
 app.use("/api/partners", require("./routes/partnerRoutes"));
 app.use("/api/market", routes.MarketSize);
@@ -294,6 +299,7 @@ app.use("/api/offering", offerings);
 app.use("/api/market-calculation", marketsizecalculator);
 app.use("/api/hackathon", HackRegistration);
 app.use("/api/ask-eila", eilaRoutes)
+app.use('/api/contact', require('./routes/contactRoutes'));
 // ─────────────────────────────────────────────────────────────
 // ✅ Error Handlers
 // ─────────────────────────────────────────────────────────────
