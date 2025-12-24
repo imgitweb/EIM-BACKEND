@@ -4,9 +4,9 @@ const activitySchema = new mongoose.Schema(
   {
     startup_id: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "StartupModel", // Ensure ref matches actual model name
+      ref: "StartupModel",
       required: true,
-      index: true, // Added index for queries
+      index: true,
     },
 
     activity_name: {
@@ -20,12 +20,11 @@ const activitySchema = new mongoose.Schema(
 
     order: {
       type: Number,
-      required: true,
-    }, // Removed duplicate
-
+      // required: true,
+    },
     week: {
       type: String,
-      required: true,
+      // required: true,
     },
 
     is_completed: {
@@ -34,7 +33,6 @@ const activitySchema = new mongoose.Schema(
     },
 
     is_accessible: {
-      // Fixed spelling: accessable -> accessible
       type: Boolean,
       default: false,
     },
@@ -47,10 +45,9 @@ const activitySchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Additional indexes for performance
 activitySchema.index({ startup_id: 1, order: 1 });
 activitySchema.index({ startup_id: 1, is_deleted: 1 });
 
-const ActivityModel = mongoose.model("activities", activitySchema); // Pluralized model name for convention
+const ActivityModel = mongoose.model("activities", activitySchema);
 
 module.exports = { ActivityModel };

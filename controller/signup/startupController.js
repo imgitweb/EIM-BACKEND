@@ -151,7 +151,6 @@ exports.createStartup = async (req, res) => {
       { expiresIn: "24h" }
     );
 
-    // Await activities generation (fixed race condition: removed setTimeout)
     await generateActivities({
       startup_id: startup._id,
       planName: selectedPlan,
@@ -162,15 +161,17 @@ exports.createStartup = async (req, res) => {
         $project: {
           _id: 1,
           title: 1,
-          category: "", // If dynamic, compute here
-          Path: "", // If dynamic, compute here
+          category: "",
+          Path: "",
         },
       },
     ]);
 
     const activities = await ActivityModel.aggregate([
       {
-        $match: { startup_id: startup._id }, // Filter by startup
+        $match: { startup_id: startup._id },
+      },
+      {
         $project: {
           _id: 1,
           title: "$activity_name",
