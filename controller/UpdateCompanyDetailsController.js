@@ -1,4 +1,5 @@
 const CompanyDetails = require('../models/CompanyDetails');
+const mongoose = require('mongoose');
 const multer = require('multer');
 const path = require('path');
 
@@ -102,18 +103,76 @@ exports.updateCompanyDetails = [
         updates.panDocument = '';
       }
 
-      const companyDetails = await CompanyDetails.findByIdAndUpdate(
+      // Sanitize updates to avoid passing invalid values to Mongoose (e.g. userId as object/string)
+      const sanitizedUpdates = {};
+      const problematicKeys = [];
+      Object.keys(updates).forEach((key) => {
+        let val = updates[key];
+        // If value looks like a JSON string, try to parse it
+        if (typeof val === 'string' && val.trim().startsWith('{') && val.trim().endsWith('}')) {
+          try {
+            val = JSON.parse(val);
+          } catch (e) {
+            // leave as string if parse fails
+          }
+        }
+
+        // If the frontend accidentally sent an object which became the string '[object Object]', clear it
+        if (val === '[object Object]') {
+          problematicKeys.push(key);
+          val = '';
+        }
+
+        // Prevent clients from changing ownership via userId in the payload
+        if (key === 'userId') {
+          // skip including userId in update; ownership is determined from auth
+          return;
+        }
+
+        // For safety, convert empty object to empty string
+        if (typeof val === 'object' && val !== null) {
+          // If this is an object with an _id or id, try to extract it
+          if (val._id || val.id) {
+            const candidate = val._id || val.id;
+            if (mongoose.Types.ObjectId.isValid(candidate)) {
+              sanitizedUpdates[key] = candidate;
+              return;
+            }
+          }
+          problematicKeys.push(key);
+          sanitizedUpdates[key] = '';
+          return;
+        }
+
+        sanitizedUpdates[key] = val;
+      });
+
+      if (problematicKeys.length > 0) {
+        console.warn('Sanitized problematic update keys:', problematicKeys);
+      }
+
+      let companyDetails = await CompanyDetails.findByIdAndUpdate(
         id,
-        { $set: updates },
+        { $set: sanitizedUpdates },
         { new: true, runValidators: true }
       ).populate('userId', 'name email');
 
       if (!companyDetails) {
         // If record doesn't exist, attempt to create it instead of returning 404.
         // Determine owner: prefer authenticated user, fall back to provided userId in updates.
-        const ownerId = req.user ? req.user.id : updates.userId;
+        let ownerId = req.user ? req.user.id : updates.userId;
         if (!ownerId) {
           return res.status(400).json({ error: 'Company details not found and no userId available to create record' });
+        }
+
+        // If ownerId is an object (e.g. { _id: ... } or { id: ... }), extract the id string
+        if (typeof ownerId === 'object') {
+          ownerId = ownerId._id || ownerId.id || (ownerId.toString && ownerId.toString());
+        }
+
+        // Validate ObjectId
+        if (!mongoose.Types.ObjectId.isValid(ownerId)) {
+          return res.status(400).json({ error: 'Invalid userId provided' });
         }
 
         const createData = { ...updates, userId: ownerId };
