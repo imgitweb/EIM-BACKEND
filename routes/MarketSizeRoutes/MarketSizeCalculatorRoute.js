@@ -3,7 +3,6 @@ const { CallOpenAi } = require("../../controller/helper/helper");
 const MarketCalculation = require("../../models/marketsizecalculator/MarketSizeModel");
 const Sales = require("../../models/SalseFunnel/SalesModel");
 
-// POST: Calculate (AI) + Math + Save to DB
 router.post("/calculate-and-save", async (req, res) => {
   try {
     const {
@@ -18,42 +17,57 @@ router.post("/calculate-and-save", async (req, res) => {
       somPercent,
     } = req.body;
 
-    // 1. OpenAI se Total Customers Estimate mangwana
     const prompt = `
-      You are a senior market research analyst.
-      Estimate the Total Addressable Market (Total Potential Customers) as a single integer number.
-      Product: ${productService}
-      Geography: ${targetGeography}
-      Customer Segment: ${customerSegment}
-      Segment Details: ${customerSegmentDetails || "General"}
-      
-      Reply with ONLY the number (e.g., 500000). No text, no explanations.
-    `;
+You are a senior market research analyst.
 
-    // --- FIX IS HERE: Pass 'false' as second argument ---
-    // Iska matlab hai hume JSON nahi, sirf number chahiye
-    const aiResponse = await CallOpenAi(prompt, false);
+Estimate the Total Addressable Market (Total Potential Customers).
 
-    console.log("AI Raw Response:", aiResponse);
+Product: ${productService}
+Geography: ${targetGeography}
+Customer Segment: ${customerSegment}
+Segment Details: ${customerSegmentDetails || "General"}
 
-    // Remove text, keep only numbers
-    const totalCustomers =
-      parseInt(String(aiResponse).replace(/\D/g, ""), 10) || 0;
+Respond ONLY in valid JSON.
+No text. No markdown.
 
-    if (totalCustomers === 0) {
+{
+  "total_customers": 150000
+}
+`;
+
+    // 👇 helper already returns parsed JSON object
+    const aiResponse = await CallOpenAi(prompt, null, true);
+
+    console.log("AI RESPONSE:", aiResponse);
+
+    let totalCustomers = 0;
+
+    if (
+      typeof aiResponse === "object" &&
+      aiResponse.total_customers
+    ) {
+      totalCustomers = parseInt(aiResponse.total_customers, 10);
+    } else {
       return res.status(400).json({
-        message: "AI could not estimate customers. Please try again.",
+        message: "AI did not return expected JSON format",
+        raw: aiResponse,
       });
     }
 
-    // 2. Math Calculations (TAM, SAM, SOM)
+    if (!totalCustomers || totalCustomers <= 0) {
+      return res.status(400).json({
+        message: "AI could not estimate customers",
+      });
+    }
+
+    // 🧮 Calculations
     const price = parseFloat(averagePrice) || 0;
     const tam = totalCustomers * price;
     const sam = tam * (parseFloat(samPercent) / 100);
     const som = sam * (parseFloat(somPercent) / 100);
 
-    // 3. Database me Save karna
-    const newRecord = new MarketCalculation({
+    // 💾 Save to DB
+    const savedData = await MarketCalculation.create({
       startupId,
       productService,
       targetGeography,
@@ -63,21 +77,26 @@ router.post("/calculate-and-save", async (req, res) => {
       averagePrice: price,
       samPercent,
       somPercent,
-      totalCustomers, // Parsed AI value
+      totalCustomers,
       tam,
       sam,
       som,
     });
 
-    const savedData = await newRecord.save();
-
-    // 4. Frontend ko response bhejna
-    res.status(200).json(savedData);
+    return res.status(200).json({
+      success: true,
+      data: savedData,
+    });
   } catch (err) {
-    console.error("Error in calculation:", err);
-    res.status(500).json({ message: "Server Error", error: err.message });
+    console.error("Market calculation error:", err);
+    return res.status(500).json({
+      message: "Server Error",
+      error: err.message,
+    });
   }
 });
+
+
 
 router.post("/update-reach", async (req, res) => {
   try {

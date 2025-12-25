@@ -15,7 +15,32 @@ router.get(
 router.put("/update_startup/:id", 
   upload.single("logo"),
   startupController.updateStartupDetails);
+
+
+router.put("/update_startup/:id", 
+  upload.single("logo"),
+  startupController.updateStartupDetails);
 router.post("/validate_startup/:id", startupController.validateStartup);
+router.get(
+  "/recent-validations/:id",
+  startupController.getRecentValidations
+);
 router.post("/risk_feedback/:id", startupController.analyzeRisks);
+router.get(
+  "/recent-risk-analysis/:id",
+  startupController.getRecentRiskAnalysis
+);
+router.post("/market_case_studies/:startupId", startupController.generateMarketCaseStudies);
+
+router.post(
+  "/rivalry-insight/:id",
+  startupController.generateRivalryInsight
+);
+
+router.get(
+  "/recent-rivalry-insight/:id",
+  startupController.getRecentRivalryInsights
+);
+
 router.post("/market_case_studies/:startupId", startupController.generateMarketCaseStudies);
 module.exports = router;

@@ -1,8 +1,13 @@
 const MVPTeamModel = require("../../models/MVPTeamModel");
 const StartupModel = require("../../models/signup/StartupModel");
 const MVPConfig = require("../../models/MVP/MVPConfigModel");
+const MvpSession = require("../../models/MVP/MvpSession");
+const StoryPoint = require("../../models/MVP/StoryPoint");
+const MvpScope = require("../../models/MVP/MvpScope");
+
 
 const OpenAI = require("openai");
+const { CallOpenAi } = require("../helper/helper");
 require("dotenv").config();
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_KEY });
@@ -80,169 +85,200 @@ const GenerateINhousePlan = async (req, res) => {
 }
 
 
+/* STEP 1 — Generate Story Points */
 const generateStoryPoints = async (req, res) => {
   try {
     const { startupId, productType } = req.body;
 
-    console.log("Generate Story Points Request:", req.body);
-
-    if (!startupId || !productType) {
-      return res.status(400).json({ message: "startupId & productType required" });
-    }
-
     const startup = await StartupModel.findById(startupId);
-    if (!startup) {
-      return res.status(404).json({ message: "Startup not found" });
-    }
+    if (!startup) return res.status(404).json({ message: "Startup not found" });
+
+    const session = await MvpSession.create({
+      startupId,
+      productType,
+      status: "story_points_generated",
+    });
 
     const prompt = `
-You are an expert product manager.
+Generate 10 MVP story points as JSON array only.
 
-Generate 6–10 short MVP story points as JSON ONLY.  
-No text, no comments, no markdown, no backticks — only a pure JSON array.
-
-Each story point must include:
-- id (string, unique)
-- title (short)
-- description (1 sentence)
+Each item:
+- title
+- description
 
 Context:
-- MVP Type: ${productType}
-- Problem: ${startup.problemStatement}
-- Solution: ${startup.solutionDescription}
-- Audience: ${startup.targetedAudience}
-- Industry: ${startup.industry}
-
-Return JSON ONLY like this:
-[
-  { "id": "sp1", "title": "User Login", "description": "Allow users to log in using email." }
-]
+MVP Type: ${productType}
+Problem: ${startup.problemStatement}
+Solution: ${startup.solutionDescription}
+Audience: ${startup.targetedAudience}
+Industry: ${startup.industry}
 `;
 
-    const aiRes = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.6,
-    });
+    const aiPoints = await CallOpenAi(prompt);
 
-    let raw = aiRes.choices[0].message.content;
+    const saved = await StoryPoint.insertMany(
+      aiPoints.map((p) => ({
+        sessionId: session._id,
+        title: p.title,
+        description: p.description,
+      }))
+    );
 
-    // CLEAN AI RESPONSE (remove code blocks)
-    raw = raw.replace(/```json/gi, "").replace(/```/g, "").trim();
-
-    let parsed;
-    try {
-      parsed = JSON.parse(raw);
-    } catch (err) {
-      console.error("JSON Parse Issue. Raw Output:", raw);
-      return res.status(500).json({
-        success: false,
-        message: "AI returned invalid JSON.",
-      });
-    }
-
-    return res.json({
+    res.json({
       success: true,
-      storyPoints: parsed,
+      sessionId: session._id,
+      storyPoints: saved,
     });
-
-  } catch (error) {
-    console.error("AI Story Points Error:", error);
-    res.status(500).json({
-      success: false,
-      message: "AI Error",
-    });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
   }
 };
 
+/* STEP 2 — Select / Remove Story Point */
+const toggleStoryPoint = async (req, res) => {
+  const { id } = req.params;
+  const { isSelected, priority } = req.body;
 
+  const updated = await StoryPoint.findByIdAndUpdate(
+    id,
+    { isSelected, priority },
+    { new: true }
+  );
 
+  res.json({ success: true, storyPoint: updated });
+};
+
+/* STEP 3 — Generate Scope */
 const generateProductScope = async (req, res) => {
-  try {
-    const { startupId, productType, selectedStoryPoints } = req.body;
+ 
 
-    const startup = await StartupModel.findById(startupId);
+  try {
+    const { sessionId } = req.body;
+
+    const session = await MvpSession.findById(sessionId);
+    if (!session) {
+      return res.status(404).json({ success: false, message: "Session not found" });
+    }
+
+    const startup = await StartupModel.findById(session.startupId);
     if (!startup) {
       return res.status(404).json({ success: false, message: "Startup not found" });
     }
 
-    const storyPointsText = selectedStoryPoints
+    const selected = await StoryPoint.find({
+      sessionId,
+      isSelected: true,
+    });
+
+    if (!selected.length) {
+      return res.status(400).json({
+        success: false,
+        message: "No story points selected",
+      });
+    }
+
+        const features = selected
       .map(
-        (sp, i) =>
-          `${i + 1}. ${sp.title}\n   - Description: ${sp.description}\n   - Priority: ${sp.priority}`
+        (f) =>
+          `- ${f.title} (${f.priority}): ${f.description}`
       )
-      .join("\n\n");
+      .join("\n");
 
-    const prompt = `
-You are a senior product consultant. Create a full professional PRODUCT SCOPE DOCUMENT.
+     const prompt = `
+You are a backend API that returns ONLY valid JSON.
 
-Write it clean, structured, and formatted as plain text (no markdown, no numbering issues).
+RULES (VERY IMPORTANT):
+- Output MUST be valid JSON
+- No text, no explanation, no markdown
+- No headings outside JSON
+- No comments
+- If unsure, return an empty JSON object {}
 
-Startup Info:
-- Name: ${startup.startupName}
-- Problem: ${startup.problemStatement}
-- Solution: ${startup.solutionDescription}
-- Audience: ${startup.targetedAudience}
+Return the product scope strictly in the following JSON structure:
 
-MVP Type: ${productType}
+{
+  "executiveSummary": "",
+  "problemOverview": "",
+  "targetUsers": [],
+  "mvpObjectives": [],
+  "detailedScope": [
+    {
+      "featureTitle": "",
+      "description": "",
+      "priority": ""
+    }
+  ],
+  "outOfScope": [],
+  "techStack": {
+    "frontend": [],
+    "backend": [],
+    "database": [],
+    "hosting": [],
+    "others": []
+  },
+  "developmentTimeline": [
+    {
+      "phase": "",
+      "durationWeeks": 0,
+      "deliverables": []
+    }
+  ],
+  "totalEstimatedDurationWeeks": 0
+}
 
-Selected Story Points:
-${storyPointsText}
+Startup Name: ${startup.startupName}
+Problem: ${startup.problemStatement}
+Solution: ${startup.solutionDescription}
+Target Audience: ${startup.targetedAudience}
+MVP Type: ${session.productType}
 
-Write the Product Scope using these exact sections:
+Selected Features:
+${features}
 
-1. EXECUTIVE SUMMARY  
-   - 5–7 lines summarizing the product vision & MVP purpose.
-
-2. PROBLEM OVERVIEW  
-   - What problem exists and why it matters?
-
-3. TARGET USERS  
-   - Who will use the MVP and what are their motivations?
-
-4. MVP OBJECTIVE  
-   - What this MVP is supposed to validate? (Clear measurable goals)
-
-5. DETAILED SCOPE  
-   - Convert each story point into a scoped feature description  
-   - Include purpose, inputs, outputs, and expected user flow
-
-6. OUT OF SCOPE  
-   - List features explicitly NOT included in this MVP
-
-7. SUGGESTED TECH STACK  
-   - 6–10 recommended technologies (Frontend, Backend, AI, DB, Hosting)
-
-8. DEVELOPMENT TIMELINE  
-   - 3–5 phases: Discovery → UI/UX → Development → Testing → Launch
-   - Include deliverables for each phase
-
-Return the final scope as plain clean text. No markdown. No code blocks.
+RETURN ONLY JSON.
 `;
 
-    const aiRes = await client.chat.completions.create({
-      model: "gpt-4o",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.4,
-    });
 
-    let scopeText = aiRes.choices[0].message.content;
+    const scopeJson = await CallOpenAi(prompt, "json");
 
-    scopeText = scopeText.replace(/```/g, "").trim();
+  // 🔹 derive useful fields from JSON
+const totalWeeks = scopeJson.totalEstimatedDurationWeeks || null;
 
-    startup.scope = scopeText;
-    await startup.save();
+const techStack = scopeJson.techStack || {
+  frontend: [],
+  backend: [],
+  database: [],
+  hosting: [],
+  others: [],
+};
 
+// optional team inference
+const teamRequired = [];
+if (techStack.frontend?.length) teamRequired.push("Frontend");
+if (techStack.backend?.length) teamRequired.push("Backend");
+if (techStack.database?.length) teamRequired.push("Database");
+if (techStack.others?.length) teamRequired.push("Others");
+
+const scope = await MvpScope.create({
+  sessionId,
+  scopeData: scopeJson,
+  totalEstimatedDurationWeeks: totalWeeks,
+  techStack,
+  teamRequired,
+});
+
+session.status = "scope_generated";
+await session.save();
     res.json({
       success: true,
-      scope: scopeText,
+      scope,
     });
-
-  } catch (error) {
-    console.error("Generate Scope Error:", error);
+  } catch (e) {
+    console.error("Generate Scope Error:", e);
     res.status(500).json({
       success: false,
-      message: "AI scope generation failed",
+      message: "Scope generation failed",
+      error: e.message,
     });
   }
 };
@@ -280,6 +316,7 @@ Return the final scope as plain clean text. No markdown. No code blocks.
 
 
 module.exports = {
+  toggleStoryPoint,
   createCompany,
   getCompanies,
   updateCompany,
