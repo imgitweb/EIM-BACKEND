@@ -39,6 +39,7 @@ exports.protect = async (req, res, next) => {
 
       req.user = user;
       req.userId = user._id;
+      console.log("Authenticated User ID:", req.userId);
 
       next();
     } catch (error) {
