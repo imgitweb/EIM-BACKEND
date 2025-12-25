@@ -143,7 +143,7 @@ const generateActivities = async ({ startup_id, planName }) => {
 
 async function getAllActivities(req, res) {
   try {
-    const { startup_id } = req.params;
+    const { startup_id } = req.body;
 
     const activity = await ActivityModel.find({
       startup_id: startup_id,

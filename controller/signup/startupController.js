@@ -18,7 +18,6 @@ const wellcomeEmails = require("../../utils/wellcomeEmails"); // Fixed typo in u
 const {
   generateActivities,
 } = require("../ActivityController/activityController.js");
-const { CallOpenAi } = require("../helper/helper.js");
 const { openAI } = require("../milistoneController.js");
 
 // Load plans with error handling and caching
