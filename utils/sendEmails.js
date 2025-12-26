@@ -15,7 +15,7 @@ const sendEmail = async (options) => {
     const transporter = nodemailer.createTransport({
       service: process.env.EMAIL_SERVICE || "gmail",
       auth: {
-        user: process.env.EMAIL_USER || "your-email@gmail.com",
+        user: process.env.EMAIL_USER || "your-email@incubationmasters.com",
         pass: process.env.EMAIL_PASS || "your-email-password",
       },
       tls: {
