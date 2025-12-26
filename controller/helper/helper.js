@@ -2,17 +2,32 @@ const { OpenAI } = require("openai");
 require("dotenv").config();
 const openAi = new OpenAI({ apiKey: process.env.OPEN_API_KEY });
 
-const CallOpenAi = async (prompt) => {
+const CallOpenAi = async (prompt, systemPrompt, isJson = true) => {
+  // <--- 1. Default true rakha
   try {
     const response = await openAi.chat.completions.create({
-      model: "gpt-4.1",
-      messages: [{ role: "user", content: prompt }],
+      model: "gpt-4.1", // Make sure model name is correct (e.g., gpt-4o or gpt-4)
+      messages: [
+        { role: "system", content: systemPrompt + "You must answer in JSON." }, // 'JSON' word added
+        { role: "user", content: prompt },
+      ],
     });
 
     let assistantReply = response.choices?.[0]?.message?.content;
     if (!assistantReply) throw new Error("No assistant reply found");
-    console.log("assistantReply", assistantReply);
-    // Clean markdown and whitespace
+
+    // Clean whitespace
+    assistantReply = assistantReply.trim();
+    console.log("assistantReply:", assistantReply);
+
+    // --- NEW LOGIC ADDED HERE ---
+    // Agar hume JSON nahi chahiye (sirf number chahiye), to yahin se return kar do
+    if (!isJson) {
+      return assistantReply;
+    }
+    // -----------------------------
+
+    // Clean markdown and whitespace for JSON
     assistantReply = assistantReply
       .replace(/```json/g, "")
       .replace(/```/g, "")
@@ -20,6 +35,7 @@ const CallOpenAi = async (prompt) => {
 
     // Attempt to extract first JSON object or array
     const jsonMatch = assistantReply.match(/(\{[\s\S]*\}|\[[\s\S]*\])/);
+
     if (!jsonMatch) {
       console.warn("Full assistant reply:", assistantReply);
       throw new Error("No JSON object found in assistant reply");
@@ -48,7 +64,6 @@ const CallOpenAi = async (prompt) => {
     throw new Error("Failed to fetch from OpenAI: " + error.message);
   }
 };
-
 const generateUimPrompt = (formData) => {
   const { sectors, focus, market, interest, skills } = formData;
 

@@ -23,7 +23,8 @@ const seedCategoryData = require("./seeding/seedCategoryData");
 const seedPartnerData = require("./seeding/partnerSeed");
 const courseRoutes = require("./routes/CourseRoutes");
 const SeedMVPTeam = require("./seeding/MVPSeed");
-const { seedActivities } = require("./seeding/activitySeeder");
+// const { seedActivities } = require("./seeding/activitySeeder");
+const eilaRoutes = require("./routes/EILACofounderRoutes");
 
 // ─────────────────────────────────────────────────────────────
 // ✅ Import Routes
@@ -65,12 +66,17 @@ const routes = {
   feedbackRoutes: require("./routes/feedbackRoutes"),
   captableRoutes: require("./routes/captableRoutes"),
   schemeRoutes: require("./routes/schemeRoutes"),
+  updateCompanyDetailsRoutes: require("./routes/UpdateCompanyDetailsRoutes"),
 };
 const { ActivityRoute } = require("./routes/Activity/activityRoute");
 const { seedDeliverables } = require("./seeding/deliverablesSeeder");
 const { paymentRouters } = require("./routes/PaymentRoutes/routes");
 const { DeliverableRoutes } = require("./routes/DeliverableRoutes/deliverable");
 const { milestoneRoutes } = require("./routes/MilistonePath/milestoneRoutes");
+const offerings = require("./routes/OfferingRoutes/OfferingRoute");
+const marketsizecalculator = require("./routes/MarketSizeRoutes/MarketSizeCalculatorRoute");
+const HackRegistration = require("./routes/HackRoute/HackRoutes");
+
 // ─────────────────────────────────────────────────────────────
 // ✅ App Initialization
 // ─────────────────────────────────────────────────────────────
@@ -82,7 +88,7 @@ seedInvestorData();
 seedCategoryData();
 seedPartnerData();
 SeedMVPTeam();
-seedActivities();
+// seedActivities();
 seedDeliverables();
 // ─────────────────────────────────────────────────────────────
 // ✅ CORS Setup
@@ -267,6 +273,7 @@ app.use(
   "/api/PostCoFounderRequirement",
   routes.PostCoFounderRequirementsRoutes
 );
+app.use("/api/update-company-details", routes.updateCompanyDetailsRoutes);
 app.use("/", routes.companyRegistrationRoutes);
 app.use("/api/partners", require("./routes/partnerRoutes"));
 app.use("/api/market", routes.MarketSize);
@@ -285,6 +292,11 @@ app.use("/api/feedback", routes.feedbackRoutes);
 app.use("/api/milestones", milestoneRoutes);
 app.use("/api/captable", routes.captableRoutes);
 app.use("/api/schemes", routes.schemeRoutes);
+app.use("/api/offering", offerings);
+app.use("/api/market-calculation", marketsizecalculator);
+app.use("/api/hackathon", HackRegistration);
+app.use("/api/ask-eila", eilaRoutes);
+app.use("/api/contact", require("./routes/contactRoutes"));
 // ─────────────────────────────────────────────────────────────
 // ✅ Error Handlers
 // ─────────────────────────────────────────────────────────────

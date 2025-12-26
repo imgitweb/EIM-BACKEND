@@ -1,18 +1,15 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 const {
   getAllSchemes,
   getSchemesByCategory,
-  getSchemeById
-} = require('../controller/schemeController');
+  getSchemeById,
+} = require("../controller/schemeController");
 
-// Get all schemes
-router.get('/', getAllSchemes);
+router.get("/", getAllSchemes);
 
-// Get scheme by ID (must come before category route)
-router.get('/detail/:id', getSchemeById);
+router.get("/detail/:id", getSchemeById);
 
-// Get schemes by category
-router.get('/:category', getSchemesByCategory);
+router.get("/:category", getSchemesByCategory);
 
 module.exports = router;

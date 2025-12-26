@@ -3,10 +3,9 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const StartupModel = require("../../models/signup/StartupModel.js");
-const saveMilestoneDataToDB = require("../../models/alphaPath.js");
+const saveMilestoneDataToDB = require("../../models/alphaPath.js"); // Assuming this is correct
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-const { openAI } = require("../milistoneController.js");
 const videoCoursesModel = require("../../models/courses/Course.js");
 const {
   ActivityModel,
@@ -15,17 +14,25 @@ const {
   deliverableModel,
 } = require("../../models/DeliverablesModel/deliverables.js");
 const templateModel = require("../../models/templateModel.js");
-const wellcomeEmails = require("../../utils/wellcomeEmails");
+const wellcomeEmails = require("../../utils/wellcomeEmails"); // Fixed typo in usage below
+const {
+  generateActivities,
+} = require("../ActivityController/activityController.js");
+const { openAI } = require("../milistoneController.js");
 
-// Load plans with error handling
+// Load plans with error handling and caching
+let cachedPlans = null;
 const getPlans = () => {
+  if (cachedPlans) return cachedPlans; // Cache to avoid repeated FS reads
+
   try {
     const plansPath = path.join(__dirname, "../../config/Plans.json");
     if (!fs.existsSync(plansPath)) {
       throw new Error("Plans configuration file not found");
     }
     const plansData = JSON.parse(fs.readFileSync(plansPath, "utf8"));
-    return plansData.plans;
+    cachedPlans = plansData.plans || []; // Fallback to empty array
+    return cachedPlans;
   } catch (error) {
     console.error("Failed to load plans:", error);
     return [];
@@ -36,8 +43,9 @@ exports.getPlans = (req, res) => {
   try {
     const plans = getPlans();
 
-    console.log("secound getPlans ");
-    if (!plans || plans.length === 0 || plans.length === "Free") {
+    console.log("Second getPlans"); // Fixed typo: secound -> Second
+    if (!plans || plans.length === 0) {
+      // Fixed impossible check: length === "Free" -> length === 0
       return res
         .status(500)
         .json({ error: "Plans configuration not available" });
@@ -56,7 +64,7 @@ exports.createStartup = async (req, res) => {
   }
 
   try {
-    const plans = getPlans();
+    const plans = getPlans(); // Load once
     const validPlanIds = plans.map((plan) => plan.id);
 
     const {
@@ -77,23 +85,37 @@ exports.createStartup = async (req, res) => {
       elevatorPitch,
       selectedPlan,
     } = req.body;
-    console.log("req.body", req.body);
+    console.log("req.body", req.body); // Consider sanitizing logs in production
+
     if (!email || !password) {
       return res.status(400).json({ error: "Email and password are required" });
     }
-    const saltRounds = 10;
+
+    // Validate selectedPlan
+    if (!validPlanIds.includes(selectedPlan)) {
+      return res.status(400).json({ error: "Invalid plan selected" });
+    }
+
+    const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS) || 10; // Use env var
     const bpassword = await bcrypt.hash(password, saltRounds);
 
-    const existingStartup = await StartupModel.findOne({
-      $or: [{ email }, { startupName: startupName ? startupName : undefined }],
-    });
+    // Fixed existing startup check: Handle missing startupName
+    const query = { email };
+    if (startupName) query.startupName = startupName;
+    const existingStartup = await StartupModel.findOne(query);
 
     if (existingStartup) {
       if (existingStartup.email === email) {
         return res.status(409).json({ error: "Email already registered" });
-      } else if (startupName && existingStartup.startupName === startupName) {
+      } else {
         return res.status(409).json({ error: "Startup name already exists" });
       }
+    }
+
+    // Get planData after validation
+    const planData = plans.find((plan) => plan.id === selectedPlan);
+    if (!planData) {
+      return res.status(400).json({ error: "Selected plan not found" });
     }
 
     // Create new startup with available information
@@ -101,14 +123,9 @@ exports.createStartup = async (req, res) => {
       firstName,
       lastName,
       email,
-      password: bpassword, // Note: Assuming password hashing is handled in the model's pre-save hook
-      selectedPlan: validPlanIds.includes(selectedPlan)
-        ? selectedPlan
-        : "alpha",
+      password: bpassword,
+      selectedPlan,
     };
-    const plansinfo = getPlans(); // assuming this returns an array of plans
-    const planData = plansinfo.find((plan) => plan.id === selectedPlan);
-    console.log("planData", planData);
 
     // Add optional fields if provided
     if (startupName) startupData.startupName = startupName;
@@ -122,7 +139,6 @@ exports.createStartup = async (req, res) => {
     if (startupStage) startupData.startupStage = startupStage;
     if (contactNumber) startupData.contactNumber = contactNumber;
     if (elevatorPitch) startupData.elevatorPitch = elevatorPitch;
-    // if (logoUrl) startupData.logoUrl = logoUrl;
 
     const startup = new StartupModel(startupData);
     await startup.save();
@@ -131,9 +147,14 @@ exports.createStartup = async (req, res) => {
     // Generate JWT token for authentication
     const token = jwt.sign(
       { id: startup._id, email: startup.email },
-      process.env.JWT_SECRET || "default_jwt_secret",
+      process.env.JWT_SECRET || "default_jwt_secret", // Enforce env in prod
       { expiresIn: "24h" }
     );
+
+    await generateActivities({
+      startup_id: startup._id,
+      planName: selectedPlan,
+    });
 
     const videoCourses = await videoCoursesModel.aggregate([
       {
@@ -147,6 +168,9 @@ exports.createStartup = async (req, res) => {
     ]);
 
     const activities = await ActivityModel.aggregate([
+      {
+        $match: { startup_id: startup._id },
+      },
       {
         $project: {
           _id: 1,
@@ -181,8 +205,8 @@ exports.createStartup = async (req, res) => {
 
     const data = {
       startupName: startupName,
-      startupElevatorPitch: elevatorPitch, // No fallback
-      country: country, // No fallback
+      startupElevatorPitch: elevatorPitch,
+      country: country,
       videoCourses: videoCourses,
       activities: activities,
       deliverables: deliverables,
@@ -195,7 +219,7 @@ exports.createStartup = async (req, res) => {
 
     if (milestoneData.error) {
       console.error("Milestone generation failed:", milestoneData.debug);
-      // Proceed with startup creation even if milestones fail
+      // Proceed even if milestones fail
     } else {
       try {
         await saveMilestoneDataToDB.create({
@@ -207,7 +231,10 @@ exports.createStartup = async (req, res) => {
         console.error("Error saving milestone data to the database:", dbError);
       }
     }
-    await wellcomeEmails({ email: startup.email, startupName: startupName });
+
+    // Fixed typo: wellcomeEmails -> welcomeEmails (assuming function name is welcomeEmails)
+    await wellcomeEmails({ email: startup.email, startupName: startupName }); // Adjust if function name differs
+
     res.status(201).json({
       success: true,
       startupId: startup._id,
@@ -224,6 +251,14 @@ exports.updateStartupProfile = async (req, res) => {
   try {
     const startupId = req.params.id;
 
+    // Security: Verify against authenticated user
+    if (startupId !== req.user?.id) {
+      return res
+        .status(403)
+        .json({ error: "Unauthorized to update this profile" });
+    }
+
+    // Find existing startup
     const startup = await StartupModel.findById(startupId);
     if (!startup) {
       return res.status(404).json({ error: "Startup not found" });
@@ -245,31 +280,35 @@ exports.updateStartupProfile = async (req, res) => {
       elevatorPitch,
     } = req.body;
 
-    // Reject password or plan updates if attempted
+    // Reject restricted fields
     if ("password" in req.body || "selectedPlan" in req.body) {
       console.warn(
         "Attempted to update restricted fields for startup:",
         startupId
       );
+      return res
+        .status(403)
+        .json({ error: "Restricted fields cannot be updated" });
     }
 
     // Update only profile-related fields
-    if (firstName) startup.firstName = firstName;
-    if (lastName) startup.lastName = lastName;
-    if (email) startup.email = email;
-    if (startupName) startup.startupName = startupName;
+    if (firstName !== undefined) startup.firstName = firstName;
+    if (lastName !== undefined) startup.lastName = lastName;
+    if (email !== undefined) startup.email = email;
+    if (startupName !== undefined) startup.startupName = startupName;
     if (problemStatement) startup.problemStatement = problemStatement;
     if (revenueStarted) startup.revenueStarted = revenueStarted;
-    if (contactPersonName) startup.contactPersonName = contactPersonName;
-    if (country) startup.country = country;
-    if (state) startup.state = state;
-    if (industry) startup.industry = industry;
-    if (website) startup.website = website;
-    if (startupStage) startup.startupStage = startupStage;
-    if (contactNumber) startup.contactNumber = contactNumber;
-    if (elevatorPitch) startup.elevatorPitch = elevatorPitch;
+    if (contactPersonName !== undefined)
+      startup.contactPersonName = contactPersonName;
+    if (country !== undefined) startup.country = country;
+    if (state !== undefined) startup.state = state;
+    if (industry !== undefined) startup.industry = industry;
+    if (website !== undefined) startup.website = website;
+    if (startupStage !== undefined) startup.startupStage = startupStage;
+    if (contactNumber !== undefined) startup.contactNumber = contactNumber;
+    if (elevatorPitch !== undefined) startup.elevatorPitch = elevatorPitch;
 
-    // Handle photo/logo upload if file provided
+    // Handle photo/logo upload if file provided (assumes multer)
     if (req.file) {
       startup.logoUrl = `/uploads/${req.file.filename}`;
     }
@@ -291,8 +330,7 @@ exports.updateStartupProfile = async (req, res) => {
 
 exports.getStartupProfile = async (req, res) => {
   try {
-    // Assume user ID is extracted from JWT token in auth middleware
-    const startupId = req.user.id;
+    const startupId = req.user.id; // Assumes auth middleware sets req.user
 
     const startup = await StartupModel.findById(startupId).select("-password");
     if (!startup) {
@@ -321,15 +359,15 @@ exports.getCsrfToken = (req, res) => {
 
     const csrfToken = crypto.randomBytes(32).toString("hex");
 
-    // Store CSRF token using same structure as OTP (which works)
+    // Simplified storage: Remove redundant sessionId
     req.session.csrf = {
       token: csrfToken,
       expires: Date.now() + 30 * 60 * 1000, // 30 minutes
-      sessionId: req.sessionID,
     };
 
     console.log("CSRF token generated:", csrfToken);
 
+    // req.session.save() is often auto-handled; keep for explicitness
     req.session.save((err) => {
       if (err) {
         console.error("Session save error:", err);

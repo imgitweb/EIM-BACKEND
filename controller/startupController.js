@@ -7,6 +7,10 @@ const {
   generateMarketCaseStudiesAI,
 } = require("../utils/aiValidationService");
 const { sendMail } = require("../utils/wellcomeEmails");
+const StartupValidation = require("../models/StartupValidation");
+const RiskAnalysis = require("../models/RiskAnalysis");
+const RivalryInsight = require("../models/RivalryInsight");
+const { CallOpenAi } = require("./helper/helper");
 exports.getUsersByIndustry = async (req, res) => {
   try {
     const { industry } = req.params; // Get the industry from URL parameter
@@ -88,16 +92,16 @@ exports.sendStartupExchangeEmail = async (req, res) => {
 
     // Create the email transporter
     const transporter = nodemailer.createTransport({
-      service: "gmail", // or your preferred email service
+      service: process.env.EMAIL_SERVICE || "gmail",
       auth: {
-        user: "nitinjn07@gmail.com", // Your email address
-        pass: "vyrf ohyr btpa gnoh", // Your email password (use environment variables for production)
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
       },
     });
 
     // Email message for startup 1 to receive startup 2's details
     const mailOptions1 = {
-      from: "nitinjn07@gmail.com",
+      from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
       to: startup1.email_id,
       subject: `Exchange Info with ${startup2.startup_name}`,
       text: `Hi ${startup1.startup_name},\n\nWe wanted to introduce you to ${startup2.startup_name}, a startup in the same industry. Here are their details:\n\n
@@ -113,7 +117,7 @@ exports.sendStartupExchangeEmail = async (req, res) => {
 
     // Email message for startup 2 to receive startup 1's details
     const mailOptions2 = {
-      from: "nitinjn07@gmail.com",
+      from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
       to: startup2.email_id,
       subject: `Exchange Info with ${startup1.startup_name}`,
       text: `Hi ${startup2.startup_name},\n\nWe wanted to introduce you to ${startup1.startup_name}, a startup in the same industry. Here are their details:\n\n
@@ -226,15 +230,44 @@ exports.validateStartup = async (req, res) => {
       audience,
     });
 
+
+    // ✅ SAVE RESULT TO DATABASE
+    const savedValidation = await StartupValidation.create({
+      startupId,
+      score: validation.score || 0,
+      strengths: validation.strengths || [],
+      weaknesses: validation.weaknesses || [],
+      opportunities: validation.opportunities || [],
+      risks: validation.risks || [],
+    });
+
+
+
     res.status(200).json({
       message: "✅ Idea validated successfully by AI",
-      validation,
+      validation : savedValidation,
     });
   } catch (error) {
     console.error("❌ Error validating startup idea:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
+exports.getRecentValidations = async (req, res) => {
+  try {
+    const startupId = req.params.id;
+
+    const validations = await StartupValidation.find({ startupId })
+      .sort({ createdAt: -1 })
+      .limit(10);
+
+    res.status(200).json(validations);
+  } catch (error) {
+    console.error("Error fetching validations:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 
 exports.analyzeRisks = async (req, res) => {
   try {
@@ -262,9 +295,18 @@ exports.analyzeRisks = async (req, res) => {
       generateCount,
     });
 
+        // ✅ SAVE RESULT
+    const saved = await RiskAnalysis.create({
+      startupId,
+      radarScores: aiResult.radarScores,
+      topRisks: aiResult.topRisks,
+      swot: aiResult.swot,
+    });
+
+
     res.status(200).json({
       message: "AI risk analysis completed successfully",
-      data: aiResult,
+      data: saved,
     });
   } catch (error) {
     console.error("❌ AI Risk Analysis Error:", error);
@@ -273,6 +315,16 @@ exports.analyzeRisks = async (req, res) => {
       error: error.message,
     });
   }
+};
+
+exports.getRecentRiskAnalysis = async (req, res) => {
+  const startupId = req.params.id;
+
+  const history = await RiskAnalysis.find({ startupId })
+    .sort({ createdAt: -1 })
+    .limit(5);
+
+  res.json(history);
 };
 
 
@@ -296,3 +348,97 @@ exports.generateMarketCaseStudies = async (req, res) => {
     });
   }
 };
+
+exports.generateRivalryInsight = async (req, res) => {
+  try {
+    const { scope } = req.body;
+      const  startupId  = req.params.id;
+
+    const user = await User.findById(startupId);
+    if (!user) {
+      return res.status(404).json({ message: "Startup not found" });
+    }
+
+    const startupName = user.startupName || "Your Startup";
+    const industry = user.industry || "General";
+    const primaryService =
+      user.solutionDescription?.slice(0, 120) ||
+      "Primary product or service";
+
+    const location =
+      scope === "global"
+        ? "Global Market"
+        : user.city || user.state || user.country || "Unknown";
+
+    const prompt = `
+You are a startup competition analyst.
+
+Generate RIVALRY INSIGHTS (NOT market research).
+Identify exactly 2 direct competitors operating at:
+${scope.toUpperCase()} level – ${location}
+
+Respond ONLY with valid JSON.
+
+Startup:
+Name: ${startupName}
+Industry: ${industry}
+Primary Offering: ${primaryService}
+
+Return JSON:
+{
+  "startup_name": "${startupName}",
+  "location": "${location}",
+  "competitor_1": { "name": "", "location": "", "services": "" },
+  "competitor_2": { "name": "", "location": "", "services": "" },
+  "analysis": {
+    "competitive_intensity": "",
+    "differentiation_gap": "",
+    "entry_barriers": "",
+    "pricing_pressure": ""
+  }
+}
+`;
+
+    const aiResponse = await CallOpenAi(prompt);
+
+
+    const saved = await RivalryInsight.create({
+      startupId,
+      scope,
+      result: aiResponse,
+    });
+
+    res.status(200).json({
+      success: true,
+      data: saved,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to generate rivalry insight",
+    });
+  }
+};
+
+/* ================= FETCH RECENT ================= */
+exports.getRecentRivalryInsights = async (req, res) => {
+
+  console.log("🔵 Fetching recent rivalry insights for startup:", req.params);
+  try {
+    const  startupId  = req.params.id;
+
+    const data = await RivalryInsight.find({ startupId })
+      .sort({ createdAt: -1 })
+      .limit(5);
+
+    res.status(200).json(data);
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to load rivalry history",
+    });
+  }
+};
+
+
+

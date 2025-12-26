@@ -3,7 +3,7 @@ const express = require("express");
 const router = express.Router();
 const {createStartupHireTeam} = require("../controller/startupHireTeamController")
 
-// POST route to save form data
+// Public route (no auth) — allow anonymous job submissions
 router.post("/", createStartupHireTeam);
 
 module.exports = router;
