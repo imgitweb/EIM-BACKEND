@@ -26,6 +26,8 @@ const {
   updateVideo,
   getVimeoTranscript,
   saveTranscript,
+  getAllVideos,
+  getVideoById,
 } = require('../controller/Courses/videoController');
 
 const {
@@ -60,6 +62,9 @@ router.delete('/modules/:id', deleteModule);
 =========================== */
 router.post('/videos/upload', upload.single('video'), uploadVideo);
 router.get('/videos/vimeo-transcript/:vimeoId', getVimeoTranscript);
+router.get('/videos', getAllVideos);
+router.get('/video/:id', getVideoById);
+
 router.post('/videos/transcript', saveTranscript);
 router.get('/videos/:moduleId', getVideosByModule);
 router.put('/videos/:id', updateVideo);

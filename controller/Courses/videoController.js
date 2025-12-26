@@ -417,6 +417,75 @@ const deleteVideo = async (req, res) => {
   }
 };
 
+
+
+const getAllVideos = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const totalVideos = await Video.countDocuments();
+    const videos = await Video.find()
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .select("-__v");
+
+    const hasMore = skip + videos.length < totalVideos;
+
+    res.json({
+      success: true,
+      data: videos,
+      page,
+      limit,
+      totalVideos,
+      hasMore,
+    });
+  } catch (error) {
+    console.error("Fetch All Videos Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching videos",
+    });
+  }
+};
+
+
+const getVideoById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log("Fetching video with ID:", req.params);
+
+    if (!id) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Video ID is required" });
+    }
+
+    const video = await Video.findById(id).select("-__v");
+    if (!video) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Video not found" });
+    }
+
+    res.json({
+      success: true,
+      data: video,
+    });
+  } catch (error) {
+    console.error("Fetch Video By ID Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching video",
+    });
+  }
+};
+
+
+
+
 module.exports = {
   uploadVideo,
   getVimeoTranscript,
@@ -424,4 +493,6 @@ module.exports = {
   getVideosByModule,
   updateVideo,
   deleteVideo,
+  getAllVideos,
+  getVideoById,
 };
