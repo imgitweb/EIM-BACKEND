@@ -115,6 +115,15 @@ const startupSchema = new mongoose.Schema(
         url: { type: String, trim: true },
       },
     ],
+    startedDate: {
+  type: Date,
+},
+
+bootstrapAvailable: {
+  type: Boolean,
+  default: false,
+},
+
 
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
