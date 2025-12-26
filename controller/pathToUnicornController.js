@@ -51,7 +51,7 @@ const getMilestones = async (req, res) => {
     }
 
     const prompt = `
-          Generate a detailed 6-milestone roadmap for a startup to reach unicorn status. 
+          Generate a detailed 4-milestone roadmap for a startup to reach unicorn status. 
           Use the startup details provided and return ONLY a valid JSON object (no extra text).
 
           Startup Details:
@@ -70,24 +70,16 @@ const getMilestones = async (req, res) => {
           - Revenue: ${revenue}
           - Customers: ${customers}
 
-          Output Format (JSON only, exactly 6 milestones: "1" to "6"):
+          Output Format (JSON only, exactly 4 milestones: "1" to "4"):
 
           {
             "1": {
-              "timeline": {
-                "startDate": "DD-MM-YYYY",
-                "endDate": "DD-MM-YYYY",
-                "durationMonths": number
-              },
-              "goal": "string",
               "keyActivities": ["string"],
-              "suggestedActions": ["string"],
               "resources": {
                 "books": ["string"],
                 "tools": ["string"],
                 "references": ["string"]
               },
-              "kpis": ["string"],
               "financialProjections": {
                 "usd": {
                   "revenue": number,
@@ -104,12 +96,10 @@ const getMilestones = async (req, res) => {
             "2": {},
             "3": {},
             "4": {},
-            "5": {},
-            "6": {}
           }
 
           Rules:
-          1. Provide exactly 6 milestones numbered "1" to "6".
+          1. Provide exactly 4 milestones numbered "1" to "4".
           2. Each milestone builds on the previous one.
           3. Dates must progress sequentially from the start date.
           4. Financial projections must grow realistically for each milestone.
