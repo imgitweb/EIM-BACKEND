@@ -417,8 +417,6 @@ const deleteVideo = async (req, res) => {
   }
 };
 
-
-
 const getAllVideos = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -451,7 +449,6 @@ const getAllVideos = async (req, res) => {
   }
 };
 
-
 const getVideoById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -482,9 +479,6 @@ const getVideoById = async (req, res) => {
     });
   }
 };
-
-
-
 
 module.exports = {
   uploadVideo,
