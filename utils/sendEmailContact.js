@@ -2,9 +2,10 @@ require("dotenv").config();
 const nodemailer = require("nodemailer");
 
 const sendEmail = async (recipientEmail, userName) => {
-
   const transporter = nodemailer.createTransport({
-    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true, // true for 465, false for 587
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
@@ -25,7 +26,7 @@ const sendEmail = async (recipientEmail, userName) => {
       `Twitter: https://x.com/ClubSheRise\n` +
       `Instagram: https://www.instagram.com/club.sherise/\n\n` +
       `Warm regards,\nTeam Shakti Sangam`,
-      
+
     html: `
     <div style="background:#f4f6f8;padding:30px;font-family:Arial,Helvetica,sans-serif;">
       <div style="max-width:600px;margin:auto;background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.08);">
