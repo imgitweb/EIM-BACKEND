@@ -15,7 +15,23 @@ const contactSchema = new mongoose.Schema({
   },
   phone: {
     type: String,
-    required: true
+    required: true,
+    trim: true
+  },
+  country: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  userType: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  organization: {
+    type: String,
+    trim: true,
+    default: null  // Optional field
   },
   interest: {
     type: String,
@@ -36,7 +52,8 @@ const contactSchema = new mongoose.Schema({
   }
 });
 
-// Create index for fast email lookup (prevents slow queries)
+// Indexes for performance
 contactSchema.index({ email: 1 });
+contactSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model('Contact', contactSchema);
