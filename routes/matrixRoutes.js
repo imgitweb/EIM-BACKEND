@@ -17,6 +17,7 @@ const {
     getNR,
     createOrUpdateCr,
     getCR,
+    getEilaStartupContext,
 } = require("../controller/matrixController"); 
 
 const router = express.Router();
@@ -45,5 +46,7 @@ router.get("/get_nr/:startup_id", getNR);
 
 router.post("/add_cr", createOrUpdateCr);
 router.get("/get_cr/:startup_id", getCR);
+
+router.get("/get_eila_context/:startup_id", getEilaStartupContext);
 
 module.exports = router;
