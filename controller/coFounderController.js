@@ -2,6 +2,7 @@
 const CoFounder = require("../models/CoFounder");
 const fs = require("fs");
 const path = require("path");
+const { startup } = require("pm2");
 
 // Add a new co-founder
 exports.addCoFounder = async (req, res) => {
@@ -114,6 +115,31 @@ exports.deleteCofounder = async (req, res) => {
     res.json({
       status: "success",
       data: deletedCofounder,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      status: "error",
+      message: error.message,
+    });
+  }
+};
+
+exports.getCoFounderById = async (req, res) => {
+  try {
+    const cofounder = await CoFounder.find({startupId: req.params.id});
+    if (!cofounder) {
+      return res.status(404).json({
+        status: "error",
+        message: "Cofounder not found",
+      });
+    }
+
+    console.log("Cofounder found:", cofounder);
+
+    res.json({
+      status: "success",
+      data: cofounder,
     });
   } catch (error) {
     console.error(error);

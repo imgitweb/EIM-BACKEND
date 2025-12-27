@@ -1,4 +1,5 @@
 const User = require("./../models/signup/StartupModel");
+const CoFounder = require("../models/CoFounder");
 const mongoose = require("mongoose");
 const nodemailer = require("nodemailer");
 const {
@@ -35,12 +36,10 @@ exports.getStartupById = async (req, res) => {
   try {
     const startupId = req.params.id;
 
-    // Validate the ObjectId format
     if (!mongoose.Types.ObjectId.isValid(startupId)) {
       return res.status(400).json({ message: "Invalid ObjectId format" });
     }
 
-    // Query the startup by ID
     const startup = await User.findOne({
       _id: new mongoose.Types.ObjectId(startupId),
     });
@@ -49,13 +48,15 @@ exports.getStartupById = async (req, res) => {
       return res.status(404).json({ message: "Startup not found" });
     }
 
-    // Find 3 more startups with the same industry
     const otherStartups = await User.find({
       industry: startup.industry,
-      _id: { $ne: startup._id }, // Exclude the current startup
-    }).limit(4); // Limit to 3 startups
+      _id: { $ne: startup._id }, 
+    }).limit(4); 
 
-    // Respond with the found startup and other startups in the same industry
+
+
+
+
     res.status(200).json({
       startup,
       otherStartups,
@@ -151,14 +152,8 @@ exports.updateStartupDetails = async (req, res) => {
     const updateData = req.body;
     const logo = req.file;
 
-    console.log("🟡 Received update data:", updateData);
-
-    if (logo) {
-      updateData.logoUrl = `/uploads/${logo.filename}`; // Assuming static folder setup
-    }
-
     if (!mongoose.Types.ObjectId.isValid(startupId)) {
-      return res.status(400).json({ message: "Invalid ObjectId format" });
+      return res.status(400).json({ message: "Invalid startup ID" });
     }
 
     const startup = await User.findById(startupId);
@@ -166,45 +161,78 @@ exports.updateStartupDetails = async (req, res) => {
       return res.status(404).json({ message: "Startup not found" });
     }
 
-    // ✅ Parse socialLinks if it's a JSON string
+    // Logo
+    if (logo) {
+      startup.logoUrl = `/uploads/${logo.filename}`;
+    }
+
+    // Social Links
     if (updateData.socialLinks) {
-      try {
-        if (typeof updateData.socialLinks === "string") {
-          startup.socialLinks = JSON.parse(updateData.socialLinks);
-        } else if (Array.isArray(updateData.socialLinks)) {
-          startup.socialLinks = updateData.socialLinks;
-        }
-      } catch (err) {
-        console.error("❌ Failed to parse socialLinks:", err);
+      startup.socialLinks =
+        typeof updateData.socialLinks === "string"
+          ? JSON.parse(updateData.socialLinks)
+          : updateData.socialLinks;
+    }
+
+    // 🔥 CoFounders (NEW)
+    if (updateData.coFounders) {
+      let coFounders =
+        typeof updateData.coFounders === "string"
+          ? JSON.parse(updateData.coFounders)
+          : updateData.coFounders;
+
+      await CoFounder.deleteMany({ startupId });
+
+      for (const cf of coFounders) {
+        if (!cf.name || !cf.email || !cf.expertise) continue;
+
+        await CoFounder.create({
+          startupId,
+          name: cf.name,
+          email: cf.email,
+          expertise: cf.expertise,
+          linkedInProfile: cf.linkedInProfile || "",
+        });
       }
     }
 
-    // ✅ Update other fields
+    // ✅ Started Date
+if (updateData.startedDate) {
+  startup.startedDate = updateData.startedDate;
+}
+
+// ✅ Bootstrap Available (checkbox comes as string)
+if (updateData.bootstrapAvailable !== undefined) {
+  startup.bootstrapAvailable =
+    updateData.bootstrapAvailable === "true" ||
+    updateData.bootstrapAvailable === true;
+}
+
+    // Other fields
     startup.startupName = updateData.title || startup.startupName;
     startup.elevatorPitch = updateData.pitch || startup.elevatorPitch;
-    startup.targetedAudience =
-      updateData.targetedAudience || startup.targetedAudience;
-    startup.email = updateData.email || startup.email;
-    startup.logoUrl = updateData.logoUrl || startup.logoUrl;
-    startup.contactNumber = updateData.phoneNumber || startup.contactNumber;
-    startup.problemStatement = updateData.problem || startup.problemStatement;
+    startup.problemStatement =
+      updateData.problem || startup.problemStatement;
     startup.solutionDescription =
       updateData.solution || startup.solutionDescription;
-    startup.businessModel = updateData.businessModel || startup.businessModel;
+    startup.targetedAudience =
+      updateData.targetedAudience || startup.targetedAudience;
+    startup.businessModel =
+      updateData.businessModel || startup.businessModel;
     startup.industry = updateData.industry || startup.industry;
-    startup.country = updateData.country || startup.country;
     startup.startupStage = updateData.stage || startup.startupStage;
+    startup.country = updateData.country || startup.country;
+    startup.email = updateData.email || startup.email;
+    startup.contactNumber =
+      updateData.phoneNumber || startup.contactNumber;
 
     await startup.save();
 
-    console.log("✅ Updated Startup:", startup.socialLinks);
-
     res.status(200).json({
-      message: "Startup details updated successfully",
-      startup,
+      message: "Startup & CoFounders updated successfully",
     });
-  } catch (error) {
-    console.error("❌ Error updating startup details:", error);
+  } catch (err) {
+    console.error("❌ Update error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
