@@ -3,6 +3,7 @@ const { CallOpenAi } = require("./helper/helper");
 const askEila = async (req, res) => {
   try {
     const { question, startupContext } = req.body;
+    console.log("EILA Request:", req.body);
 
     if (!question) {
       return res.status(400).json({

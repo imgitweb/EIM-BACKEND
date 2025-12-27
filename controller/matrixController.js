@@ -377,6 +377,49 @@ const getCR = async (req, res) => {
     }
 };
 
+
+const getEilaStartupContext = async (req, res) => {
+    try {
+        const { startup_id } = req.params;
+
+        // Saare models se latest data fetch kar rahe hain parallel mein
+        const [mrr, gr, nr, gp, cac, cb, clv, cr] = await Promise.all([
+            Mrr.findOne({ startup_id }).sort({ year: -1, month: -1 }),
+            Gr.findOne({ startup_id }).sort({ year: -1, month: -1 }),
+            Nr.findOne({ startup_id }).sort({ year: -1, month: -1 }),
+            Gp.findOne({ startup_id }).sort({ year: -1, month: -1 }),
+            Cac.findOne({ startup_id }).sort({ year: -1, month: -1 }),
+            Cb.findOne({ startup_id }).sort({ year: -1, month: -1 }),
+            Clv.findOne({ startup_id }).sort({ year: -1, month: -1 }),
+            Cr.findOne({ startup_id }).sort({ year: -1, month: -1 }),
+        ]);
+
+        // EILA ke liye ek clean object banana
+        const context = {
+            revenue: {
+                mrr: mrr?.arpa * mrr?.no_customer || 0,
+                gross: gr?.gross_revenue || 0,
+                net: nr?.net_revenue || 0,
+                profit: gp?.gross_profit || 0
+            },
+            unit_economics: {
+                cac: cac?.calculated_cac || 0,
+                clv: clv?.clv || 0,
+                churn_rate: cr?.churn_rate || 0,
+                ratio: clv && cac ? (clv.clv / cac.calculated_cac).toFixed(2) : "N/A"
+            },
+            runway: {
+                monthly_burn: cb?.cash_burn || 0,
+                customers: mrr?.no_customer || 0
+            }
+        };
+
+        return res.status(200).json(context);
+    } catch (error) {
+        console.error("Error fetching context:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
 // ===================================
 // --- Module Exports (Updated) ---
 // ===================================
@@ -405,4 +448,5 @@ module.exports = {
 
     createOrUpdateCr,
     getCR,
+    getEilaStartupContext,
 };
