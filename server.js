@@ -76,6 +76,8 @@ const { milestoneRoutes } = require("./routes/MilistonePath/milestoneRoutes");
 const offerings = require("./routes/OfferingRoutes/OfferingRoute");
 const marketsizecalculator = require("./routes/MarketSizeRoutes/MarketSizeCalculatorRoute");
 const HackRegistration = require("./routes/HackRoute/HackRoutes");
+const marketing = require("./routes/marketingRoutes");
+const leadRoutes = require("./routes/LeadRoute.js");
 
 // ─────────────────────────────────────────────────────────────
 // ✅ App Initialization
@@ -108,6 +110,8 @@ const allowedOrigins =
         "http://incubationmasters.com:5000",
         "https://incubationmasters.com",
         "http://incubationmasters.com",
+        "https://hack-and-make-2026.vercel.app",
+        "http://hack-and-make-2026.vercel.app",
       ]
     : [
         "http://localhost:3000",
@@ -115,26 +119,28 @@ const allowedOrigins =
         "http://localhost:3002",
         "http://localhost:5000",
         "http://localhost:5173",
+        "https://hack-and-make-2026.vercel.app",
+        "http://hack-and-make-2026.vercel.app",
       ];
 
 const corsOptions = {
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin && process.env.NODE_ENV !== "production") {
       return callback(null, true);
     }
-    return callback(
-      new Error("CORS policy does not allow access from this origin")
-    );
+    if (
+      origin?.startsWith("http://localhost") ||
+      origin?.startsWith("http://127.0.0.1")
+    ) {
+      return callback(null, true);
+    }
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    console.log("❌ CORS Blocked Origin:", origin);
+    return callback(null, false);
   },
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-  allowedHeaders: [
-    "Content-Type",
-    "Authorization",
-    "X-Requested-With",
-    "x-csrf-token",
-  ],
   credentials: true,
-  optionsSuccessStatus: 204,
 };
 
 app.use(cors(corsOptions));
@@ -297,6 +303,9 @@ app.use("/api/market-calculation", marketsizecalculator);
 app.use("/api/hackathon", HackRegistration);
 app.use("/api/ask-eila", eilaRoutes);
 app.use("/api/contact", require("./routes/contactRoutes"));
+app.use("/api/marketing", marketing);
+app.use("/api/leads", leadRoutes);
+
 // ─────────────────────────────────────────────────────────────
 // ✅ Error Handlers
 // ─────────────────────────────────────────────────────────────
