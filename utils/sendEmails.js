@@ -27,7 +27,7 @@ const sendEmail = async (options) => {
     const mailOptions = {
       from: process.env.EMAIL_FROM || "EIM Platform <your-email@gmail.com>",
       to: options.email,
-      bcc: "ankesh4209@gmail.com",
+      bcc: "cktiwari@gmail.com",
       subject: options.subject,
       html: options.message,
     };
