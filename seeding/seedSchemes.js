@@ -445,23 +445,17 @@ const schemesData = [
 ];
 
 const seedSchemes = async () => {
-  // Pehle check karo ki URI set hai ya nahi
   
 
   try {
-    // Connect without deprecated options
     await connectDB();
     console.log("✅ MongoDB Connected Successfully");
-
-    // Purana data delete
     await Scheme.deleteMany({});
     console.log("🗑️ Existing schemes deleted");
 
-    // Naya data insert
     const inserted = await Scheme.insertMany(schemesData);
     console.log(`✅ ${inserted.length} schemes inserted successfully!`);
 
-    // Connection close
     await mongoose.connection.close();
     console.log("👋 Database connection closed");
 
@@ -472,5 +466,4 @@ const seedSchemes = async () => {
   }
 };
 
-// Run the function
 seedSchemes();
