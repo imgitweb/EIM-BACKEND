@@ -110,8 +110,8 @@ const allowedOrigins =
         "http://incubationmasters.com:5000",
         "https://incubationmasters.com",
         "http://incubationmasters.com",
-        "https://hack-and-make-2026.vercel.app",
-        "http://hack-and-make-2026.vercel.app",
+        "http://hackmake.in",
+        "https://hackmake.in",
       ]
     : [
         "http://localhost:3000",
