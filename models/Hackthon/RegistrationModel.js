@@ -22,6 +22,10 @@ const TeamRegistrationSchema = new mongoose.Schema(
       category: String, // institution | organization | freelancer
       instituteOrOrg: String, // college / company / N/A
       uniqueId: String, // rollNo / gstNo / linkedin
+
+      // --- NEW FIELDS ADDED HERE ---
+      aboutStartup: { type: String, required: true }, // Mandatory
+      pitchFile: String, // Optional (Stores Base64 string of the file)
     },
 
     teamConfig: {

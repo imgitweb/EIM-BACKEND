@@ -142,7 +142,6 @@ const corsOptions = {
   },
   credentials: true,
 };
-
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions));
 
@@ -151,8 +150,8 @@ app.options("*", cors(corsOptions));
 // ─────────────────────────────────────────────────────────────
 app.use(helmet());
 app.use(cookieParser());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use(
@@ -207,6 +206,7 @@ const storage = multer.diskStorage({
     else if (url.includes("/deliverable/mark-as-completed"))
       folder = "uploads/deliverables";
     else if (url.includes("/api/startup")) folder = "uploads";
+    else if (url.includes("/api/hackathon")) folder = "startupidea/uploads";
 
     if (!fs.existsSync(folder)) fs.mkdirSync(folder, { recursive: true });
     cb(null, folder);
