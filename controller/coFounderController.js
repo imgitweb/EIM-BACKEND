@@ -1,5 +1,7 @@
 // coFounderController.js
 const CoFounder = require("../models/CoFounder");
+
+const User = require("./../models/signup/StartupModel");
 const fs = require("fs");
 const path = require("path");
 const { startup } = require("pm2");
@@ -49,20 +51,7 @@ exports.addCoFounder = async (req, res) => {
   }
 };
 
-// Get all co-founders
-exports.getAllCoFounders = async (req, res) => {
-  try {
-    const coFounders = await CoFounder.find({ isDeleted: { $ne: true } }).sort({
-      createdAt: -1,
-    });
-    res.status(200).json({ success: true, data: coFounders });
-  } catch (err) {
-    console.error(err);
-    res
-      .status(500)
-      .json({ error: "An error occurred while fetching co-founders" });
-  }
-};
+
 
 // Update cofounder
 exports.updateCofounder = async (req, res) => {
@@ -147,5 +136,85 @@ exports.getCoFounderById = async (req, res) => {
       status: "error",
       message: error.message,
     });
+  }
+};
+
+// ✅ GET Co-Founders by Startup ID (Updated to use req.params.id)
+exports.getCoFounders = async (req, res) => {
+  try {
+    const startupId = req.params.id;
+
+    // Fetch only co-founders belonging to this startupId
+    const coFounders = await CoFounder.find({ 
+      startupId: startupId, 
+      isDeleted: { $ne: true } 
+    }).sort({ createdAt: 1 }); // Sort by creation (oldest first usually better for list)
+
+    res.status(200).json({ success: true, data: coFounders });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "An error occurred while fetching co-founders" });
+  }
+};
+
+// ✅ ADD or UPDATE Founders
+exports.addOrUpdateFounders = async (req, res) => {
+  try {
+    const startupId = req.params.id;
+    const { founders, foundersAgreementSigned } = req.body;
+
+    // 1. Delete existing founders for this startup (Full Replace Strategy)
+    // This ensures removed founders in UI are removed from DB
+    await CoFounder.deleteMany({ startupId });
+
+    // 2. Loop and Create new entries
+    if (founders && Array.isArray(founders)) {
+      for (const f of founders) {
+        // Validation: Skip if mandatory fields are missing
+        if (!f.name || !f.email) continue;
+
+        await CoFounder.create({
+          startupId,
+          name: f.name,
+          email: f.email,
+          // ✅ Map new fields from Frontend
+          country: f.country || "",
+          phone: f.phone || "",
+          expertise: f.expertise || "",
+          linkedInProfile: f.linkedin || "", // Frontend sends 'linkedin', DB has 'linkedInProfile'
+          bio: f.bio || "",
+          equity: f.equity || 0,
+        });
+      }
+    }
+
+    // 3. Update the Agreement Signed Status in the Main Startup Model
+    // Frontend sends boolean (true/false)
+    await User.findByIdAndUpdate(startupId, {
+      foundersAgreementSigned: foundersAgreementSigned,
+    });
+
+    res.json({ message: "Founders updated successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// ✅ UPLOAD Agreement PDF
+exports.uploadFoundersAgreement = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "PDF required" });
+    }
+
+    await User.findByIdAndUpdate(req.params.id, {
+      foundersAgreementPdf: `/uploads/${req.file.filename}`,
+    });
+
+    res.json({ message: "Agreement uploaded" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
   }
 };

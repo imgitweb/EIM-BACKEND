@@ -145,12 +145,10 @@ exports.sendStartupExchangeEmail = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
 exports.updateStartupDetails = async (req, res) => {
   try {
     const startupId = req.params.id;
-    const updateData = req.body;
-    const logo = req.file;
+    const data = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(startupId)) {
       return res.status(400).json({ message: "Invalid startup ID" });
@@ -161,81 +159,120 @@ exports.updateStartupDetails = async (req, res) => {
       return res.status(404).json({ message: "Startup not found" });
     }
 
-    // Logo
-    if (logo) {
-      startup.logoUrl = `/uploads/${logo.filename}`;
+    // --- 1. BASIC INFO ---
+    startup.startupName = data.title ?? startup.startupName;
+    startup.elevatorPitch = data.pitch ?? startup.elevatorPitch;
+    startup.problemStatement = data.problem ?? startup.problemStatement;
+    startup.solutionDescription = data.solution ?? startup.solutionDescription;
+
+    // --- 2. BUSINESS ---
+    startup.targetedAudience = data.targetedAudience ?? startup.targetedAudience;
+    startup.industry = data.industry ?? startup.industry;
+    startup.startupStage = data.stage ?? startup.startupStage;
+    startup.businessModel = data.businessModel ?? startup.businessModel;
+    startup.startedDate = data.startedDate ?? startup.startedDate;
+    
+    // ✅ NEW FIELDS (Strings)
+    startup.revenueModel = data.revenueModel ?? startup.revenueModel;
+
+    // ✅ NEW FIELDS (Convert "Yes"/"No" string to Boolean)
+    if (data.mvpLaunched) {
+      startup.mvpLaunched = data.mvpLaunched === "Yes";
+    }
+    if (data.companyRegistered) {
+      startup.companyRegistered = data.companyRegistered === "Yes";
     }
 
-    // Social Links
-    if (updateData.socialLinks) {
-      startup.socialLinks =
-        typeof updateData.socialLinks === "string"
-          ? JSON.parse(updateData.socialLinks)
-          : updateData.socialLinks;
+    // --- 3. CONTACT ---
+    startup.country = data.country ?? startup.country;
+    startup.state = data.state ?? startup.state;
+    startup.city = data.city ?? startup.city;       // ✅ Added
+    startup.address = data.address ?? startup.address; // ✅ Added
+    startup.email = data.email ?? startup.email;
+    startup.contactNumber = data.phoneNumber ?? startup.contactNumber; // Mapped phoneNumber -> contactNumber
+    startup.website = data.website ?? startup.website;
+
+    // --- 4. REVENUE & BOOTSTRAP (Nested Object Handling) ---
+    // The frontend sends a 'revenue' object containing both revenue AND bootstrap info
+    if (data.revenue) {
+      
+      // A. Bootstrap Logic
+      const bAmount = Number(data.revenue.bootstrapAmount) || 0;
+      
+      startup.bootstrap = {
+        currency: data.revenue.bootstrapCurrency || "USD",
+        amount: bAmount,
+      };
+      
+      // Auto-set available if amount > 0
+      startup.bootstrapAvailable = bAmount > 0;
+
+      // B. Revenue Logic
+      // Frontend sends boolean true/false for 'revenueGenerated' in the payload now
+      const isRevGenerated = data.revenue.revenueGenerated === true || data.revenue.revenueGenerated === "true";
+
+      startup.revenueStarted = isRevGenerated;
+
+      startup.revenue = {
+        generated: isRevGenerated,
+        lastMonth: data.revenue.lastRevenueMonth || "",
+        amount: Number(data.revenue.lastRevenueAmount) || 0,
+        currency: data.revenue.lastRevenueCurrency || "USD",
+      };
     }
 
-    // 🔥 CoFounders (NEW)
-    if (updateData.coFounders) {
-      let coFounders =
-        typeof updateData.coFounders === "string"
-          ? JSON.parse(updateData.coFounders)
-          : updateData.coFounders;
-
-      await CoFounder.deleteMany({ startupId });
-
-      for (const cf of coFounders) {
-        if (!cf.name || !cf.email || !cf.expertise) continue;
-
-        await CoFounder.create({
-          startupId,
-          name: cf.name,
-          email: cf.email,
-          expertise: cf.expertise,
-          linkedInProfile: cf.linkedInProfile || "",
-        });
-      }
+    // --- 5. SOCIAL LINKS (Convert Object to Array) ---
+    if (data.socialLinks) {
+      // Frontend sends { linkedin: "...", facebook: "..." }
+      // Backend expects [{ platform: "LinkedIn", url: "..." }]
+      startup.socialLinks = Object.entries(data.socialLinks)
+        .filter(([_, url]) => url && url.trim() !== "") // Remove empty
+        .map(([platform, url]) => ({ 
+          // Capitalize first letter (e.g., linkedin -> Linkedin)
+          platform: platform.charAt(0).toUpperCase() + platform.slice(1), 
+          url 
+        }));
     }
-
-    // ✅ Started Date
-if (updateData.startedDate) {
-  startup.startedDate = updateData.startedDate;
-}
-
-// ✅ Bootstrap Available (checkbox comes as string)
-if (updateData.bootstrapAvailable !== undefined) {
-  startup.bootstrapAvailable =
-    updateData.bootstrapAvailable === "true" ||
-    updateData.bootstrapAvailable === true;
-}
-
-    // Other fields
-    startup.startupName = updateData.title || startup.startupName;
-    startup.elevatorPitch = updateData.pitch || startup.elevatorPitch;
-    startup.problemStatement =
-      updateData.problem || startup.problemStatement;
-    startup.solutionDescription =
-      updateData.solution || startup.solutionDescription;
-    startup.targetedAudience =
-      updateData.targetedAudience || startup.targetedAudience;
-    startup.businessModel =
-      updateData.businessModel || startup.businessModel;
-    startup.industry = updateData.industry || startup.industry;
-    startup.startupStage = updateData.stage || startup.startupStage;
-    startup.country = updateData.country || startup.country;
-    startup.email = updateData.email || startup.email;
-    startup.contactNumber =
-      updateData.phoneNumber || startup.contactNumber;
 
     await startup.save();
 
     res.status(200).json({
-      message: "Startup & CoFounders updated successfully",
+      message: "Startup details updated successfully",
+      startup,
     });
   } catch (err) {
     console.error("❌ Update error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
+
+exports.uploadStartupLogo = async (req, res) => {
+  try {
+    const startupId = req.params.id;
+
+    if (!req.file) {
+      return res.status(400).json({ message: "Logo file required" });
+    }
+
+    const startup = await User.findById(startupId);
+    if (!startup) {
+      return res.status(404).json({ message: "Startup not found" });
+    }
+
+    startup.logoUrl = `/uploads/${req.file.filename}`;
+    await startup.save();
+
+    res.json({
+      message: "Logo uploaded successfully",
+      logoUrl: startup.logoUrl,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
 
 exports.validateStartup = async (req, res) => {
   try {

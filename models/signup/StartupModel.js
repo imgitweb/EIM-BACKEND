@@ -2,14 +2,13 @@ const mongoose = require("mongoose");
 
 const startupSchema = new mongoose.Schema(
   {
+    // --- 1. EXISTING USER/AUTH FIELDS (KEPT AS IS) ---
     firstName: {
       type: String,
-
       trim: true,
     },
     lastName: {
       type: String,
-
       trim: true,
     },
     email: {
@@ -40,6 +39,8 @@ const startupSchema = new mongoose.Schema(
       type: String,
       default: "alpha",
     },
+
+    // --- 2. STARTUP BASIC INFO (KEPT AS IS) ---
     startupName: {
       type: String,
       required: [true, "Startup name is required"],
@@ -48,46 +49,22 @@ const startupSchema = new mongoose.Schema(
     },
     contactPersonName: {
       type: String,
-
       trim: true,
     },
-    country: {
+    contactNumber: {
       type: String,
-
-      trim: true,
-    },
-    state: {
-      type: String,
-
-      trim: true,
-    },
-    industry: {
-      type: String,
-
       trim: true,
     },
     website: {
       type: String,
-
-      trim: true,
-    },
-    startupStage: {
-      type: String,
-    },
-    contactNumber: {
-      type: String,
-
-      trim: true,
-    },
-    elevatorPitch: {
-      type: String,
-
       trim: true,
     },
     logoUrl: {
       type: String,
     },
-    businessModel: {
+
+    // --- 3. PITCH & PROBLEM (KEPT AS IS) ---
+    elevatorPitch: {
       type: String,
       trim: true,
     },
@@ -95,12 +72,20 @@ const startupSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
-    revenueStarted: {
-      type: Boolean,
-      default: false,
+    solutionDescription: {
+      type: String,
+      trim: true,
     },
 
-    solutionDescription: {
+    // --- 4. BUSINESS DETAILS (MIXED OLD & NEW) ---
+    industry: {
+      type: String,
+      trim: true,
+    },
+    startupStage: {
+      type: String,
+    },
+    businessModel: {
       type: String,
       trim: true,
     },
@@ -108,23 +93,83 @@ const startupSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    startedDate: {
+      type: Date,
+    },
+    // ✅ NEW FIELDS ADDED
+    revenueModel: { 
+      type: String, 
+      trim: true 
+    }, 
+    mvpLaunched: { 
+      type: Boolean, 
+      default: false 
+    }, 
+    companyRegistered: { 
+      type: Boolean, 
+      default: false 
+    }, 
 
+    // --- 5. LOCATION (MIXED OLD & NEW) ---
+    country: {
+      type: String,
+      trim: true,
+    },
+    state: {
+      type: String,
+      trim: true,
+    },
+    // ✅ NEW FIELDS ADDED
+    city: { 
+      type: String, 
+      trim: true 
+    }, 
+    address: { 
+      type: String, 
+      trim: true 
+    }, 
+
+    // --- 6. FINANCIALS (KEPT AS IS) ---
+    revenueStarted: {
+      type: Boolean,
+      default: false,
+    },
+    bootstrapAvailable: {
+      type: Boolean,
+      default: false,
+    },
+    bootstrap: {
+      currency: { type: String, default: "USD" },
+      amount: { type: Number },
+    },
+    revenue: {
+      generated: { type: Boolean, default: false },
+      lastMonth: { type: String },
+      amount: { type: Number },
+      currency: { type: String, default: "USD" },
+    },
+
+    // --- 7. LEGAL & FILES (KEPT AS IS) ---
+    foundersAgreementSigned: {
+      type: Boolean,
+      default: false,
+    },
+    foundersAgreementPdf: {
+      type: String,
+    },
+    startupProfilePdf: {
+      type: String,
+    },
+
+    // --- 8. SOCIAL LINKS (KEPT AS IS) ---
     socialLinks: [
       {
-        platform: { type: String, trim: true },
-        url: { type: String, trim: true },
+        platform: String,
+        url: String,
       },
     ],
-    startedDate: {
-  type: Date,
-},
 
-bootstrapAvailable: {
-  type: Boolean,
-  default: false,
-},
-
-
+    // --- 9. METADATA (KEPT AS IS) ---
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
