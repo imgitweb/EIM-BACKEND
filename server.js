@@ -78,6 +78,7 @@ const marketsizecalculator = require("./routes/MarketSizeRoutes/MarketSizeCalcul
 const HackRegistration = require("./routes/HackRoute/HackRoutes");
 const marketing = require("./routes/marketingRoutes");
 const leadRoutes = require("./routes/LeadRoute.js");
+const businessModelRoutes = require("./routes/businessModelRoutes.js");
 
 // ─────────────────────────────────────────────────────────────
 // ✅ App Initialization
@@ -305,6 +306,7 @@ app.use("/api/ask-eila", eilaRoutes);
 app.use("/api/contact", require("./routes/contactRoutes"));
 app.use("/api/marketing", marketing);
 app.use("/api/leads", leadRoutes);
+app.use("/api/business-model", businessModelRoutes);
 
 // ─────────────────────────────────────────────────────────────
 // ✅ Error Handlers
