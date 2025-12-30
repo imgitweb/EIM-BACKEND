@@ -1,4 +1,3 @@
-
 const PostCoFounder = require("../models/PostCoFounderModel");
 
 const createPostCoFounder = async (req, res) => {
@@ -19,7 +18,6 @@ const getAllPostCoFounders = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-
 
 module.exports = {
   createPostCoFounder,

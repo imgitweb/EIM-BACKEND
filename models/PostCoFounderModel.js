@@ -1,57 +1,52 @@
-// models/PostCoFounder.js
 const mongoose = require("mongoose");
 
-const postCoFounderSchema = new mongoose.Schema({
-  startupName: {
-    type: String,
-    required: true,
+const postCoFounderSchema = new mongoose.Schema(
+  {
+    coFounderRole: {
+      type: String,
+      enum: [
+        "Tech Co-Founder",
+        "Business / Strategy Co-Founder",
+        "Marketing & Growth Co-Founder",
+        "Operations Co-Founder",
+        "Finance / Fundraising Co-Founder",
+      ],
+      required: true,
+    },
+    commitmentType: {
+      type: String,
+      enum: ["Full-time", "Part-time", "Advisory"],
+      required: true,
+    },
+    equityOffering: {
+      type: String,
+      enum: ["1-5%", "5-10%", "10-20%", "20%+", "To be discussed"],
+      required: true,
+    },
+    financialCommitment: {
+      type: String,
+      enum: [
+        "No financial contribution expected",
+        "Open to minor contribution (for expenses)",
+        "Open to investing at later stage",
+        "Equity-only (no cash contribution)",
+        "Open to discussion",
+      ],
+      required: true,
+    },
+    locationPreference: {
+      type: String,
+      enum: ["Remote", "Hybrid", "On-site", "Location Flexible"],
+      required: true,
+    },
+    opportunityBrief: {
+      type: String,
+      required: true,
+    },
   },
-  website: {
-    type: String,
-    required: true,
-  },
-  linkedin: {
-    type: String,
-    required: true,
-  },
-  country: {
-    type: String,
-    required: true,
-  },
-  stage: {
-    type: String,
-    required: true,
-  },
-  sector: {
-    type: String,
-    required: true,
-  },
-  elevatorPitch: {
-    type: String,
-    required: true,
-  },
-  problemStatement: {
-    type: String,
-    required: true,
-  },
-  founder1Name: {
-    type: String,
-    required: true,
-  },
-  founder1LinkedIn: {
-    type: String,
-    required: true,
-  },
-  founder2Name: {
-    type: String,
-    default: "",
-  },
-  founder2LinkedIn: {
-    type: String,
-    default: "",
-  },
-}, {
-  timestamps: true,
-});
+  {
+    timestamps: true,
+  }
+);
 
 module.exports = mongoose.model("PostCoFounder", postCoFounderSchema);
