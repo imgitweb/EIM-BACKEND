@@ -396,9 +396,16 @@ exports.generateInhousePlan = async (startup) => {
     startup.startupName
   );
   try {
-    const prompt = `
-You are an experienced startup HR and tech strategy consultant.
-Based on the following startup information, generate a detailed in-house team hiring plan in JSON format.
+const prompt = `
+You are an experienced startup HR and tech strategy consultant
+specializing in INDIA-based startups.
+
+IMPORTANT RULES (STRICT):
+- All salaries and costs MUST be in INR (₹).
+- Do NOT use USD, dollars, or "$" anywhere.
+- Assume Indian market salaries.
+- Mention salary as INR per year (₹X – ₹Y / year).
+- Estimated cost must be INR per year.
 
 Startup Details:
 - Name: ${startup.startupName || "N/A"}
@@ -408,7 +415,13 @@ Startup Details:
 - Industry: ${startup.industry || "N/A"}
 - Stage: ${startup.startupStage || "N/A"}
 
-Respond strictly with valid JSON using this structure:
+Generate a detailed IN-HOUSE TEAM HIRING PLAN
+suitable for an Indian startup.
+
+Respond STRICTLY with VALID JSON only.
+Do NOT add explanations, markdown, or text outside JSON.
+
+JSON STRUCTURE:
 {
   "overview": "Short summary of the hiring strategy.",
   "roles": [
@@ -416,17 +429,18 @@ Respond strictly with valid JSON using this structure:
       "title": "Role name",
       "responsibilities": ["Task 1", "Task 2"],
       "skills": ["Skill 1", "Skill 2"],
-      "estimatedSalary": "$ per year",
-      "hiringPriority": "High/Medium/Low"
+      "estimatedSalary": "₹X – ₹Y per year",
+      "hiringPriority": "High / Medium / Low"
     }
   ],
   "estimatedTimeline": "Example: 4–6 months",
-  "estimatedCost": "Approx total cost per year",
+  "estimatedCost": "₹X – ₹Y per year",
   "recommendedTechStack": ["React", "Node.js", "MongoDB"],
   "milestones": ["Define roadmap", "Hire team", "Build MVP", "Test & launch"],
-  "aiInsight": "Short AI insight about optimizing hiring and team setup."
+  "aiInsight": "Short insight about optimizing hiring and cost efficiency."
 }
 `;
+
 
     const completion = await CallOpenAi(prompt);
 

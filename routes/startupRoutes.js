@@ -17,9 +17,18 @@ router.put("/update_startup/:id",
   startupController.updateStartupDetails);
 
 
-router.put("/update_startup/:id", 
+router.put(
+  "/update_startup/:id",
+  startupController.updateStartupDetails
+);
+
+router.post(
+  "/upload-logo/:id",
   upload.single("logo"),
-  startupController.updateStartupDetails);
+  startupController.uploadStartupLogo
+);
+
+
 router.post("/validate_startup/:id", startupController.validateStartup);
 router.get(
   "/recent-validations/:id",
