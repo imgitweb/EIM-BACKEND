@@ -6,10 +6,20 @@ const { createCompany, getCompanies, updateCompany, deleteCompany
     updateStoryPoint,
     getRecentScopes,
     toggleStoryPoint,
-    getRecentInhousePlans} = require("../../controller/MVP/MVPTeamControllers");
+    getRecentInhousePlans,
+    getChecklist,
+    updateCheck,
+    launchMvp} = require("../../controller/MVP/MVPTeamControllers");
 
 
 const router = express.Router();
+
+
+router.get("/:startupId", getChecklist);
+
+router.post("/update-check", updateCheck);
+
+router.post("/launch", launchMvp);
 
 
 

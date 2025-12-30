@@ -9,6 +9,7 @@ const MvpScope = require("../../models/MVP/MvpScope");
 const OpenAI = require("openai");
 const { CallOpenAi } = require("../helper/helper");
 const InHousePlanModel = require("../../models/InHousePlanModel");
+const MvpLaunchChecklistModel = require("../../models/MvpLaunchChecklistModel");
 require("dotenv").config();
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_KEY });
@@ -378,6 +379,75 @@ const getRecentScopes = async (req, res) => {
 
 
 
+
+const getChecklist = async (req, res) => {
+  try {
+    const { startupId } = req.params;
+
+    let checklist = await MvpLaunchChecklistModel.findOne({ startupId });
+
+    if (!checklist) {
+      checklist = await MvpLaunchChecklistModel.create({ startupId });
+    }
+
+    res.json({ success: true, checklist });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+/**
+ * UPDATE single checkbox
+ */
+const updateCheck = async (req, res) => {
+  try {
+    const { startupId, key, value } = req.body;
+
+    const checklist = await MvpLaunchChecklistModel.findOne({ startupId });
+    if (!checklist)
+      return res.status(404).json({ success: false, message: "Checklist not found" });
+
+    checklist.checks[key] = value;
+
+    const values = Object.values(checklist.checks);
+    checklist.completedCount = values.filter(Boolean).length;
+    checklist.isReadyToLaunch =
+      checklist.completedCount === checklist.totalCount;
+
+    await checklist.save();
+
+    res.json({ success: true, checklist });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+/**
+ * MARK MVP AS LAUNCHED
+ */
+const launchMvp = async (req, res) => {
+  try {
+    const { startupId } = req.body;
+
+    const checklist = await MvpLaunchChecklistModel.findOne({ startupId });
+
+    if (!checklist || !checklist.isReadyToLaunch) {
+      return res.status(400).json({
+        success: false,
+        message: "All checks not completed",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: " MVP Launched Successfully",
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+
 module.exports = {
   toggleStoryPoint,
   createCompany,
@@ -390,6 +460,9 @@ module.exports = {
   saveMVPConfig,
   getRecentInhousePlans,
   getRecentScopes,
+  getChecklist,
+  updateCheck,
+  launchMvp,
 };
 
 
