@@ -8,6 +8,7 @@ const MvpScope = require("../../models/MVP/MvpScope");
 
 const OpenAI = require("openai");
 const { CallOpenAi } = require("../helper/helper");
+const InHousePlanModel = require("../../models/InHousePlanModel");
 require("dotenv").config();
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_KEY });
@@ -76,13 +77,47 @@ const GenerateINhousePlan = async (req, res) => {
  
     const aiValidationService = require("../../utils/aiValidationService");
     const{ plan} = await aiValidationService.generateInhousePlan(startupDetails);
+        // 💾 Save to DB
+    const savedPlan = await InHousePlanModel.create({
+      startupId: startup_id,
+      overview: plan.overview,
+      roles: plan.roles,
+      estimatedTimeline: plan.estimatedTimeline,
+      estimatedCost: plan.estimatedCost,
+      recommendedTechStack: plan.recommendedTechStack,
+      milestones: plan.milestones,
+      aiInsight: plan.aiInsight,
+    });
 
-    res.json({ success: true, plan });
+    res.json({
+      success: true,
+      plan: savedPlan,
+    });
+
+
   }
   catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
 }
+
+const getRecentInhousePlans = async (req, res) => {
+  try {
+    const { startupId } = req.params;
+
+    const plans = await InHousePlanModel.find({ startupId })
+      .sort({ createdAt: -1 })
+      .limit(5);
+
+    res.json({
+      success: true,
+      plans,
+    });
+  } catch (error) {
+    console.error("❌ Fetch InHouse Plans Error:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
 
 
 /* STEP 1 — Generate Story Points */
@@ -184,31 +219,34 @@ const generateProductScope = async (req, res) => {
       )
       .join("\n");
 
-     const prompt = `
-You are a backend API that returns ONLY valid JSON.
+    const prompt = `
+You are a system that returns ONLY valid JSON.
 
-RULES (VERY IMPORTANT):
-- Output MUST be valid JSON
-- No text, no explanation, no markdown
-- No headings outside JSON
-- No comments
-- If unsure, return an empty JSON object {}
+STRICT RULES:
+- Output ONLY valid JSON
+- No text outside JSON
+- No markdown
+- No explanations
+- Keep everything SHORT and CLEAR
+- Use simple business language
+- Focus ONLY on MVP (not future vision)
+- Avoid currency symbols unless explicitly required
 
-Return the product scope strictly in the following JSON structure:
+Return JSON strictly in this structure:
 
 {
-  "executiveSummary": "",
-  "problemOverview": "",
-  "targetUsers": [],
-  "mvpObjectives": [],
+  "executiveSummary": "1–2 lines max",
+  "problemOverview": "1–2 lines max",
+  "targetUsers": ["Short bullet", "Short bullet"],
+  "mvpObjectives": ["Clear objective", "Clear objective"],
   "detailedScope": [
     {
-      "featureTitle": "",
-      "description": "",
-      "priority": ""
+      "featureTitle": "Short title",
+      "description": "1 line description",
+      "priority": "Must-Have | Should-Have"
     }
   ],
-  "outOfScope": [],
+  "outOfScope": ["Short bullet"],
   "techStack": {
     "frontend": [],
     "backend": [],
@@ -218,25 +256,33 @@ Return the product scope strictly in the following JSON structure:
   },
   "developmentTimeline": [
     {
-      "phase": "",
+      "phase": "Phase name",
       "durationWeeks": 0,
-      "deliverables": []
+      "deliverables": ["Short bullet"]
     }
   ],
   "totalEstimatedDurationWeeks": 0
 }
 
+Startup Context:
 Startup Name: ${startup.startupName}
 Problem: ${startup.problemStatement}
 Solution: ${startup.solutionDescription}
 Target Audience: ${startup.targetedAudience}
 MVP Type: ${session.productType}
 
-Selected Features:
+Selected MVP Features (ONLY THESE FEATURES):
 ${features}
+
+IMPORTANT:
+- Do NOT add extra features
+- Do NOT repeat the same idea in multiple sections
+- Keep everything concise
+- Think like a product manager building MVP in limited time
 
 RETURN ONLY JSON.
 `;
+
 
 
     const scopeJson = await CallOpenAi(prompt, "json");
@@ -283,6 +329,23 @@ await session.save();
   }
 };
 
+const getRecentScopes = async (req, res) => {
+  try {
+    const { startupId } = req.params;
+
+    const sessions = await MvpSession.find({ startupId }).sort({ createdAt: -1 });
+
+    const scopes = await MvpScope.find({
+      sessionId: { $in: sessions.map((s) => s._id) },
+    })
+      .sort({ createdAt: -1 })
+      .limit(5);
+
+    res.json({ success: true, scopes });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Failed to fetch scopes", error: error.message });
+  }
+};
 
 
  const saveMVPConfig = async (req, res) => {
@@ -325,6 +388,8 @@ module.exports = {
   generateStoryPoints,
   generateProductScope,
   saveMVPConfig,
+  getRecentInhousePlans,
+  getRecentScopes,
 };
 
 
