@@ -19,14 +19,14 @@ const hackMail = async (to, leaderName, teamSize, track) => {
       from: `"Startup MP Hackathon" <${process.env.EMAIL_USER}>`,
       to,
       bcc: "imcktiwari@gmail.com",
-      subject: "✅ Registration Confirmed: Startup MP Hack & Make 2026",
+      subject: "Registration submitted: Startup MP Hack & Make 2026", // Updated Subject
       html: `
         <!DOCTYPE html>
         <html>
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Registration Confirmed</title>
+          <title>Registration Submitted</title>
           <style>
             /* Reset & Basics */
             body { margin: 0; padding: 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f3f4f6; }
@@ -50,16 +50,6 @@ const hackMail = async (to, leaderName, teamSize, track) => {
             .card-label { color: #6b7280; font-size: 14px; font-weight: 500; }
             .card-value { color: #111827; font-size: 14px; font-weight: 600; text-align: right; }
             
-            /* Steps List (Icons Removed) */
-            .steps { margin-top: 30px; }
-            .steps ul { margin: 0; padding-left: 20px; }
-            .steps li { margin-bottom: 10px; color: #4b5563; font-size: 15px; line-height: 1.5; }
-
-            /* Button */
-            .btn-container { text-align: center; margin-top: 35px; }
-            .btn { display: inline-block; background-color: ${brandColor}; color: #ffffff !important; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; transition: background 0.3s; }
-            .btn:hover { background-color: #4338ca; }
-
             /* Footer */
             .footer { background-color: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb; }
             .footer p { margin: 5px 0; font-size: 12px; color: #9ca3af; }
@@ -76,14 +66,14 @@ const hackMail = async (to, leaderName, teamSize, track) => {
           <div class="wrapper">
             <div class="container">
               <div class="header">
-                <h1>You're In!</h1>
+                <h1>Registration Submitted</h1> 
                 <p>Startup MP: Hack & Make 2026</p>
               </div>
 
               <div class="content">
                 <p class="welcome-text">
                   Hello <span class="highlight">${leaderName}</span>,<br><br>
-                  Congratulations! Your team registration has been confirmed. Get ready to build, innovate, and disrupt at Central India's biggest hackathon.
+                  Your team registration has been submitted. Get ready to build, innovate, and disrupt at Central India's biggest hackathon. Our screening team will be in touch with you for further proceeding, if your startup idea is shortlisted. Meanwhile stay updated about the hackathon in the following social media handles.
                 </p>
 
                 <div class="card">
@@ -111,10 +101,13 @@ const hackMail = async (to, leaderName, teamSize, track) => {
 
               <div class="footer">
                 <div class="social-links">
-                  <a target="__blank" href="https://www.incubationmasters.com/">Website</a> • <a target="__blank" href="https://www.instagram.com/incubationmasters?igsh=MWR0NmFuYW14ZXVlcg==">Instagram</a> • <a target="__blank" href="https://www.facebook.com/share/17g8PSgozV/">Facebook</a> • <a target="__blank" href="https://www.linkedin.com/company/incubationmasters/?viewAsMember=true">LinkedIn</a>• <a target="__blank" href="https://x.com/IncubationMS">Twitter</a>
+                  <a target="__blank" href="https://www.incubationmasters.com/">Website</a> • 
+                  <a target="__blank" href="https://www.instagram.com/incubationmasters?igsh=MWR0NmFuYW14ZXVlcg==">Instagram</a> • 
+                  <a target="__blank" href="https://www.facebook.com/share/17g8PSgozV/">Facebook</a> • 
+                  <a target="__blank" href="https://www.linkedin.com/company/incubationmasters/?viewAsMember=true">LinkedIn</a> • 
+                  <a target="__blank" href="https://x.com/IncubationMS">Twitter</a>
                 </div>
-                <p>&copy; 2026 Govt of Madhya Pradesh.Prepared by Incubation Masters change it to </p>
-                <p> © 2026 Organized by Govt of Madhya Pradesh.Powered by Incubation Masters.</p>
+                <p>© 2026 Organized by Govt of Madhya Pradesh. Powered by Incubation Masters.</p>
               </div>
             </div>
           </div>
