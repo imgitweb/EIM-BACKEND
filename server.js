@@ -114,6 +114,8 @@ const allowedOrigins =
         "http://incubationmasters.com",
         "http://hackmake.in",
         "https://hackmake.in",
+        "https://www.hackmake.in",
+        "http://www.hackmake.in",
       ]
     : [
         "http://localhost:3000",
@@ -155,6 +157,10 @@ app.use(cookieParser());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use(
+  "/startupidea/uploads",
+  express.static(path.join(__dirname, "startupidea/uploads"))
+);
 
 app.use(
   helmet({
@@ -232,7 +238,7 @@ const upload = multer({
   storage,
   fileFilter,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
-});
+}); 
 
 // ─────────────────────────────────────────────────────────────
 // ✅ Base Route
