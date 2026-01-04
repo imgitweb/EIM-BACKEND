@@ -158,7 +158,14 @@ app.use(express.urlencoded({ limit: "10mb", extended: true }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use(
   "/startupidea/uploads",
-  express.static(path.join(__dirname, "startupidea/uploads"))
+  express.static(path.join(__dirname, "startupidea/uploads"), {
+    setHeaders: function (res, path, stat) {
+      // Ye headers browser ko bolte hain: "File le lo, koi rok-tok nahi hai"
+      res.set("Access-Control-Allow-Origin", "*");
+      res.set("Access-Control-Allow-Headers", "Content-Type");
+      res.set("Access-Control-Expose-Headers", "Content-Disposition");
+    },
+  })
 );
 
 app.use(
@@ -237,7 +244,7 @@ const upload = multer({
   storage,
   fileFilter,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
-}); 
+});
 
 // ─────────────────────────────────────────────────────────────
 // ✅ Base Route
