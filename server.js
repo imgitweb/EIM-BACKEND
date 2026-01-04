@@ -152,6 +152,12 @@ app.options("*", cors(corsOptions));
 // ✅ Global Middleware
 // ─────────────────────────────────────────────────────────────
 app.use(helmet());
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false,
+    crossOriginEmbedderPolicy: false,
+  })
+);
 app.use(cookieParser());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
@@ -160,18 +166,11 @@ app.use(
   "/startupidea/uploads",
   express.static(path.join(__dirname, "startupidea/uploads"), {
     setHeaders: function (res, path, stat) {
-      // Ye headers browser ko bolte hain: "File le lo, koi rok-tok nahi hai"
       res.set("Access-Control-Allow-Origin", "*");
       res.set("Access-Control-Allow-Headers", "Content-Type");
       res.set("Access-Control-Expose-Headers", "Content-Disposition");
+      res.set("Content-Disposition", "attachment");
     },
-  })
-);
-
-app.use(
-  helmet({
-    crossOriginResourcePolicy: false,
-    crossOriginEmbedderPolicy: false,
   })
 );
 
