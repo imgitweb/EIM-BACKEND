@@ -4,7 +4,7 @@ const Startup = require("../models/signup/StartupModel");
 
 const isApplicable = (compliance, company) => {
   const entityType = company.entityType;
-  
+
   const entityMap = {
     proprietorship: compliance.applicableFor.proprietorship,
     partnership: compliance.applicableFor.partnership,
@@ -63,7 +63,7 @@ const calculateDueDate = (compliance, month, year) => {
         9: 12, // Sep -> Dec
         10: 3, // Oct -> Mar (next year)
         11: 3, // Nov -> Mar (next year)
-        12: 3  // Dec -> Mar (next year)
+        12: 3, // Dec -> Mar (next year)
       };
 
       let quarterDueMonth = quarterEndMonths[month];
@@ -75,7 +75,11 @@ const calculateDueDate = (compliance, month, year) => {
       }
 
       const quarterlyDueDay = compliance.quarterDueDay || 15;
-      const quarterlyDueDate = new Date(quarterDueYear, quarterDueMonth - 1, quarterlyDueDay);
+      const quarterlyDueDate = new Date(
+        quarterDueYear,
+        quarterDueMonth - 1,
+        quarterlyDueDay
+      );
       return quarterlyDueDate;
 
     case "ANNUAL":
@@ -92,7 +96,11 @@ const calculateDueDate = (compliance, month, year) => {
       const biannualDueMonth = isFirstHalf ? 8 : 2; // Sept or Mar
       const biannualDueYear = isFirstHalf ? year : year + 1;
       const biannualDueDay = compliance.dueDay || 15;
-      const biannualDueDate = new Date(biannualDueYear, biannualDueMonth, biannualDueDay);
+      const biannualDueDate = new Date(
+        biannualDueYear,
+        biannualDueMonth,
+        biannualDueDay
+      );
       return biannualDueDate;
 
     case "ONE_TIME":
@@ -149,14 +157,16 @@ const determineStatus = (dueDate, completed) => {
 const generateComplianceCalendar = async (companyId) => {
   try {
     const company = await Startup.findById(companyId);
-   if (!company) {
-  throw new Error("Startup not found");
-}
+    if (!company) {
+      throw new Error("Startup not found");
+    }
 
     // Fetch all active compliance masters
     const compliances = await ComplianceMaster.find({ active: true });
     if (compliances.length === 0) {
-      throw new Error("No active compliance masters found. Please seed the database.");
+      throw new Error(
+        "No active compliance masters found. Please seed the database."
+      );
     }
 
     // Delete existing calendar entries for this company to avoid duplicates
@@ -201,7 +211,7 @@ const generateComplianceCalendar = async (companyId) => {
 
         // Create a unique key to avoid duplicates
         const dateKey = `${compliance._id}-${dueDate.getTime()}`;
-        
+
         if (processedDates.has(dateKey)) {
           continue;
         }
@@ -257,7 +267,10 @@ const generateComplianceCalendar = async (companyId) => {
     const createdEntries = await CompanyComplianceCalendar.find({
       companyId,
     })
-      .populate("complianceMasterId", "name description type category frequency")
+      .populate(
+        "complianceMasterId",
+        "name description type category frequency"
+      )
       .sort({ dueDate: 1 })
       .lean();
 
@@ -280,10 +293,12 @@ const generateComplianceCalendar = async (companyId) => {
       summary: {
         total: createdEntries.length,
         pending: createdEntries.filter((e) => e.status === "PENDING").length,
-        actionRequired: createdEntries.filter((e) => e.status === "ACTION_REQUIRED")
-          .length,
+        actionRequired: createdEntries.filter(
+          (e) => e.status === "ACTION_REQUIRED"
+        ).length,
         overdue: createdEntries.filter((e) => e.status === "OVERDUE").length,
-        compliant: createdEntries.filter((e) => e.status === "COMPLIANT").length,
+        compliant: createdEntries.filter((e) => e.status === "COMPLIANT")
+          .length,
       },
     };
   } catch (error) {
@@ -349,15 +364,17 @@ const getComplianceHealthScore = async (companyId) => {
   }
 };
 
-const getMonthlyCompliances = async (companyId, month, year) => {
+const getMonthlyCompliances = async (month, year) => {
   try {
     const compliances = await CompanyComplianceCalendar.find({
-      companyId,
+      // companyId,
       month,
       year,
     })
       .populate("complianceMasterId", "name category description")
       .sort({ dueDate: 1 });
+
+    console.log("$compliances", compliances);
 
     const grouped = {
       overdue: compliances.filter((c) => c.status === "OVERDUE"),

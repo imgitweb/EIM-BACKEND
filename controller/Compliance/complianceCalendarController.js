@@ -1,10 +1,9 @@
 const calendarService = require("../../services/complianceCalendarService");
-const Startup = require("../../models/signup/StartupModel"); 
-
+const Startup = require("../../models/signup/StartupModel");
 
 exports.generateCalendar = async (req, res) => {
   try {
-    const { companyId } = req.params; 
+    const { companyId } = req.params;
     const { financialYear = "2025-2026" } = req.body;
 
     const startup = await Startup.findById(companyId);
@@ -16,9 +15,16 @@ exports.generateCalendar = async (req, res) => {
       });
     }
 
-    console.log(`Generating compliance calendar for Startup: ${startup.startupName || startup.email} (ID: ${companyId})`);
+    console.log(
+      `Generating compliance calendar for Startup: ${
+        startup.startupName || startup.email
+      } (ID: ${companyId})`
+    );
 
-    const result = await calendarService.generateComplianceCalendar(companyId, financialYear);
+    const result = await calendarService.generateComplianceCalendar(
+      companyId,
+      financialYear
+    );
 
     res.status(200).json({
       success: true,
@@ -52,7 +58,9 @@ exports.getHealthScore = async (req, res) => {
       });
     }
 
-    const healthScore = await calendarService.getComplianceHealthScore(companyId);
+    const healthScore = await calendarService.getComplianceHealthScore(
+      companyId
+    );
 
     res.status(200).json({
       success: true,
@@ -98,7 +106,6 @@ exports.getAllCompliances = async (req, res) => {
   }
 };
 
-
 exports.getMonthlyCompliances = async (req, res) => {
   try {
     const { companyId } = req.params;
@@ -118,19 +125,22 @@ exports.getMonthlyCompliances = async (req, res) => {
     }
 
     const compliances = await calendarService.getMonthlyCompliances(
-      companyId,
+      // companyId,
       month,
       year
     );
+
+    console.log("$compliances", compliances);
 
     res.status(200).json({
       success: true,
       month,
       year,
-      count: compliances.pending?.length +
-             compliances.actionRequired?.length +
-             compliances.overdue?.length +
-             compliances.compliant?.length || 0,
+      count:
+        compliances.pending?.length +
+          compliances.actionRequired?.length +
+          compliances.overdue?.length +
+          compliances.compliant?.length || 0,
       data: compliances,
     });
   } catch (error) {
@@ -141,7 +151,6 @@ exports.getMonthlyCompliances = async (req, res) => {
     });
   }
 };
-
 
 exports.getQuarterlyCompliances = async (req, res) => {
   try {
@@ -194,8 +203,6 @@ exports.getQuarterlyCompliances = async (req, res) => {
   }
 };
 
-
-
 exports.getAnnualCompliances = async (req, res) => {
   try {
     const { companyId } = req.params;
@@ -234,7 +241,6 @@ exports.getAnnualCompliances = async (req, res) => {
   }
 };
 
-
 exports.getAdHocCompliances = async (req, res) => {
   try {
     const { companyId } = req.params;
@@ -270,7 +276,12 @@ exports.updateComplianceStatus = async (req, res) => {
     const { status, remarks } = req.body;
     const userId = req.user?._id;
 
-    const result = await calendarService.updateComplianceStatus(calendarId, status, remarks, userId);
+    const result = await calendarService.updateComplianceStatus(
+      calendarId,
+      status,
+      remarks,
+      userId
+    );
 
     res.status(200).json({
       success: true,
@@ -291,7 +302,12 @@ exports.uploadDocument = async (req, res) => {
     const { documentName, fileUrl } = req.body;
     const userId = req.user?._id;
 
-    const result = await calendarService.uploadComplianceDocument(calendarId, documentName, fileUrl, userId);
+    const result = await calendarService.uploadComplianceDocument(
+      calendarId,
+      documentName,
+      fileUrl,
+      userId
+    );
 
     res.status(200).json({
       success: true,

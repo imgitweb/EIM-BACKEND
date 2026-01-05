@@ -2,21 +2,43 @@ const express = require("express");
 const router = express.Router();
 const complianceCalendarController = require("../controller/Compliance/complianceCalendarController");
 
-router.post("/:companyId/generate", complianceCalendarController.generateCalendar);
+router.post(
+  "/:companyId/generate",
+  complianceCalendarController.generateCalendar
+);
 
-router.get("/:companyId/health-score", complianceCalendarController.getHealthScore);
+router.get(
+  "/:companyId/health-score",
+  complianceCalendarController.getHealthScore
+);
+// router.get("/:companyId",complianceCalendarController.);
 
 router.get("/:companyId/all", complianceCalendarController.getAllCompliances);
 
-router.get("/:companyId/monthly", complianceCalendarController.getMonthlyCompliances);
+router.get(
+  "/:companyId/monthly",
+  complianceCalendarController.getMonthlyCompliances
+);
 
-router.get("/:companyId/quarterly", complianceCalendarController.getQuarterlyCompliances);
+router.get(
+  "/:companyId/quarterly",
+  complianceCalendarController.getQuarterlyCompliances
+);
 
-router.get("/:companyId/annual", complianceCalendarController.getAnnualCompliances);
+router.get(
+  "/:companyId/annual",
+  complianceCalendarController.getAnnualCompliances
+);
 
-router.get("/:companyId/ad-hoc", complianceCalendarController.getAdHocCompliances);
+router.get(
+  "/:companyId/ad-hoc",
+  complianceCalendarController.getAdHocCompliances
+);
 
-router.patch("/:calendarId/status", complianceCalendarController.updateComplianceStatus);
+router.patch(
+  "/:calendarId/status",
+  complianceCalendarController.updateComplianceStatus
+);
 
 router.post("/:calendarId/upload", complianceCalendarController.uploadDocument);
 
