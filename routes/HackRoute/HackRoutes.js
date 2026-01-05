@@ -1,62 +1,61 @@
 const express = require("express");
 const router = express.Router();
-// Ensure this path matches where you saved the Model above
 const TeamRegistration = require("../../models/Hackthon/RegistrationModel");
 const sendMail = require("../../utils/hackMail");
 const fs = require("fs");
 const path = require("path");
 
-// --- HELPER: Save Base64 File ---
+// =================================================
+// HELPER: SAVE BASE64 FILE (PDF / DOC / DOCX)
+// =================================================
 const saveBase64File = (base64String) => {
   try {
     if (!base64String) return null;
 
-    // Check if it's a raw base64 string or data URI
-    const matches = base64String.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+    const matches = base64String.match(/^data:([A-Za-z0-9-+/.]+);base64,(.+)$/);
+    if (!matches) return null;
 
-    // If no matches, it might be just the base64 string without prefix,
-    // but the frontend sends dataURI. If frontend sends raw, handle accordingly.
-    if (!matches || matches.length !== 3) return null;
-
-    const type = matches[1];
+    const mimeType = matches[1];
     const data = Buffer.from(matches[2], "base64");
 
     let extension = "bin";
-    if (type.includes("pdf")) extension = "pdf";
-    else if (type.includes("word")) extension = "docx";
-    else if (type.includes("msword")) extension = "doc";
-    else if (type.includes("image")) extension = "png"; // Fallback for images
 
-    // Ensure directory exists
+    if (mimeType === "application/pdf") extension = "pdf";
+    else if (mimeType === "application/msword") extension = "doc";
+    else if (
+      mimeType ===
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    )
+      extension = "docx";
+
     const uploadDir = path.join(__dirname, "../../startupidea/uploads");
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
 
     const filename = `pitch-${Date.now()}.${extension}`;
-    const filePath = path.join(uploadDir, filename);
-    fs.writeFileSync(filePath, data);
+    fs.writeFileSync(path.join(uploadDir, filename), data);
 
+    // DB me relative path save hoga
     return `startupidea/uploads/${filename}`;
-  } catch (error) {
-    console.error("File Save Error:", error);
+  } catch (err) {
+    console.error("File Save Error:", err);
     return null;
   }
 };
 
-// =========================================================
-// 1. REGISTER API
-// =========================================================
+// =================================================
+// 1️⃣ REGISTER TEAM
+// =================================================
 router.post("/hackathon-register", async (req, res) => {
   try {
     const data = req.body;
 
-    // Enhanced Validation
     if (
-      !data.leader?.email ||
-      !data.leader?.phone ||
-      !data.leader?.aboutStartup ||
-      !data.teamConfig?.track // Added validation for Track
+      !data?.leader?.email ||
+      !data?.leader?.phone ||
+      !data?.leader?.aboutStartup ||
+      !data?.teamConfig?.track
     ) {
       return res
         .status(400)
@@ -68,105 +67,85 @@ router.post("/hackathon-register", async (req, res) => {
     });
 
     if (existing) {
-      return res
-        .status(409)
-        .json({ success: false, message: "This email is already registered" });
+      return res.status(409).json({
+        success: false,
+        message: "This email is already registered",
+      });
     }
 
-    // Handle File Upload
+    // SAVE FILE
     if (data.leader.pitchFile) {
       const savedPath = saveBase64File(data.leader.pitchFile);
-      // Only replace if save was successful, otherwise keep null or empty
-      if (savedPath) data.leader.pitchFile = savedPath;
-      else data.leader.pitchFile = ""; // Clear invalid base64 if save failed
+      data.leader.pitchFile = savedPath || "";
     }
 
     const registration = new TeamRegistration(data);
     await registration.save();
 
-    // Send Mail (Non-blocking)
-    try {
-      await sendMail(
-        data.leader.email,
-        `${data.leader.firstName} ${data.leader.lastName}`,
-        data.teamConfig.size,
-        data.teamConfig.track
-      );
-    } catch (mailError) {
-      console.warn("Mail Error (Non-fatal):", mailError.message);
-    }
+    // SEND MAIL (NON-BLOCKING)
+    sendMail(
+      data.leader.email,
+      `${data.leader.firstName} ${data.leader.lastName}`,
+      data.teamConfig.size,
+      data.teamConfig.track
+    ).catch(() => {});
 
-    res
-      .status(201)
-      .json({ success: true, message: "Team registered successfully" });
+    res.status(201).json({
+      success: true,
+      message: "Team registered successfully",
+    });
   } catch (error) {
     console.error("Registration Error:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
 
-// =========================================================
-// 2. GET ALL TEAMS (FOR ADMIN DASHBOARD)
-// =========================================================
+// =================================================
+// 2️⃣ GET ALL TEAMS (ADMIN)
+// =================================================
 router.get("/get-all-teams", async (req, res) => {
   try {
-    // Fetch all records, sorted by Newest First
     const teams = await TeamRegistration.find().sort({ createdAt: -1 });
-
     res.status(200).json({
       success: true,
       count: teams.length,
       data: teams,
     });
-  } catch (error) {
-    console.error("Fetch API Error:", error);
-    res.status(500).json({ success: false, message: "Failed to fetch teams" });
+  } catch (err) {
+    console.error("Fetch Teams Error:", err);
+    res.status(500).json({ success: false, message: "Fetch failed" });
   }
 });
 
-// =========================================================
-// 3. UPDATE TEAM DETAILS (FOR ADMIN EDIT MODAL)
-// =========================================================
-router.put("/update-team/:id", async (req, res) => {
+// =================================================
+// 3️⃣ DOWNLOAD FILE (FINAL & SAFE)
+// =================================================
+router.get("/download/:filename", (req, res) => {
   try {
-    const { id } = req.params;
-    // Extract fields to allow updates
-    const { firstName, lastName, email, phone, status } = req.body;
+    const filename = req.params.filename;
 
-    if (!id)
-      return res
-        .status(400)
-        .json({ success: false, message: "ID is required" });
-
-    const updatedTeam = await TeamRegistration.findByIdAndUpdate(
-      id,
-      {
-        $set: {
-          "leader.firstName": firstName,
-          "leader.lastName": lastName,
-          "leader.email": email,
-          "leader.phone": phone,
-          // Update Status (matches the new Schema field)
-          status: status,
-        },
-      },
-      { new: true } // Return the updated document
-    );
-
-    if (!updatedTeam) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Team not found" });
+    // Security: prevent path traversal
+    if (filename.includes("..")) {
+      return res.status(400).json({ message: "Invalid filename" });
     }
 
-    res.status(200).json({
-      success: true,
-      message: "Team updated successfully",
-      data: updatedTeam,
-    });
-  } catch (error) {
-    console.error("Update API Error:", error);
-    res.status(500).json({ success: false, message: "Failed to update team" });
+    const filePath = path.join(
+      __dirname,
+      "../../startupidea/uploads",
+      filename
+    );
+
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ message: "File not found" });
+    }
+
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    res.setHeader("Content-Type", "application/octet-stream");
+
+    res.download(filePath);
+  } catch (err) {
+    console.error("Download Error:", err);
+    res.status(500).json({ message: "Download failed" });
   }
 });
 

@@ -164,14 +164,7 @@ app.use(express.urlencoded({ limit: "10mb", extended: true }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use(
   "/startupidea/uploads",
-  express.static(path.join(__dirname, "startupidea/uploads"), {
-    setHeaders: function (res, path, stat) {
-      res.set("Access-Control-Allow-Origin", "*");
-      res.set("Access-Control-Allow-Headers", "Content-Type");
-      res.set("Access-Control-Expose-Headers", "Content-Disposition");
-      res.set("Content-Disposition", "attachment");
-    },
-  })
+  express.static(path.join(__dirname, "startupidea/uploads"))
 );
 
 // ─────────────────────────────────────────────────────────────
