@@ -44,7 +44,6 @@ const isApplicable = (compliance, company) => {
 const calculateDueDate = (compliance, month, year) => {
   switch (compliance.frequency) {
     case "MONTHLY":
-      // For monthly: due date is on specified day of the month
       const monthlyDueDay = compliance.dueDay || 15;
       const monthlyDueDate = new Date(year, month - 1, monthlyDueDay);
       return monthlyDueDate;
@@ -69,7 +68,6 @@ const calculateDueDate = (compliance, month, year) => {
       let quarterDueMonth = quarterEndMonths[month];
       let quarterDueYear = year;
 
-      // If due month is less than current month, it's next year (for Q4)
       if (quarterDueMonth < month) {
         quarterDueYear = year + 1;
       }
@@ -79,28 +77,24 @@ const calculateDueDate = (compliance, month, year) => {
       return quarterlyDueDate;
 
     case "ANNUAL":
-      // Annual: use dueDayOfMonth (1-12) for month and dueDay for day
-      const annualMonth = (compliance.dueDayOfMonth || 10) - 1; // Convert to 0-indexed
+      const annualMonth = (compliance.dueDayOfMonth || 10) - 1; 
       const annualDay = compliance.dueDay || 31;
       const annualDueDate = new Date(year, annualMonth, annualDay);
       return annualDueDate;
 
     case "HALF_YEARLY":
     case "BIANNUAL":
-      // H1: Jan-Jun (due in Sept), H2: Jul-Dec (due in Mar next year)
       const isFirstHalf = month <= 6;
-      const biannualDueMonth = isFirstHalf ? 8 : 2; // Sept or Mar
+      const biannualDueMonth = isFirstHalf ? 8 : 2; 
       const biannualDueYear = isFirstHalf ? year : year + 1;
       const biannualDueDay = compliance.dueDay || 15;
       const biannualDueDate = new Date(biannualDueYear, biannualDueMonth, biannualDueDay);
       return biannualDueDate;
 
     case "ONE_TIME":
-      // One-time compliances - skip for calendar
       return null;
 
     case "EVENT_BASED":
-      // Event-based - skip for calendar
       return null;
 
     default:
@@ -109,14 +103,13 @@ const calculateDueDate = (compliance, month, year) => {
 };
 
 const getQuarter = (month) => {
-  if (month >= 1 && month <= 3) return "Q4"; // Jan-Mar is Q4 of prev FY
+  if (month >= 1 && month <= 3) return "Q4"; 
   if (month >= 4 && month <= 6) return "Q1";
   if (month >= 7 && month <= 9) return "Q2";
   if (month >= 10 && month <= 12) return "Q3";
 };
 
 const getFinancialYear = (month, year) => {
-  // In India, FY is Apr-Mar
   if (month >= 4) {
     return `${year}-${year + 1}`;
   } else {
@@ -143,9 +136,6 @@ const determineStatus = (dueDate, completed) => {
   return "PENDING";
 };
 
-/**
- * Generate 12-month compliance calendar for a company
- */
 const generateComplianceCalendar = async (companyId) => {
   try {
     const company = await Startup.findById(companyId);
@@ -153,29 +143,25 @@ const generateComplianceCalendar = async (companyId) => {
   throw new Error("Startup not found");
 }
 
-    // Fetch all active compliance masters
     const compliances = await ComplianceMaster.find({ active: true });
     if (compliances.length === 0) {
       throw new Error("No active compliance masters found. Please seed the database.");
     }
 
-    // Delete existing calendar entries for this company to avoid duplicates
     await CompanyComplianceCalendar.deleteMany({ companyId });
 
     const today = new Date();
-    const currentMonth = today.getMonth() + 1; // 1-12
+    const currentMonth = today.getMonth() + 1; 
     const currentYear = today.getFullYear();
 
     const calendarEntries = [];
-    const processedDates = new Set(); // To avoid duplicate entries
+    const processedDates = new Set(); 
 
-    // Generate calendar for next 12 months
     for (let i = 0; i < 12; i++) {
       const monthOffset = i;
       let targetMonth = currentMonth + monthOffset;
       let targetYear = currentYear;
 
-      // Handle year rollover
       if (targetMonth > 12) {
         targetMonth = targetMonth - 12;
         targetYear = targetYear + 1;
@@ -184,22 +170,17 @@ const generateComplianceCalendar = async (companyId) => {
       const fy = getFinancialYear(targetMonth, targetYear);
       const quarter = getQuarter(targetMonth);
 
-      // Process each compliance master
       for (const compliance of compliances) {
-        // Check if this compliance is applicable to the company
         if (!isApplicable(compliance, company)) {
           continue;
         }
 
-        // Calculate due date for this compliance
         const dueDate = calculateDueDate(compliance, targetMonth, targetYear);
 
         if (!dueDate) {
-          // Skip one-time and event-based compliances
           continue;
         }
 
-        // Create a unique key to avoid duplicates
         const dateKey = `${compliance._id}-${dueDate.getTime()}`;
         
         if (processedDates.has(dateKey)) {
@@ -238,14 +219,12 @@ const generateComplianceCalendar = async (companyId) => {
       }
     }
 
-    // Bulk insert all entries
     if (calendarEntries.length > 0) {
       try {
         await CompanyComplianceCalendar.insertMany(calendarEntries, {
           ordered: false,
         });
       } catch (insertError) {
-        // If duplicate errors occur, continue (this is expected for existing records)
         if (insertError.code !== 11000) {
           throw insertError;
         }
@@ -253,7 +232,6 @@ const generateComplianceCalendar = async (companyId) => {
       }
     }
 
-    // Fetch the created entries for return
     const createdEntries = await CompanyComplianceCalendar.find({
       companyId,
     })
@@ -261,7 +239,6 @@ const generateComplianceCalendar = async (companyId) => {
       .sort({ dueDate: 1 })
       .lean();
 
-    // Group by month for better visualization
     const groupedByMonth = {};
     createdEntries.forEach((entry) => {
       const monthKey = `${entry.year}-${String(entry.month).padStart(2, "0")}`;

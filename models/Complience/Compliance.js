@@ -2,7 +2,6 @@ const mongoose = require("mongoose");
 
 const complianceSchema = new mongoose.Schema(
   {
-    // Startup/Company Details
     startupName: {
       type: String,
       required: true,
@@ -31,7 +30,6 @@ const complianceSchema = new mongoose.Schema(
       trim: true,
     },
 
-    // Compliance Details
     complianceType: {
       type: String,
       required: true,
@@ -77,11 +75,9 @@ const complianceSchema = new mongoose.Schema(
     notes: {
       type: String,
     },
-
-    // Links to new calendar system
     companyId: {
       type: mongoose.Schema.Types.ObjectId,
-      required: true, // startup or company ID
+      required: true, 
       index: true,
     },
     calendarId: {
@@ -89,7 +85,6 @@ const complianceSchema = new mongoose.Schema(
       ref: "CompanyComplianceCalendar",
     },
 
-    // Attachments
     attachments: [
       {
         fileName: String,
