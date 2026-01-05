@@ -1,10 +1,9 @@
-require("dotenv").config();
+require("dotenv").config({ path: require("path").resolve(__dirname, "../.env") });
 
 const mongoose = require("mongoose");
 const ComplianceMaster = require("../models/Complience/ComplianceMaster"); 
 
 const complianceData = [
-  // ==================== CORPORATE - ONE TIME ====================
   {
     name: "Certificate of Incorporation",
     description: "Certificate issued by ROC upon company incorporation",
@@ -34,7 +33,7 @@ const complianceData = [
     category: "ROC_FILING",
     frequency: "ANNUAL",
     dueConfig: {
-      dueMonth: 11, // November
+      dueMonth: 11,
       dueDay: 30,
       dueAfterFYEnd: true,
     },
@@ -60,7 +59,7 @@ const complianceData = [
     category: "ROC_FILING",
     frequency: "ANNUAL",
     dueConfig: {
-      dueMonth: 10, // October
+      dueMonth: 10,
       dueDay: 30,
       dueAfterFYEnd: true,
     },
@@ -86,7 +85,7 @@ const complianceData = [
     category: "ROC_FILING",
     frequency: "ANNUAL",
     dueConfig: {
-      dueMonth: 9, // September
+      dueMonth: 9,
       dueDay: 30,
     },
     applicableFor: {
@@ -112,7 +111,7 @@ const complianceData = [
     category: "BOARD_MEETING",
     frequency: "QUARTERLY",
     dueConfig: {
-      quarterDueDay: 30, // Within 30 days of quarter end
+      quarterDueDay: 30,
     },
     applicableFor: {
       proprietorship: false,
@@ -136,7 +135,7 @@ const complianceData = [
     category: "INCOME_TAX",
     frequency: "ANNUAL",
     dueConfig: {
-      dueMonth: 7, // July 31 for non-audit, Oct 31 for audit
+      dueMonth: 7,
       dueDay: 31,
     },
     applicableFor: {
@@ -161,7 +160,7 @@ const complianceData = [
     category: "TDS_RETURN",
     frequency: "QUARTERLY",
     dueConfig: {
-      quarterDueDay: 31, // 31st of month after quarter
+      quarterDueDay: 31,
     },
     applicableFor: {
       proprietorship: true,
@@ -185,7 +184,7 @@ const complianceData = [
     category: "INCOME_TAX",
     frequency: "QUARTERLY",
     dueConfig: {
-      quarterDueDay: 15, // 15th of June, Sept, Dec, March
+      quarterDueDay: 15,
     },
     applicableFor: {
       proprietorship: true,
@@ -253,7 +252,7 @@ const complianceData = [
     category: "GST_RETURN",
     frequency: "ANNUAL",
     dueConfig: {
-      dueMonth: 12, // December
+      dueMonth: 12,
       dueDay: 31,
     },
     applicableFor: {
@@ -381,8 +380,11 @@ const complianceData = [
 
 const seedComplianceMaster = async () => {
   try {
-    // Use existing connection if available, else connect
+    console.log("\n🚀 Starting Compliance Master Seeding...\n");
+    console.log(`📍 Loading .env from: ${require("path").resolve(__dirname, "../.env")}`);
+
     if (mongoose.connection.readyState === 0) {
+      console.log("📡 Connecting to MongoDB...");
       await mongoose.connect(process.env.MONGO_URI, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
@@ -393,23 +395,36 @@ const seedComplianceMaster = async () => {
     }
 
     // Clear old data
+    console.log("\n🗑️ Clearing old data...");
     const deleted = await ComplianceMaster.deleteMany({});
-    console.log(`🗑️ Deleted ${deleted.deletedCount} old compliance masters`);
+    console.log(`✅ Deleted ${deleted.deletedCount} old compliance masters`);
 
     // Insert new data
+    console.log("\n📝 Inserting new compliance masters...");
     const inserted = await ComplianceMaster.insertMany(complianceData);
     console.log(`✅ Successfully seeded ${inserted.length} compliance masters`);
 
-    console.log(`\n📊 Total Compliance Masters in DB: ${await ComplianceMaster.countDocuments()}`);
+    const count = await ComplianceMaster.countDocuments();
+    console.log(`\n📊 Total Compliance Masters in DB: ${count}`);
 
     console.log("\n📌 Sample Record:");
     console.log(JSON.stringify(inserted[0], null, 2));
 
+    // Verify no startupId in ComplianceMaster
+    const withStartupId = await ComplianceMaster.findOne({ startupId: { $exists: true } });
+    if (withStartupId) {
+      console.log("\n⚠️ WARNING: Found startupId in ComplianceMaster!");
+    } else {
+      console.log("\n✅ Verified: No startupId in ComplianceMaster (correct!)");
+    }
+
+    console.log("\n✅ Seeding completed successfully!\n");
+
     await mongoose.disconnect();
-    console.log("🔌 Disconnected from MongoDB");
+    console.log("🔌 Disconnected from MongoDB\n");
     process.exit(0);
   } catch (error) {
-    console.error("❌ Seeding failed:", error.message);
+    console.error("\n❌ Seeding failed:", error.message);
     console.error(error);
     if (mongoose.connection.readyState !== 0) {
       await mongoose.disconnect();
