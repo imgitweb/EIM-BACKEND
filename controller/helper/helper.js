@@ -3,12 +3,11 @@ require("dotenv").config();
 const openAi = new OpenAI({ apiKey: process.env.OPEN_API_KEY });
 
 const CallOpenAi = async (prompt, systemPrompt, isJson = true) => {
-  // <--- 1. Default true rakha
   try {
     const response = await openAi.chat.completions.create({
-      model: "gpt-4.1", // Make sure model name is correct (e.g., gpt-4o or gpt-4)
+      model: "gpt-4.1",
       messages: [
-        { role: "system", content: systemPrompt + "You must answer in JSON." }, // 'JSON' word added
+        { role: "system", content: systemPrompt + "You must answer in JSON." },
         { role: "user", content: prompt },
       ],
     });
@@ -16,24 +15,19 @@ const CallOpenAi = async (prompt, systemPrompt, isJson = true) => {
     let assistantReply = response.choices?.[0]?.message?.content;
     if (!assistantReply) throw new Error("No assistant reply found");
 
-    // Clean whitespace
     assistantReply = assistantReply.trim();
     console.log("assistantReply:", assistantReply);
 
-    // --- NEW LOGIC ADDED HERE ---
-    // Agar hume JSON nahi chahiye (sirf number chahiye), to yahin se return kar do
     if (!isJson) {
       return assistantReply;
     }
     // -----------------------------
 
-    // Clean markdown and whitespace for JSON
     assistantReply = assistantReply
       .replace(/```json/g, "")
       .replace(/```/g, "")
       .trim();
 
-    // Attempt to extract first JSON object or array
     const jsonMatch = assistantReply.match(/(\{[\s\S]*\}|\[[\s\S]*\])/);
 
     if (!jsonMatch) {
@@ -42,15 +36,12 @@ const CallOpenAi = async (prompt, systemPrompt, isJson = true) => {
     }
 
     const cleanedJson = jsonMatch[0];
-
-    // Attempt to parse JSON
     try {
       return JSON.parse(cleanedJson);
     } catch {
-      // Fallback: minor repairs for single quotes or trailing commas
       const repaired = cleanedJson
-        .replace(/'/g, '"') // single to double quotes
-        .replace(/,\s*([}\]])/g, "$1"); // remove trailing commas
+        .replace(/'/g, '"')
+        .replace(/,\s*([}\]])/g, "$1");
 
       try {
         return JSON.parse(repaired);

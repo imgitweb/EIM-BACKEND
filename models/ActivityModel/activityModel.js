@@ -22,6 +22,10 @@ const activitySchema = new mongoose.Schema(
       type: Number,
       // required: true,
     },
+    prerequisite: {
+      type: Array,
+      required: true,
+    },
     week: {
       type: String,
       // required: true,

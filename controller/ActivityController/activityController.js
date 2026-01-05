@@ -5,9 +5,16 @@ const { CallOpenAi } = require("../helper/helper");
 
 const generateActivityAssignmentPrompt = ({ planName, activities }) => {
   return `
-      You are an expert startup accelerator.
+      You are a senior Incubation Manager, who will decide the set of activities startup needs to perform in this stage.
 
       Plan selected: "${planName}"
+      This is the general definition of plan - 
+      Alpha: Ideation-stage startups validating the problem and solution, with no MVP built yet.
+      Beta: Early-stage startups with an MVP, testing the product, acquiring early users, and working towards Product–Market Fit (PMF).
+      Gamma: PMF-stage startups with proven demand, focused on growth, market expansion, and fundraising.
+      Sigma Growth-stage startups scaling operations, revenues, and teams, while raising capital for large-scale expansion.
+      Optional (Sharper, slightly more aspirational tone)
+    
 
       Rules:
       - You MUST include ALL activities from the input. Do not omit, summarize, add, or modify any activity_name or activity_path. The output "activities" array must have EXACTLY ${
@@ -26,11 +33,13 @@ const generateActivityAssignmentPrompt = ({ planName, activities }) => {
 
       Required Output JSON format (activities array must match input length):
       {
-        "accessibleCount": number,  // 1 for Alpha, 3 for Beta, 5 for Gamma, 10 for Sigma
+        "accessibleCount": number,  // 5 for Alpha, 10 for Beta, 15 for Gamma, 20 for Sigma
         "activities": [
           {
             "activity_name": string,  // Exact from input
+
             "activity_path": string   // Exact from input (maps to activity_schema in DB)
+            "prerequisite" : [] // in this analyse all routes and add 3 prerequisite,
           }
           // ... exactly ${activities.length} items, reordered
         ]
@@ -123,6 +132,7 @@ const generateActivities = async ({ startup_id, planName }) => {
       activity_schema: act.activity_path,
       order: index + 1,
       week: `Week ${Math.ceil((index + 1) / 3)}`,
+      prerequisite: act.prerequisite || [],
       is_completed: false,
       is_accessible: index < accessibleCount,
       is_deleted: false,
