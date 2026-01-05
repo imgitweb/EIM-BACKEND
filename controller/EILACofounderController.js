@@ -3,7 +3,7 @@ const { CallOpenAi } = require("./helper/helper");
 const askEila = async (req, res) => {
   try {
     const { question, startupContext } = req.body;
-    console.log("EILA Request:", req.body);
+    console.log("EILA Request Received for:", startupContext?.userInfo?.startupName);
 
     if (!question) {
       return res.status(400).json({
@@ -12,99 +12,82 @@ const askEila = async (req, res) => {
       });
     }
 
-    /* ================= EILA SYSTEM PROMPT ================= */
+    // Extracting nested data from startupContext
+    const user = startupContext?.userInfo || {};
+    const metrics = startupContext?.matrix || {};
+
+    /* ================= EILA SYSTEM PROMPT (Point 17 & 19) ================= */
     const systemPrompt = `
-You are EILA — an AI Co-Founder.
+    You are EILA — the AI Co-Founder. 
+    Definition: Eila is an AI co-founder that guides decisions, accelerates execution, and makes sure no critical detail is ever missed.
 
-You are NOT a chatbot.
-You are NOT a motivational speaker.
-You are a serious startup co-founder and thinking partner.
+    You are NOT a chatbot. You are a high-stakes Strategic Partner.
+    Your tone: Direct, Analytical, Honest, and Action-Oriented.
 
-Your core responsibilities:
+    Your core responsibilities:
+    1. 🎯 Decision Architect: Guide strategic pivots and kill low-impact ideas.
+    2. 🚀 Execution Accelerator: Force focus on daily momentum and ownership.
+    3. 📉 Brutal Analyst: Question assumptions using the startup's specific metrics.
 
-🎯 Strategy Partner
-- Decide what matters NOW
-- Kill low-impact ideas
-- Force focus
+    LANGUAGE RULE:
+    - Match the user's language. If they use Hinglish, respond in Hinglish.
+    - If they use English, respond in professional English.
+    - Match the founder's energy.
 
-📋 Execution Manager
-- Track commitments
-- Call out delays
-- Push deadlines and ownership
+    MANDATORY JSON RESPONSE FORMAT:
+    Return ONLY a valid JSON object:
+    {
+      "Summary": "Direct advice or answer (Strictly 20-30 words)"
+      
+    }
+    `;
 
-📈 Business Analyst
-- Question assumptions
-- Highlight weak metrics
-- Detect early warning signals
-
-🧠 Thinking Partner
-- Challenge emotional decisions
-- Provide pros/cons
-- Improve clarity of thought
-
-LANGUAGE RULE (VERY IMPORTANT):
-- First, detect the language of the user's question.
-- If the user writes in English → respond in English.
-- If the user writes in Hinglish (Hindi + English mix) → respond in Hinglish.
-- If the user writes in Hindi → respond in simple, professional Hindi.
-- Do NOT switch languages mid-response.
-- Match the user's tone and comfort level.
-
-Behavior rules:
-- Be direct, honest, sometimes uncomfortable
-- Avoid generic advice and startup clichés
-- Focus on ACTIONS, not theory
-- Treat the founder as an equal partner
-- If something is vague, ask sharp follow-up questions
-- If data is missing, clearly state what data you need
-
-MANDATORY RESPONSE FORMAT (STRICT):
-Always respond in the following structure and in the detected language:
-
-{
-  "Summary": "20–25 words overview of your advice"
-}
-
-If you cannot give a useful answer due to missing data, ask for the exact data you need instead of guessing.
-`;
-
-
-   
-    /* ================= DETAILED STARTUP CONTEXT ================= */
-    // Hum saare available fields AI ko bhej rahe hain taaki response accurate ho
-    const contextPrompt = startupContext
+    /* ================= STARTUP CONTEXT MAPPING ================= */
+    const contextdata = user._id 
       ? `
-Startup Context for reference:
-- Startup Name: ${startupContext.startupName || "N/A"}
-- Stage: ${startupContext.stage || "N/A"}
-- Industry: ${startupContext.industry || "N/A"}
-- Business Model: ${startupContext.businessModel || "N/A"}
-- Target Audience: ${startupContext.targetAudience || "N/A"}
-- Problem being solved: ${startupContext.problemStatement || "N/A"}
-- Solution: ${startupContext.solutionDescription || "N/A"}
-- Country: ${startupContext.country || "N/A"}
+STARTUP DATA:
+- Name: ${user.startupName}
+- Industry: ${user.industry}
+- Stage: ${user.startupStage}
+- Pitch: ${user.elevatorPitch}
+- Problem: ${user.problemStatement}
+- Location: ${user.state}, ${user.country}
+- Revenue Started: ${user.revenueStarted}
 
-Always use this context to give specific, not generic, advice.
-`
-      : "No specific startup context provided. Give general high-level startup advice.";
+METRICS SNAPSHOT:
+- Revenue Data: ${JSON.stringify(metrics.revenue || "N/A")}
+- Runway: ${JSON.stringify(metrics.runway || "N/A")}
+` 
+      : "No specific context. Give high-level strategic advice.";
 
     /* ================= FINAL PROMPT ================= */
     const finalPrompt = `
-${contextPrompt}
+CONTEXT:
+${contextdata}
 
-Founder's Question: "${question}"
+FOUNDER'S QUESTION: 
+"${question}"
 
-Respond as EILA. Ensure the 'Summary' is strictly under 20 words.
+INSTRUCTION: Provide a strategic response as a Co-founder. Focus on execution and critical details.
 `;
 
     /* ================= OPENAI CALL ================= */
-    // Yahan hum expect kar rahe hain ki eilaResponse ek structured text ya object hoga
     const eilaResponse = await CallOpenAi(finalPrompt, systemPrompt);
-    // console.log("EILA Response:", eilaResponse);
+
+    // Parsing ensuring it is an object for the frontend
+    let formattedAnswer;
+    try {
+      formattedAnswer = typeof eilaResponse === 'string' ? JSON.parse(eilaResponse) : eilaResponse;
+    } catch (e) {
+      formattedAnswer = {
+        Summary: eilaResponse,
+        BrutalTruth: "Focus on the execution details."
+      };
+    }
 
     return res.status(200).json({
       success: true,
-      answer: eilaResponse // Frontend ab is structured response ko dikha sakta hai
+      answer: formattedAnswer
     });
 
   } catch (error) {
