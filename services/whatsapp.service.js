@@ -6,13 +6,14 @@ const templates = require("./whatsappTemplates");
    - Free text allowed
    - Sir / client demo ke liye
    ====================================================== */
+
 async function sendWhatsAppDemo(to, message) {
   if (!message) {
     throw new Error("Message body is required for demo");
   }
 
   return await client.messages.create({
-    from: process.env.TWILIO_WHATSAPP_FROM, // whatsapp:+14155238886 (sandbox)
+    from: process.env.TWILIO_WHATSAPP_FROM, 
     to: `whatsapp:${to}`,
     body: message
   });
@@ -23,6 +24,7 @@ async function sendWhatsAppDemo(to, message) {
    - body ❌
    - contentSid ✅
    ====================================================== */
+   
 async function sendWhatsAppTemplate(to, templateName, data) {
 
   // ✅ Template name validate
