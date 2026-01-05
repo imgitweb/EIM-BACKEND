@@ -67,6 +67,7 @@ const routes = {
   captableRoutes: require("./routes/captableRoutes"),
   schemeRoutes: require("./routes/schemeRoutes"),
   updateCompanyDetailsRoutes: require("./routes/UpdateCompanyDetailsRoutes"),
+  whatsappRoutes: require("./routes/twilio/notifyRoutes"),
 };
 const { ActivityRoute } = require("./routes/Activity/activityRoute");
 const { seedDeliverables } = require("./seeding/deliverablesSeeder");
@@ -312,6 +313,8 @@ app.use("/api/contact", require("./routes/contactRoutes"));
 app.use("/api/marketing", marketing);
 app.use("/api/leads", leadRoutes);
 app.use("/api/business-model", businessModelRoutes);
+app.use("/api/whatsapp", routes.whatsappRoutes);
+
 
 // ─────────────────────────────────────────────────────────────
 // ✅ Error Handlers
