@@ -1,10 +1,14 @@
-const OpenAI = require("openai");
+const BusinessModel = require("../models/OfferingModel/BusinessModel"); // Ensure this path matches your file structure
 require("dotenv").config();
 const { CallOpenAi } = require("./helper/helper.js");
 
+// --- 1. GENERATE AND SAVE LEAN CANVAS ---
 exports.generateLeanCanvas = async (req, res) => {
   try {
     const {
+      userId, // Added: specific user ID
+      serviceIds, // Added: array of service IDs
+      profileIds, // Added: array of customer profile IDs
       businessName,
       businessType,
       services,
@@ -20,7 +24,7 @@ exports.generateLeanCanvas = async (req, res) => {
       });
     }
 
-    // 2. Prompt Engineering (AI ko batana ki kya karna hai)
+    // 2. Prompt Engineering
     const prompt = `
       Act as an expert Startup Consultant. Create a "Lean Canvas Business Model" for a startup with the following details:
       
@@ -45,18 +49,68 @@ exports.generateLeanCanvas = async (req, res) => {
       }
     `;
 
+    // 3. Call AI
     const parsedData = await CallOpenAi(prompt);
-    // console.log("parsedData", parsedData);
-    // 4. Send Response
+
+    // 4. Save to Database
+    let savedModel = null;
+    if (userId && parsedData) {
+      const newEntry = new BusinessModel({
+        userId,
+        serviceIds: serviceIds || [], // Save linked Service IDs
+        profileIds: profileIds || [], // Save linked Profile IDs
+        businessName,
+        businessType,
+        generatedCanvas: parsedData,
+      });
+
+      savedModel = await newEntry.save();
+    }
+
+    // 5. Send Response
     return res.status(200).json({
       success: true,
       data: parsedData,
+      savedId: savedModel ? savedModel._id : null,
+      message: "Business Model generated and saved successfully.",
     });
   } catch (error) {
     console.error("Error generating business model:", error);
     return res.status(500).json({
       success: false,
       message: "Failed to generate business model. Please try again.",
+      error: error.message,
+    });
+  }
+};
+
+// --- 2. GET LATEST 3 MODELS (History) ---
+exports.getLatestModels = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    console.log("userId", userId);
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID is required",
+      });
+    }
+
+    // Fetch last 3 created documents for this user, sorted by newest
+    const history = await BusinessModel.find({ userId })
+      .sort({ createdAt: -1 })
+      .limit(3);
+
+    return res.status(200).json({
+      success: true,
+      data: history,
+    });
+  } catch (error) {
+    console.error("Error fetching model history:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch history.",
       error: error.message,
     });
   }
