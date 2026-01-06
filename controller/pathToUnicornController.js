@@ -124,7 +124,6 @@ const getMilestones = async (req, res) => {
       });
     }
 
-    // ✅ Create new record
     const milestoneDoc = new Milestone({
       startup_id,
       industry,

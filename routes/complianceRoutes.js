@@ -50,10 +50,7 @@ router.patch(
   complianceCalendarController.updateComplianceStatus
 );
 
-router.post(
-  "/:calendarId/upload",
-  complianceCalendarController.uploadDocument
-);
+router.post("/:calendarId/upload", complianceCalendarController.uploadDocument);
 
 // ==================== TEST ROUTE (Keep for Testing - Remove in Production) ==================== //
 router.get("/compliance-calendar", (req, res) => {
@@ -63,7 +60,7 @@ router.get("/compliance-calendar", (req, res) => {
   if (!startYear || !endYear || endYear !== startYear + 1) {
     return res.status(400).json({
       success: false,
-      message: "Invalid FY format. Use ?fy=2026-2027"
+      message: "Invalid FY format. Use ?fy=2026-2027",
     });
   }
 
@@ -72,7 +69,7 @@ router.get("/compliance-calendar", (req, res) => {
     "GSTR-1",
     "PF Return",
     "ESI Return",
-    "Professional Tax"
+    "Professional Tax",
   ];
 
   const complianceDescriptions = {
@@ -80,7 +77,7 @@ router.get("/compliance-calendar", (req, res) => {
     "GSTR-1": "Monthly GST return for outward supplies details",
     "PF Return": "Monthly Provident Fund contribution return",
     "ESI Return": "Monthly Employee State Insurance return",
-    "Professional Tax": "Monthly professional tax payment and return"
+    "Professional Tax": "Monthly professional tax payment and return",
   };
 
   const entries = [];
@@ -90,7 +87,7 @@ router.get("/compliance-calendar", (req, res) => {
     const year = monthIndex < 3 ? endYear : startYear;
     const monthNum = monthIndex + 1;
 
-    monthlyCompliances.forEach(name => {
+    monthlyCompliances.forEach((name) => {
       let dueDay = 20;
       if (name === "GSTR-1") dueDay = 11;
       if (name.includes("PF") || name.includes("ESI")) dueDay = 15;
@@ -109,7 +106,7 @@ router.get("/compliance-calendar", (req, res) => {
         year: year,
         frequency: "MONTHLY",
         status: "PENDING",
-        financialYear: fy
+        financialYear: fy,
       });
     });
   }
@@ -119,10 +116,11 @@ router.get("/compliance-calendar", (req, res) => {
     message: `Compliance Calendar Generated for FY ${fy}`,
     financialYear: fy,
     totalMonthlyEntries: entries.length,
-    proof: "60 entries = 5 monthly compliances × 12 months = FULL YEAR COVERAGE",
+    proof:
+      "60 entries = 5 monthly compliances × 12 months = FULL YEAR COVERAGE",
     sampleFirst5: entries.slice(0, 5),
     sampleLast5: entries.slice(-5),
-    fullData: entries
+    fullData: entries,
   });
 });
 
@@ -131,7 +129,7 @@ router.use((err, req, res, next) => {
   console.error("Compliance route error:", err);
   res.status(err.status || 500).json({
     success: false,
-    message: err.message || "An error occurred in compliance routes"
+    message: err.message || "An error occurred in compliance routes",
   });
 });
 
