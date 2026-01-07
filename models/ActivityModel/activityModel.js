@@ -20,12 +20,21 @@ const activitySchema = new mongoose.Schema(
 
     order: {
       type: Number,
-      // required: true,
-    },
-    prerequisite: {
-      type: Array,
       required: true,
     },
+    prerequisite: [
+      {
+        activity_schema: {
+          type: String,
+          required: true,
+        },
+        status: {
+          type: Boolean,
+          default: false,
+        },
+      },
+    ],
+
     week: {
       type: String,
       // required: true,
@@ -51,6 +60,7 @@ const activitySchema = new mongoose.Schema(
 
 activitySchema.index({ startup_id: 1, order: 1 });
 activitySchema.index({ startup_id: 1, is_deleted: 1 });
+activitySchema.index({ startup_id: 1, "prerequisite.activity_schema": 1 });
 
 const ActivityModel = mongoose.model("activities", activitySchema);
 

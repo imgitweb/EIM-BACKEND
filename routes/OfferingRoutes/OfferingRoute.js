@@ -1,6 +1,5 @@
 const express = require("express");
 const router = express.Router();
-
 const Offering = require("../../models/OfferingModel/StartupOffering");
 const Profile = require("../../models/OfferingModel/CustomerProfile");
 
@@ -49,17 +48,6 @@ router.get("/customer-profiles/:id", async (req, res) => {
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: error.message });
-  }
-});
-
-// 4. Create New Profile
-router.post("/customer-profiles", async (req, res) => {
-  try {
-    const newProfile = new Profile(req.body);
-    const saved = await newProfile.save();
-    res.status(201).json(saved);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
   }
 });
 

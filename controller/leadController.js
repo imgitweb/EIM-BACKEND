@@ -1,54 +1,6 @@
 // controllers/leadController.js
 const Lead = require("../models/LeadTracker");
 
-// Create a new lead
-// const createLead = async (req, res) => {
-//   try {
-//     const { personName, email, mobileNumber, source, interestedForService } =
-//       req.body;
-
-//     // Validate fields
-//     if (
-//       !personName ||
-//       !email ||
-//       !mobileNumber ||
-//       !source ||
-//       !interestedForService
-//     ) {
-//       return res.status(400).json({ message: "All fields are required." });
-//     }
-
-//     const newLead = new Lead({
-//       personName,
-//       email,
-//       mobileNumber,
-//       source,
-//       interestedForService,
-//     });
-
-//     await newLead.save();
-//     res
-//       .status(201)
-//       .json({ message: "Lead created successfully!", lead: newLead });
-//   } catch (error) {
-//     res
-//       .status(500)
-//       .json({ message: "Error creating lead.", error: error.message });
-//   }
-// };
-
-// Get all leads
-// const getLeads = async (req, res) => {
-//   try {
-//     const leads = await Lead.find();
-//     res.status(200).json(leads);
-//   } catch (error) {
-//     res
-//       .status(500)
-//       .json({ message: "Error retrieving leads.", error: error.message });
-//   }
-// };
-
 // --- 1. GET ALL LEADS FOR A USER ---
 exports.getLeads = async (req, res) => {
   try {
@@ -64,7 +16,9 @@ exports.getLeads = async (req, res) => {
 // --- 2. ADD A SINGLE LEAD ---
 exports.addLead = async (req, res) => {
   try {
-    const { userId, name, email, phone, source, status } = req.body;
+    // Destructure all fields including new ones (priority, remarks)
+    const { userId, name, email, phone, source, status, priority, remarks } =
+      req.body;
 
     const newLead = new Lead({
       userId,
@@ -73,6 +27,8 @@ exports.addLead = async (req, res) => {
       phone,
       source,
       status,
+      priority: priority || "Medium", // Default to Medium if missing
+      remarks: remarks || "",
     });
 
     const savedLead = await newLead.save();
@@ -88,6 +44,7 @@ exports.updateLead = async (req, res) => {
     const { id } = req.params;
     const updatedData = req.body;
 
+    // This will automatically handle remarks and priority if they are in req.body
     const updatedLead = await Lead.findByIdAndUpdate(id, updatedData, {
       new: true, // Return the updated document
     });
@@ -112,13 +69,16 @@ exports.importLeads = async (req, res) => {
     }
 
     // Map Excel data to Mongoose Schema format
+    // Checks for capitalized keys (Excel) or lowercase keys
     const leadsToInsert = leads.map((lead) => ({
       userId,
-      name: lead.Name || lead.name, // Handle case sensitivity from Excel
+      name: lead.Name || lead.name,
       email: lead.Email || lead.email,
       phone: lead.Phone || lead.phone,
       source: lead.Source || lead.source || "Imported",
-      status: lead.Status || lead.status || "New",
+      status: lead.Status || lead.status || "New Lead",
+      priority: lead.Priority || lead.priority || "Medium",
+      remarks: lead.Remarks || lead.remarks || "",
     }));
 
     const insertedLeads = await Lead.insertMany(leadsToInsert);
@@ -130,5 +90,3 @@ exports.importLeads = async (req, res) => {
     res.status(500).json({ message: "Error importing leads", error });
   }
 };
-
-// module.exports = { createLead, getLeads };

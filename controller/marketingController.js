@@ -2,12 +2,6 @@ const OpenAI = require("openai");
 const MarketingPlan = require("../models/MarketingPlan");
 const { CallOpenAi } = require("../controller/helper/helper");
 
-// Initialize OpenAI
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-// --- GENERATE NEW PLAN ---
 exports.generateMarketingPlan = async (req, res) => {
   try {
     const { userId, budget, currency, targetUsers, city } = req.body;
@@ -16,45 +10,44 @@ exports.generateMarketingPlan = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    // 1. Construct the Prompt
     const prompt = `
-      You are a professional Chief Marketing Officer (CMO). 
-      Create a detailed marketing campaign plan for a startup based on the following constraints:
+      You are a professional Chief Marketing Officer. 
+      Create a tactical marketing plan for a startup in ${city}.
       
+      Constraints:
       - Budget: ${currency} ${budget}
-      - Target Location: ${city}
-      - Target Users Reach Goal: ${targetUsers}
+      - Reach Goal: ${targetUsers} users
       
-      Output Requirements:
-      Return a STRICT JSON object containing exactly 4 distinct campaigns and a conclusion.
-      
+      Return a JSON object with exactly 4 campaigns.
       Structure:
       {
         "campaigns": [
           {
-            "title": "Campaign Headline",
-            "type": "Category (e.g. Social Media, Influencer, Offline, SEO)",
-            "description": "2 sentence strategy description specific to ${city}",
-            "budgetAllocation": Number (The specific amount allocated from the total budget),
-            "platform": "Specific channels (e.g. Instagram Reels, Local Newspaper)",
-            "outcome": "Projected result (e.g. +2000 Visits)",
-            "icon": "String (MUST be exactly one of: 'Megaphone', 'Users', 'MapPin', 'Share2')"
+            "title": "Short Strategy Name (max 5 words)",
+            "type": "Category (e.g. Social, Offline, SEO)",
+            "budgetAllocation": Number,
+            "platform": "Specific Channel (e.g. Instagram, Local Radio)",
+            "outcome": "Reach estimate (e.g. +2k Users)"
           }
         ],
-        "conclusion": "A brief strategic summary (max 30 words) encouraging the user."
+        "conclusion": "One sentence strategic summary."
       }
-
-      Ensure the total budget allocation across campaigns equals roughly ${budget}. 
-      Make the campaigns realistic for the city of ${city}.
+      
+      Ensure total budget allocation equals ${budget}.
     `;
 
-    // 2. Call OpenAI
     const completion = await CallOpenAi(prompt);
-    console.log("completion", completion);
-    // 3. Parse Response
-    const aiContent = completion;
 
-    // 4. Save to Database
+    // Parse JSON safely (in case OpenAI wraps it in markdown)
+    let aiContent = completion;
+    if (typeof completion === "string") {
+      // Try to find JSON if wrapped in ```json
+      const jsonMatch = completion.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        aiContent = JSON.parse(jsonMatch[0]);
+      }
+    }
+
     const newPlan = new MarketingPlan({
       startupId: userId,
       budget,
@@ -66,8 +59,6 @@ exports.generateMarketingPlan = async (req, res) => {
     });
 
     await newPlan.save();
-
-    // 5. Send Response
     return res.status(200).json(newPlan);
   } catch (error) {
     console.error("Marketing Generation Error:", error);
@@ -77,26 +68,16 @@ exports.generateMarketingPlan = async (req, res) => {
   }
 };
 
-// --- GET LATEST PLAN ---
 exports.getLatestPlan = async (req, res) => {
   try {
     const { userId } = req.params;
-
-    // Find the most recently created plan for this user
     const plan = await MarketingPlan.findOne({ startupId: userId }).sort({
       createdAt: -1,
     });
-
-    if (!plan) {
-      return res.status(200).json({
-        message: "No plan found",
-        campaigns: [], // Return empty structure so frontend doesn't break
-      });
-    }
-
+    if (!plan)
+      return res.status(200).json({ message: "No plan found", campaigns: [] });
     return res.status(200).json(plan);
   } catch (error) {
-    console.error("Fetch Plan Error:", error);
     return res
       .status(500)
       .json({ message: "Server error", error: error.message });

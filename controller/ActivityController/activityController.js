@@ -21,8 +21,7 @@ const generateActivityAssignmentPrompt = ({ planName, activities }) => {
         activities.length
       } items, reordered intelligently for this plan.
       - Reorder the full list of activities in a logical sequence for the selected plan (e.g., start with ideation, then validation, market analysis, etc.).
-      - Decide accessibleCount based ONLY on the plan: Alpha=1, Beta=3, Gamma=5, Sigma=10. This is the number of INITIAL activities to unlock (first N in your reordered list).
-      - All activities must be listed in the output, even if locked (beyond accessibleCount).
+      - All activities must be listed in the output, even if locked .
       - Return ONLY valid JSON. No other text, markdown, or explanation.
       - Preserve exact activity_name and activity_path from input for each activity.
 
@@ -33,7 +32,6 @@ const generateActivityAssignmentPrompt = ({ planName, activities }) => {
 
       Required Output JSON format (activities array must match input length):
       {
-        "accessibleCount": number,  // 5 for Alpha, 10 for Beta, 15 for Gamma, 20 for Sigma
         "activities": [
           {
             "activity_name": string,  // Exact from input
@@ -87,35 +85,6 @@ const generateActivities = async ({ startup_id, planName }) => {
       aiResponse = aiResponseRaw;
     }
 
-    // Enhanced validation with detailed logging
-    if (
-      !aiResponse ||
-      typeof aiResponse !== "object" ||
-      !Array.isArray(aiResponse.activities) ||
-      typeof aiResponse.accessibleCount !== "number" ||
-      aiResponse.activities.length !== activitiesData.length ||
-      aiResponse.accessibleCount < 1 ||
-      aiResponse.accessibleCount > 10 // Cap based on plans
-    ) {
-      console.error("Invalid AI response details:");
-      console.error("- Expected activities length:", activitiesData.length);
-      console.error(
-        "- Received activities length:",
-        aiResponse?.activities?.length || 0
-      );
-      console.error("- Received accessibleCount:", aiResponse?.accessibleCount);
-      console.error(
-        "- Full received response:",
-        JSON.stringify(aiResponse, null, 2)
-      );
-      throw new Error(
-        `Invalid AI response: length mismatch (expected ${
-          activitiesData.length
-        }, got ${aiResponse?.activities?.length || 0}) or other structure issue`
-      );
-    }
-
-    // Double-check all input activities are present (exact match on names/paths to prevent AI hallucination)
     const inputNames = activitiesData.map((a) => a.activity_name).sort();
     const outputNames = aiResponse.activities
       .map((a) => a.activity_name)
@@ -124,7 +93,7 @@ const generateActivities = async ({ startup_id, planName }) => {
       throw new Error("AI modified activity names - must preserve exactly");
     }
 
-    const { activities, accessibleCount } = aiResponse;
+    const { activities } = aiResponse;
 
     const docs = activities.map((act, index) => ({
       startup_id,
@@ -132,9 +101,12 @@ const generateActivities = async ({ startup_id, planName }) => {
       activity_schema: act.activity_path,
       order: index + 1,
       week: `Week ${Math.ceil((index + 1) / 3)}`,
-      prerequisite: act.prerequisite || [],
+      prerequisite: (act.prerequisite || []).map((p) => ({
+        activity_schema: p,
+        status: false, // default false
+      })),
       is_completed: false,
-      is_accessible: index < accessibleCount,
+      is_accessible: false,
       is_deleted: false,
     }));
 
@@ -143,7 +115,6 @@ const generateActivities = async ({ startup_id, planName }) => {
     return {
       message: "Activities generated successfully",
       total: docs.length,
-      initiallyAccessible: accessibleCount,
     };
   } catch (error) {
     console.error("❌ generateActivities error:", error);
@@ -181,7 +152,67 @@ async function getAllActivities(req, res) {
   }
 }
 
+async function completeActivity(req, res) {
+  try {
+    const { activity_id } = req.body;
+
+    const activity = await ActivityModel.findById(activity_id);
+    if (!activity) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Activity not found" });
+    }
+
+    const incompletePrereq = activity.prerequisite.filter((p) => !p.status);
+
+    if (incompletePrereq.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Please complete prerequisite activities first",
+        pendingPrerequisites: incompletePrereq.map((p) => p.activity_schema),
+      });
+    }
+
+    activity.is_completed = true;
+    await activity.save();
+    await unlockNextActivities(activity.startup_id, activity.activity_schema);
+    return res.status(200).json({
+      success: true,
+      message: "Activity completed successfully",
+    });
+  } catch (error) {
+    console.error("completeActivity error:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+}
+
+async function unlockNextActivities(startup_id, completedSchema) {
+  const activities = await ActivityModel.find({ startup_id });
+
+  for (const act of activities) {
+    let updated = false;
+
+    act.prerequisite.forEach((p) => {
+      if (p.activity_schema === completedSchema) {
+        p.status = true;
+        updated = true;
+      }
+    });
+
+    // agar update hua, check all prerequisites
+    if (updated) {
+      const allDone = act.prerequisite.every((p) => p.status === true);
+      if (allDone) {
+        act.is_accessible = true;
+      }
+      await act.save();
+    }
+  }
+}
+
 module.exports = {
   allActivities: getAllActivities,
   generateActivities,
+  unlockNextActivities,
+  completeActivity,
 };

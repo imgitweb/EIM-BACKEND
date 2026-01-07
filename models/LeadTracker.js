@@ -6,11 +6,36 @@ const LeadSchema = new mongoose.Schema(
     name: { type: String, required: true },
     email: { type: String, required: true },
     phone: { type: String },
-    source: { type: String, default: "Direct" }, // e.g. Instagram, LinkedIn
+
+    // Updated default to match your frontend
+    source: { type: String, default: "Website" },
+
+    // Updated Enum to match your new frontend Dropdown options exactly
     status: {
       type: String,
-      enum: ["New", "Contacted", "Converted", "Lost"],
-      default: "New",
+      enum: [
+        "New Lead",
+        "Contacted",
+        "Qualified",
+        "In Discussion",
+        "Proposal Shared",
+        "Negotiation",
+        "Converted",
+        "Lost / Not Interested",
+      ],
+      default: "New Lead",
+    },
+
+    // --- NEW FIELDS ---
+    priority: {
+      type: String,
+      enum: ["High", "Medium", "Low"],
+      default: "Medium",
+    },
+
+    remarks: {
+      type: String,
+      default: "",
     },
   },
   { timestamps: true }
