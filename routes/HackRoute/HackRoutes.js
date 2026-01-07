@@ -66,48 +66,19 @@ const saveBase64File = (base64String) => {
 // =================================================
 router.post("/hackathon-register", async (req, res) => {
   try {
-    const data = req.body;
-
-    if (!data?.leader?.email || !data?.teamConfig?.track) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Missing details" });
-    }
-
-    const existing = await TeamRegistration.findOne({
-      "leader.email": data.leader.email,
+    return res.status(403).json({
+      success: false,
+      message: "Registrations are closed now. Thank you for your interest!"
     });
-    if (existing) {
-      return res
-        .status(409)
-        .json({ success: false, message: "Email already registered" });
-    }
-
-    // Save File if exists
-    if (data.leader.pitchFile) {
-      const savedPath = saveBase64File(data.leader.pitchFile);
-      data.leader.pitchFile = savedPath || "";
-    }
-
-    const registration = new TeamRegistration(data);
-    await registration.save();
-
-    // Send Mail
-    sendMail(
-      data.leader.email,
-      `${data.leader.firstName} ${data.leader.lastName}`,
-      data.teamConfig.size,
-      data.teamConfig.track
-    ).catch(() => {});
-
-    res
-      .status(201)
-      .json({ success: true, message: "Team registered successfully" });
   } catch (error) {
-    console.error("Registration Error:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    console.error("Registration Closed Route Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error"
+    });
   }
 });
+
 
 // =================================================
 // 2️⃣ GET ALL TEAMS
