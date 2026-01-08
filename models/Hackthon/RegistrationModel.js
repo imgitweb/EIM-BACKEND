@@ -1,12 +1,12 @@
 const mongoose = require("mongoose");
 
-// 1. Updated Member Schema to include Gender
 const MemberSchema = new mongoose.Schema({
   name: String,
-  identifier: String, // institute / org / linkedin
+  identifier: String,
   email: String,
   phone: String,
-  gender: String, // <--- ADDED: To capture member gender from frontend
+  gender: String,
+  photo: String, // <--- ADDED: To store member photo path
 });
 
 const TeamRegistrationSchema = new mongoose.Schema(
@@ -17,26 +17,20 @@ const TeamRegistrationSchema = new mongoose.Schema(
       email: { type: String, required: true },
       phone: { type: String, required: true },
       gender: String,
-
       state: String,
       city: String,
-
-      category: String, // institution | organization | freelancer
-      instituteOrOrg: String, // college / company / N/A
-      uniqueId: String, // rollNo / gstNo / linkedin
-
+      category: String,
+      instituteOrOrg: String,
+      uniqueId: String,
       aboutStartup: { type: String, required: true },
-      pitchFile: String, // Stores Base64 string or file path
+      pitchFile: String,
+      photo: String, // <--- ADDED: To store leader photo path
     },
-
     teamConfig: {
       size: Number,
       track: String,
     },
-
     members: [MemberSchema],
-
-    // 2. Updated Main Schema to include Status (for Admin Dashboard)
     status: {
       type: String,
       default: "Pending",

@@ -1,6 +1,6 @@
-/* ---------------------------------------------------
-   MASTER ACTIVITY LIST
---------------------------------------------------- */
+// ===============================
+// Master Activity Flow
+// ===============================
 
 exports.activitiesData = [
   { activity_name: "Review Your Idea", activity_path: "/submit-idea" },
@@ -66,6 +66,7 @@ exports.activitiesData = [
     activity_name: "Send Pitches & Track Replies",
     activity_path: "/send-pitches-track-replies",
   },
+
   {
     activity_name: "Valuation Calculator",
     activity_path: "/funding/valuation",
@@ -95,12 +96,12 @@ exports.activitiesData = [
   { activity_name: "Runway Calculator", activity_path: "/runway-calculator" },
 ];
 
-/* ---------------------------------------------------
-   STAGE → ACTIVITY MAP (THIS WAS MISSING ❗)
---------------------------------------------------- */
+// ===============================
+// Stage-based Hard Locks
+// ===============================
 
-exports.stageActivityMap = {
-  Alpha: [
+exports.stagedefaltfalseActivityMap = {
+  alpha: [
     "/submit-idea",
     "/idea-validation",
     "/feedback-risk",
@@ -118,8 +119,7 @@ exports.stageActivityMap = {
     "/docs/hiring",
     "/docs/all",
   ],
-
-  Beta: [
+  beta: [
     "/mvp/scope",
     "/mvp/backlog",
     "/mvp/builder",
@@ -136,8 +136,7 @@ exports.stageActivityMap = {
     "/projection",
     "/runway-calculator",
   ],
-
-  Gamma: [
+  gamma: [
     "/company-registration",
     "/company-documentation-requirements",
     "/company-legal",
@@ -147,8 +146,7 @@ exports.stageActivityMap = {
     "/investors",
     "/send-pitches-track-replies",
   ],
-
-  Sigma: [
+  sigma: [
     "/funding/valuation",
     "/funding/captable",
     "/funding/termsheet",
