@@ -1,218 +1,157 @@
-const { activitiesData } = require("../../config/activity");
 const { ActivityModel } = require("../../models/ActivityModel/activityModel");
-const StartupModel = require("../../models/signup/StartupModel.js");
-const { CallOpenAi } = require("../helper/helper");
+const StartupModel = require("../../models/signup/StartupModel");
+const {
+  activitiesData,
+  stagedefaltfalseActivityMap,
+} = require("../../config/activity");
 
-const generateActivityAssignmentPrompt = ({ planName, activities }) => {
-  return `
-      You are a senior Incubation Manager, who will decide the set of activities startup needs to perform in this stage.
+const STAGE_FLOW = ["alpha", "beta", "gamma", "sigma"];
 
-      Plan selected: "${planName}"
-      This is the general definition of plan - 
-      Alpha: Ideation-stage startups validating the problem and solution, with no MVP built yet.
-      Beta: Early-stage startups with an MVP, testing the product, acquiring early users, and working towards Product–Market Fit (PMF).
-      Gamma: PMF-stage startups with proven demand, focused on growth, market expansion, and fundraising.
-      Sigma Growth-stage startups scaling operations, revenues, and teams, while raising capital for large-scale expansion.
-      Optional (Sharper, slightly more aspirational tone)
-    
+/* ============================== HELPERS ============================== */
 
-      Rules:
-      - You MUST include ALL activities from the input. Do not omit, summarize, add, or modify any activity_name or activity_path. The output "activities" array must have EXACTLY ${
-        activities.length
-      } items, reordered intelligently for this plan.
-      - Reorder the full list of activities in a logical sequence for the selected plan (e.g., start with ideation, then validation, market analysis, etc.).
-      - All activities must be listed in the output, even if locked .
-      - Return ONLY valid JSON. No other text, markdown, or explanation.
-      - Preserve exact activity_name and activity_path from input for each activity.
+// Stage-based HARD access control
+function isAccessibleByStage(stage, path) {
+  if (!stagedefaltfalseActivityMap[stage]) return true;
+  return !stagedefaltfalseActivityMap[stage].includes(path);
+}
 
-      Input activities (exactly ${
-        activities.length
-      } items - reorder all of them):
-      ${JSON.stringify(activities, null, 2)}
+/* ========================= GENERATE ACTIVITIES ======================= */
 
-      Required Output JSON format (activities array must match input length):
-      {
-        "activities": [
-          {
-            "activity_name": string,  // Exact from input
+exports.generateActivities = async ({ startup_id, planName }) => {
+  const startup = await StartupModel.findById(startup_id);
+  if (!startup) throw new Error("Startup not found");
 
-            "activity_path": string   // Exact from input (maps to activity_schema in DB)
-            "prerequisite" : [] // in this analyse all routes and add 3 prerequisite,
-          }
-          // ... exactly ${activities.length} items, reordered
-        ]
-      }
-      `;
+  const exists = await ActivityModel.findOne({ startup_id });
+  if (exists) throw new Error("Activities already generated");
+
+  const docs = activitiesData.map((act, index) => ({
+    startup_id,
+    activity_name: act.activity_name,
+    activity_schema: act.activity_path,
+    order: index + 1,
+
+    // FLOW RULE: previous 3 activities
+    prerequisite: activitiesData
+      .slice(Math.max(0, index - 3), index)
+      .map((p) => ({
+        activity_schema: p.activity_path,
+        status: false,
+      })),
+
+    // HARD STAGE RULE
+    is_accessible: isAccessibleByStage(planName, act.activity_path),
+
+    is_completed: false,
+    is_deleted: false,
+  }));
+
+  await ActivityModel.insertMany(docs);
+  return { success: true };
 };
 
-const generateActivities = async ({ startup_id, planName }) => {
-  try {
-    const startup = await StartupModel.findById(startup_id);
-    if (!startup) throw new Error("Startup not found");
+/* =========================== GET ALL ACTIVITIES ====================== */
 
-    const exists = await ActivityModel.findOne({ startup_id });
-    if (exists) return { message: "Activities already generated" };
+exports.getAllActivities = async (req, res) => {
+  const { startup_id } = req.body;
 
-    // Validate input data upfront
-    if (!Array.isArray(activitiesData) || activitiesData.length === 0) {
-      throw new Error("activitiesData is invalid or empty");
-    }
-    console.log(
-      `Generating for ${activitiesData.length} activities with plan: ${planName}`
-    );
+  const activities = await ActivityModel.find({
+    startup_id,
+    is_deleted: false,
+  })
+    .sort({ order: 1 })
+    .lean();
 
-    const prompt = generateActivityAssignmentPrompt({
-      planName,
-      activities: activitiesData,
-    });
-
-    const aiResponseRaw = await CallOpenAi(prompt);
-    console.log("AI response raw:", aiResponseRaw);
-
-    // Assuming CallOpenAi returns a parsed object; if it's a string, add JSON.parse here as fallback
-    let aiResponse;
-    if (typeof aiResponseRaw === "string") {
-      try {
-        const cleaned = aiResponseRaw.trim().replace(/```json\n?|\n?```/g, "");
-        aiResponse = JSON.parse(cleaned);
-      } catch (parseErr) {
-        console.error("JSON parse error:", parseErr);
-        throw new Error(
-          `AI response not valid JSON: ${aiResponseRaw.substring(0, 200)}...`
-        );
-      }
-    } else {
-      aiResponse = aiResponseRaw;
-    }
-
-    const inputNames = activitiesData.map((a) => a.activity_name).sort();
-    const outputNames = aiResponse.activities
-      .map((a) => a.activity_name)
-      .sort();
-    if (JSON.stringify(inputNames) !== JSON.stringify(outputNames)) {
-      throw new Error("AI modified activity names - must preserve exactly");
-    }
-
-    const { activities } = aiResponse;
-
-    const docs = activities.map((act, index) => ({
-      startup_id,
-      activity_name: act.activity_name,
-      activity_schema: act.activity_path,
-      order: index + 1,
-      week: `Week ${Math.ceil((index + 1) / 3)}`,
-      prerequisite: (act.prerequisite || []).map((p) => ({
-        activity_schema: p,
-        status: false, // default false
-      })),
-      is_completed: false,
-      is_accessible: false,
-      is_deleted: false,
-    }));
-
-    await ActivityModel.insertMany(docs);
+  const data = activities.map((act) => {
+    const blocked = act.prerequisite.filter((p) => !p.status);
 
     return {
-      message: "Activities generated successfully",
-      total: docs.length,
+      activity_name: act.activity_name,
+      activity_path: act.activity_schema,
+      is_accessible: act.is_accessible,
+      can_proceed: act.is_accessible && blocked.length === 0,
+      prerequisites: act.prerequisite,
+      blocked_by_prerequisite: blocked.map((b) => b.activity_schema),
     };
-  } catch (error) {
-    console.error("❌ generateActivities error:", error);
-    throw error;
-  }
+  });
+
+  res.json({
+    success: true,
+    activityCount: data.length,
+    data,
+  });
 };
 
-async function getAllActivities(req, res) {
-  try {
-    const { startup_id } = req.body;
+/* =========================== COMPLETE ACTIVITY ======================== */
 
-    const activity = await ActivityModel.find({
-      startup_id: startup_id,
-      is_deleted: false,
-    }).lean();
-    if (!activity.length) {
-      console.log(`No activities found for startup_id: ${startup_id}`);
-      return res.status(404).json({
-        message: `No activities found for startup_id: ${startup_id}`,
-        success: false,
-      });
-    }
-    return res.status(200).json({
-      message: "Activities found for startup",
-      success: true,
-      data: activity,
-      activityCount: activity.length,
-    });
-  } catch (error) {
-    console.error("Something went wrong while fetching activities: ", error);
-    return res.status(500).json({
-      message: "Something went wrong while fetching activities",
+exports.completeActivity = async (req, res) => {
+  const { activity_id } = req.body;
+
+  const activity = await ActivityModel.findById(activity_id);
+  if (!activity)
+    return res.status(404).json({
       success: false,
-    });
-  }
-}
-
-async function completeActivity(req, res) {
-  try {
-    const { activity_id } = req.body;
-
-    const activity = await ActivityModel.findById(activity_id);
-    if (!activity) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Activity not found" });
-    }
-
-    const incompletePrereq = activity.prerequisite.filter((p) => !p.status);
-
-    if (incompletePrereq.length > 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Please complete prerequisite activities first",
-        pendingPrerequisites: incompletePrereq.map((p) => p.activity_schema),
-      });
-    }
-
-    activity.is_completed = true;
-    await activity.save();
-    await unlockNextActivities(activity.startup_id, activity.activity_schema);
-    return res.status(200).json({
-      success: true,
-      message: "Activity completed successfully",
-    });
-  } catch (error) {
-    console.error("completeActivity error:", error);
-    return res.status(500).json({ success: false, message: "Server error" });
-  }
-}
-
-async function unlockNextActivities(startup_id, completedSchema) {
-  const activities = await ActivityModel.find({ startup_id });
-
-  for (const act of activities) {
-    let updated = false;
-
-    act.prerequisite.forEach((p) => {
-      if (p.activity_schema === completedSchema) {
-        p.status = true;
-        updated = true;
-      }
+      message: "Activity not found",
     });
 
-    // agar update hua, check all prerequisites
-    if (updated) {
-      const allDone = act.prerequisite.every((p) => p.status === true);
-      if (allDone) {
-        act.is_accessible = true;
-      }
-      await act.save();
-    }
-  }
-}
+  // HARD STAGE CHECK
+  if (!activity.is_accessible)
+    return res.status(403).json({
+      success: false,
+      message: "Activity locked by stage",
+    });
 
-module.exports = {
-  allActivities: getAllActivities,
-  generateActivities,
-  unlockNextActivities,
-  completeActivity,
+  const blocked = activity.prerequisite.filter((p) => !p.status);
+  if (blocked.length)
+    return res.status(400).json({
+      success: false,
+      blocked_by_prerequisite: blocked.map((b) => b.activity_schema),
+    });
+
+  activity.is_completed = true;
+  await activity.save();
+
+  // Mark this activity as completed in future prerequisites
+  await ActivityModel.updateMany(
+    {
+      startup_id: activity.startup_id,
+      "prerequisite.activity_schema": activity.activity_schema,
+    },
+    { $set: { "prerequisite.$.status": true } }
+  );
+
+  res.json({ success: true });
+};
+
+/* ============================ UPGRADE STAGE =========================== */
+
+exports.upgradeStage = async (req, res) => {
+  const { startup_id, newStage } = req.body;
+
+  if (!STAGE_FLOW.includes(newStage))
+    return res.status(400).json({
+      success: false,
+      message: "Invalid stage",
+    });
+
+  const lockedPaths = stagedefaltfalseActivityMap[newStage] || [];
+
+  // Lock stage-blocked activities
+  await ActivityModel.updateMany(
+    {
+      startup_id,
+      activity_schema: { $in: lockedPaths },
+    },
+    { $set: { is_accessible: false } }
+  );
+
+  // Unlock remaining activities
+  await ActivityModel.updateMany(
+    {
+      startup_id,
+      activity_schema: { $nin: lockedPaths },
+    },
+    { $set: { is_accessible: true } }
+  );
+
+  res.json({ success: true });
 };

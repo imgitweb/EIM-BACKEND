@@ -1,3 +1,7 @@
+// ===============================
+// Master Activity Flow
+// ===============================
+
 exports.activitiesData = [
   { activity_name: "Review Your Idea", activity_path: "/submit-idea" },
   { activity_name: "Revise Your Offering", activity_path: "/statup-offring" },
@@ -5,7 +9,6 @@ exports.activitiesData = [
   { activity_name: "Why You Might Fail?", activity_path: "/feedback-risk" },
   { activity_name: "Your Competitors", activity_path: "/rivarly-insights" },
   { activity_name: "Business Models", activity_path: "/business-model" },
-
   {
     activity_name: "Market Size Calculation",
     activity_path: "/market-calculation",
@@ -13,7 +16,6 @@ exports.activitiesData = [
   { activity_name: "Sales & Marketing Funnel", activity_path: "/sales-funnel" },
   { activity_name: "Marketing Campaigns", activity_path: "/marketing-funnel" },
   { activity_name: "Leads Tracks", activity_path: "/revenu-trac" },
-
   {
     activity_name: "Post Co-founder Requirement",
     activity_path: "/post-co-founder-requirement",
@@ -26,7 +28,6 @@ exports.activitiesData = [
   { activity_name: "Find Resources", activity_path: "/hire-resources" },
   { activity_name: "Find Mentors", activity_path: "/my-mentor" },
 
-  /* ---------------- MVP Studio ---------------- */
   { activity_name: "Define MVP Scope", activity_path: "/mvp/scope" },
   { activity_name: "MVP Backlog", activity_path: "/mvp/backlog" },
   { activity_name: "Start Building MVP", activity_path: "/mvp/builder" },
@@ -34,7 +35,6 @@ exports.activitiesData = [
   { activity_name: "Launch MVP", activity_path: "/product-listing" },
   { activity_name: "MVP Feedback", activity_path: "/mvp/feedback" },
 
-  /* ---------------- Launch & Go-to-Market ---------------- */
   { activity_name: "Build GTM Strategy", activity_path: "/GTM-strategy" },
   {
     activity_name: "Product Launch Checklist",
@@ -42,7 +42,6 @@ exports.activitiesData = [
   },
   { activity_name: "Launch Your Product", activity_path: "/product-listing" },
 
-  /* ---------------- Company Formation ---------------- */
   {
     activity_name: "Company Registration Options",
     activity_path: "/company-registration",
@@ -61,13 +60,13 @@ exports.activitiesData = [
     activity_path: "/update-company-details",
   },
 
-  /* ---------------- Fundraising Hub ---------------- */
   { activity_name: "Create Pitch Deck", activity_path: "/pitchdeck" },
   { activity_name: "Find Investors", activity_path: "/investors" },
   {
     activity_name: "Send Pitches & Track Replies",
     activity_path: "/send-pitches-track-replies",
   },
+
   {
     activity_name: "Valuation Calculator",
     activity_path: "/funding/valuation",
@@ -78,7 +77,6 @@ exports.activitiesData = [
     activity_path: "/funding/termsheet",
   },
 
-  /* ---------------- Documents & Templates ---------------- */
   {
     activity_name: "Founders Agreement & NDAs",
     activity_path: "/docs/founders",
@@ -91,42 +89,67 @@ exports.activitiesData = [
   },
   { activity_name: "All Downloadable", activity_path: "/docs/all" },
 
-  /* ---------------- Path to Unicorn ---------------- */
   { activity_name: "Set Vision & Goals", activity_path: "/path-unicorn" },
   { activity_name: "Milestone Builder", activity_path: "/path-unicorn2" },
 
-  /* ---------------- Metrics & Insights ---------------- */
   { activity_name: "Revenue, Burn, CAC, LTV", activity_path: "/projection" },
   { activity_name: "Runway Calculator", activity_path: "/runway-calculator" },
 ];
 
-exports.planOrderMap = {
+// ===============================
+// Stage-based Hard Locks
+// ===============================
+
+exports.stagedefaltfalseActivityMap = {
   alpha: [
-    "Review Your Idea",
-    "Your Success Meter",
-    "Why You Might Fail?",
-    "Your Competitors",
-    "Business Models",
+    "/submit-idea",
+    "/idea-validation",
+    "/feedback-risk",
+    "/rivarly-insights",
+    "/business-model",
+    "/statup-offring",
+    "/market-calculation",
+    "/path-unicorn",
+    "/path-unicorn2",
+    "/post-co-founder-requirement",
+    "/team/cofounder-match",
+    "/my-mentor",
+    "/docs/founders",
+    "/docs/hr",
+    "/docs/hiring",
+    "/docs/all",
   ],
-
   beta: [
-    "Review Your Idea",
-    "Revise Your Offering",
-    "Business Models",
-    "Market Size Calculation",
+    "/mvp/scope",
+    "/mvp/backlog",
+    "/mvp/builder",
+    "/mvp/hire",
+    "/product-listing",
+    "/mvp/feedback",
+    "/GTM-strategy",
+    "/build-checklist",
+    "/sales-funnel",
+    "/marketing-funnel",
+    "/revenu-trac",
+    "/startup-Hire-team",
+    "/hire-resources",
+    "/projection",
+    "/runway-calculator",
   ],
-
-  gama: [
-    "Market Size Calculation",
-    "Sales Funnel",
-    "Marketing Funnel",
-    "Review Your Idea",
+  gamma: [
+    "/company-registration",
+    "/company-documentation-requirements",
+    "/company-legal",
+    "/company-compliance",
+    "/update-company-details",
+    "/pitchdeck",
+    "/investors",
+    "/send-pitches-track-replies",
   ],
-
   sigma: [
-    "Business Models",
-    "Market Size Calculation",
-    "Sales Funnel",
-    "Marketing Funnel",
+    "/funding/valuation",
+    "/funding/captable",
+    "/funding/termsheet",
+    "/docs/cap-table",
   ],
 };
