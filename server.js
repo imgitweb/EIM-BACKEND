@@ -80,6 +80,9 @@ const HackRegistration = require("./routes/HackRoute/HackRoutes");
 const marketing = require("./routes/marketingRoutes");
 const leadRoutes = require("./routes/LeadRoute.js");
 const businessModelRoutes = require("./routes/businessModelRoutes.js");
+const {
+  DocumentVaultRoutes,
+} = require("./routes/DocumentVaultRoutes/routes.js");
 
 // ─────────────────────────────────────────────────────────────
 // ✅ App Initialization
@@ -214,6 +217,8 @@ const storage = multer.diskStorage({
       folder = "uploads/deliverables";
     else if (url.includes("/api/startup")) folder = "uploads";
     else if (url.includes("/api/hackathon")) folder = "startupidea/uploads";
+    else if (url.includes("/api/document_vault"))
+      folder = `uploads/document_vault/${req.query.folder_name || ""}`;
 
     if (!fs.existsSync(folder)) fs.mkdirSync(folder, { recursive: true });
     cb(null, folder);
@@ -314,7 +319,7 @@ app.use("/api/marketing", marketing);
 app.use("/api/leads", leadRoutes);
 app.use("/api/business-model", businessModelRoutes);
 app.use("/api/whatsapp", routes.whatsappRoutes);
-
+app.use("/api/document_vault", DocumentVaultRoutes(upload));
 
 // ─────────────────────────────────────────────────────────────
 // ✅ Error Handlers
