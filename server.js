@@ -5,7 +5,6 @@ const express = require("express");
 const multer = require("multer");
 const path = require("path");
 const cors = require("cors");
-const https = require("https");
 const fs = require("fs");
 const helmet = require("helmet");
 const cookieParser = require("cookie-parser");
@@ -131,24 +130,24 @@ const allowedOrigins =
       ];
 
 const corsOptions = {
-  origin: (origin, callback) => {
-    if (!origin && process.env.NODE_ENV !== "production") {
-      return callback(null, true);
-    }
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
     if (
-      origin?.startsWith("http://localhost") ||
-      origin?.startsWith("http://127.0.0.1")
+      origin.startsWith("http://localhost") ||
+      origin.startsWith("http://127.0.0.1")
     ) {
       return callback(null, true);
     }
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
-    console.log("❌ CORS Blocked Origin:", origin);
-    return callback(null, false);
+
+    console.error("❌ CORS Blocked Origin:", origin);
+    return callback(new Error("Not allowed by CORS"));
   },
   credentials: true,
 };
+
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions));
 
@@ -177,18 +176,21 @@ app.use(
 app.use(
   session({
     name: "sessionId",
-    secret: process.env.JWT_SECRET || "your-secret-key",
+    secret: process.env.JWT_SECRET,
     resave: false,
     saveUninitialized: false,
+    rolling: true, // 🔥 keeps session alive
     store: MongoStore.create({
       mongoUrl: process.env.MONGO_URI,
       collectionName: "sessions",
+      ttl: 24 * 60 * 60, // 1 day
     }),
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+      secure: true, // 🔥 HTTPS only
+      sameSite: "None", // 🔥 cross-domain allowed
       maxAge: 24 * 60 * 60 * 1000, // 1 day
+      // domain: ".incubationmasters.com", // ✅ enable ONLY if subdomains used
     },
   })
 );
