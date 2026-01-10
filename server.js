@@ -176,37 +176,33 @@ app.use(
 app.use(
   session({
     name: "sessionId",
-    secret: process.env.SESSION_SECRET, // ✅ change this
+    secret: process.env.SESSION_SECRET,
+
     resave: false,
     saveUninitialized: false,
     rolling: true,
+
     store: MongoStore.create({
       mongoUrl: process.env.MONGO_URI,
       collectionName: "sessions",
       ttl: 24 * 60 * 60,
+      autoRemove: "native",
     }),
-   cookie: {
-        httpOnly: true,
-        secure: false,
-        sameSite: "lax",
-        maxAge: 24 * 60 * 60 * 1000,
-      }
+
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 24 * 60 * 60 * 1000,
+    },
   })
 );
 
-
-
-// ─────────────────────────────────────────────────────────────
-// ✅ Request Logging
-// ─────────────────────────────────────────────────────────────
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.url} - Session ID: ${req.sessionID}`);
   next();
 });
 
-// ─────────────────────────────────────────────────────────────
-// ✅ Multer File Upload Configuration
-// ─────────────────────────────────────────────────────────────
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     let folder = "uploads/template";
@@ -247,9 +243,6 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
 });
 
-// ─────────────────────────────────────────────────────────────
-// ✅ Base Route
-// ─────────────────────────────────────────────────────────────
 app.get("/", (req, res) => {
   res.json({
     message: "Incubation Masters API",
