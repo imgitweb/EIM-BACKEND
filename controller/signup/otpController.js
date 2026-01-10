@@ -91,64 +91,55 @@ exports.sendOtp = async (req, res) => {
 };
 
 exports.verifyOtp = async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-
   try {
     const { email, otp } = req.body;
 
-    // Check if session and OTP exist
-    if (!req.session) {
+    if (!req.session || !req.session.otp) {
       return res.status(400).json({
-        error: "Session not found. Please request a new OTP.",
+        error: "Session expired. Please request a new OTP.",
       });
     }
 
-    if (!req.session.otp) {
+    const { code, expires, email: storedEmail } = req.session.otp;
+
+    if (Date.now() > expires) {
+      delete req.session.otp;
       return res.status(400).json({
-        error: "No OTP session found. Please request a new OTP.",
+        error: "OTP expired. Please request a new OTP.",
       });
     }
 
-    const storedOtp = req.session.otp;
-
-    // Check if OTP has expired
-    if (storedOtp.expires <= Date.now()) {
-      req.session.otp = null;
-      return res.status(400).json({
-        error: "OTP has expired. Please request a new one.",
-      });
-    }
-
-    // Verify email and OTP
-    if (storedOtp.email !== email) {
+    if (storedEmail !== email) {
       return res.status(400).json({
         error: "Email mismatch. Please request a new OTP.",
       });
     }
 
-    if (storedOtp.code !== otp) {
+    if (code !== otp) {
       return res.status(400).json({
-        error: "Invalid OTP. Please try again.",
+        error: "Invalid OTP.",
       });
     }
 
-    // OTP is valid - clear it from session
-    req.session.otp = null;
+    // ✅ OTP VERIFIED
+    delete req.session.otp;
 
-    // Save session after clearing OTP
     req.session.save((err) => {
       if (err) {
-        console.error("Session save error after OTP verification:", err);
+        console.error("Session save error:", err);
+        return res.status(500).json({
+          error: "Session error. Please try again.",
+        });
       }
-    });
 
-    console.log("OTP verified successfully for:", email);
-    res.status(200).json({ message: "OTP verified successfully" });
+      return res.status(200).json({
+        message: "OTP verified successfully",
+      });
+    });
   } catch (error) {
     console.error("OTP Verify Error:", error);
-    res.status(500).json({ error: "Failed to verify OTP. Please try again." });
+    return res.status(500).json({
+      error: "Failed to verify OTP. Please try again.",
+    });
   }
 };
