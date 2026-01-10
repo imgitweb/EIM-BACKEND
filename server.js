@@ -118,6 +118,8 @@ const allowedOrigins =
         "https://hackmake.in",
         "https://www.hackmake.in",
         "http://www.hackmake.in",
+        "https://hackathon-app-entry-system-1.onrender.com",
+        "http://hackathon-app-entry-system-1.onrender.com",
       ]
     : [
         "http://localhost:3000",
@@ -173,27 +175,30 @@ app.use(
 // ─────────────────────────────────────────────────────────────
 // ✅ Session Configuration
 // ─────────────────────────────────────────────────────────────
+
 app.use(
   session({
     name: "sessionId",
     secret: process.env.SESSION_SECRET,
-
     resave: false,
-    saveUninitialized: false,
-    rolling: true,
-
+    saveUninitialized: false, // Login ke bina faltu session create nahi karega
+    rolling: true, // Har request pe expiry time refresh karega
     store: MongoStore.create({
       mongoUrl: process.env.MONGO_URI,
       collectionName: "sessions",
-      ttl: 24 * 60 * 60,
+      ttl: 24 * 60 * 60, // Database me session 1 din tak rahega
       autoRemove: "native",
     }),
-
     cookie: {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      maxAge: 24 * 60 * 60 * 1000,
+      httpOnly: true, // Frontend JS cookie access nahi kar payega (Security)
+      // ✅ Production Logic
+      secure: process.env.NODE_ENV === "production", // Production me TRUE hona zaroori hai
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Cross-site ke liye 'none'
+
+      // ⚠️ DHYAN DEIN: Agar ye session sirf OTP ke liye hai to 5 min thik hai.
+      // Agar ye LOGIN session hai, to user 5 minute baad logout ho jayega.
+      // Login ke liye isse badha kar 24 hours kar dena chahiye: 24 * 60 * 60 * 1000
+      maxAge: 5 * 60 * 1000,
     },
   })
 );
