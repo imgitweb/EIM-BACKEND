@@ -5,7 +5,6 @@ const express = require("express");
 const multer = require("multer");
 const path = require("path");
 const cors = require("cors");
-const https = require("https");
 const fs = require("fs");
 const helmet = require("helmet");
 const cookieParser = require("cookie-parser");
@@ -131,24 +130,24 @@ const allowedOrigins =
       ];
 
 const corsOptions = {
-  origin: (origin, callback) => {
-    if (!origin && process.env.NODE_ENV !== "production") {
-      return callback(null, true);
-    }
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
     if (
-      origin?.startsWith("http://localhost") ||
-      origin?.startsWith("http://127.0.0.1")
+      origin.startsWith("http://localhost") ||
+      origin.startsWith("http://127.0.0.1")
     ) {
       return callback(null, true);
     }
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
-    console.log("❌ CORS Blocked Origin:", origin);
-    return callback(null, false);
+
+    console.error("❌ CORS Blocked Origin:", origin);
+    return callback(new Error("Not allowed by CORS"));
   },
   credentials: true,
 };
+
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions));
 
@@ -177,33 +176,33 @@ app.use(
 app.use(
   session({
     name: "sessionId",
-    secret: process.env.JWT_SECRET || "your-secret-key",
+    secret: process.env.SESSION_SECRET,
+
     resave: false,
     saveUninitialized: false,
+    rolling: true,
+
     store: MongoStore.create({
       mongoUrl: process.env.MONGO_URI,
       collectionName: "sessions",
+      ttl: 24 * 60 * 60,
+      autoRemove: "native",
     }),
+
     cookie: {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 24 * 60 * 60 * 1000,
     },
   })
 );
 
-// ─────────────────────────────────────────────────────────────
-// ✅ Request Logging
-// ─────────────────────────────────────────────────────────────
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.url} - Session ID: ${req.sessionID}`);
   next();
 });
 
-// ─────────────────────────────────────────────────────────────
-// ✅ Multer File Upload Configuration
-// ─────────────────────────────────────────────────────────────
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     let folder = "uploads/template";
@@ -244,9 +243,6 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
 });
 
-// ─────────────────────────────────────────────────────────────
-// ✅ Base Route
-// ─────────────────────────────────────────────────────────────
 app.get("/", (req, res) => {
   res.json({
     message: "Incubation Masters API",
@@ -284,7 +280,7 @@ app.use("/api/cofounders", routes.cofounders(upload));
 app.use("/api/chatgpt", require("./routes/chatGptRoutes"));
 app.use("/api/idea", require("./routes/chatGptRoutes"));
 app.use("/api/uim-register", require("./routes/chatGptRoutes"));
-app.use("/api", courseRoutes);
+app.use("/api/course", courseRoutes);
 app.use("/api/post-cofounder", routes.postCoFounder);
 app.use("/api/startup-hire", routes.startupHireTeamRoutes);
 app.use(

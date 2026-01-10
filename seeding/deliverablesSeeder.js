@@ -40,10 +40,10 @@ module.exports.seedDeliverables = async () => {
     const startups = await StartupModel.find();
     console.log(`Found ${startups.length} startups.`);
 
-    if (!startups.length) {
-      console.log("⚠️ No startups found. Add startups first.");
-      process.exit(0);
-    }
+    // if (!startups.length) {
+    //   console.log("⚠️ No startups found. Add startups first.");
+    //   process.exit(0);
+    // }
 
     let totalCreated = 0;
 

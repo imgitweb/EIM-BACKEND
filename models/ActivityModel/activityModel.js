@@ -26,10 +26,7 @@ const activitySchema = new mongoose.Schema(
     is_deleted: { type: Boolean, default: false },
   },
   { timestamps: true }
-);
-
-activitySchema.index({ startup_id: 1, order: 1 });
-activitySchema.index({ startup_id: 1, activity_schema: 1 }, { unique: true });
+); 
 
 module.exports = {
   ActivityModel: mongoose.model("activities", activitySchema),

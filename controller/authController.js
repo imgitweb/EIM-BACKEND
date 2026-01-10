@@ -8,34 +8,31 @@ const path = require("path");
 const googleSignup = async (req, res) => {
   try {
     const { email } = req.body;
-    console.log("Incoming Google Signup Request body size:", req.body);
 
-    // Validate email
+    console.log("Incoming auth-check:", email);
+
     if (!email) {
-      return res.status(400).json({ message: "Email is required" });
+      return res.status(400).json({ message: "Email is required", exists: false });
     }
-    // Check if user exists with given email
+
     const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(200).json({
-        message: "User not found. Please sign up first.",
-        exists: false,
-      });
-    }
 
     return res.status(200).json({
-      message: "User exists",
-      exists: true,
+      message: user ? "User exists" : "User not found",
+      exists: !!user, // ✅ true/false
     });
+
   } catch (error) {
     console.error("Email check error:", error.message);
     return res.status(500).json({
       message: "Server error",
       error: error.message,
       success: false,
+      exists: false,
     });
   }
 };
+
 
 // Google Login API
 const googleLogin = async (req, res) => {
