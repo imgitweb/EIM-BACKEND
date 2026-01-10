@@ -1,12 +1,12 @@
 const mongoose = require("mongoose");
 
+/**
+ * Remove duplicates for a specific unique index
+ */
 async function removeDuplicatesForUniqueIndex(collection, index) {
-  const keys = index.key; // e.g. { startup_id: 1, activity_schema: 1 }
-  const fields = Object.keys(keys);
-
+  const fields = Object.keys(index.key);
   if (!fields.length) return 0;
 
-  // build group _id from index fields
   const groupId = {};
   fields.forEach((f) => (groupId[f] = `$${f}`));
 
@@ -23,60 +23,44 @@ async function removeDuplicatesForUniqueIndex(collection, index) {
     ])
     .toArray();
 
-  let totalDeleted = 0;
+  let deleted = 0;
 
   for (const doc of duplicates) {
-    const idsToDelete = doc.ids.slice(1); // keep first
+    const idsToDelete = doc.ids.slice(1); // keep first document
     const res = await collection.deleteMany({ _id: { $in: idsToDelete } });
-    totalDeleted += res.deletedCount || 0;
+    deleted += res.deletedCount || 0;
   }
 
-  return totalDeleted;
+  return deleted;
 }
 
-async function cleanupAllCollectionsDuplicates() {
+/**
+ * Cleanup duplicates ONLY for selected collections & indexes
+ * ❌ Never runs automatically in production
+ */
+async function runDuplicateCleanup() {
   const db = mongoose.connection.db;
-  const collections = await db.listCollections().toArray();
 
-  console.log(`📌 Total Collections Found: ${collections.length}`);
+  // 👇 SAFE LIST (edit only if needed)
+  const TARGET_INDEXES = {
+    mentors: ["email_1"],
+    investors: ["phone_1"],
+    categories: ["name_1"],
+  };
 
-  for (const col of collections) {
-    const colName = col.name;
-    const collection = db.collection(colName);
-
+  for (const [collectionName, indexNames] of Object.entries(TARGET_INDEXES)) {
+    const collection = db.collection(collectionName);
     const indexes = await collection.indexes();
-    const uniqueIndexes = indexes.filter((idx) => idx.unique);
 
-    if (!uniqueIndexes.length) continue;
+    for (const indexName of indexNames) {
+      const index = indexes.find((i) => i.name === indexName && i.unique);
+      if (!index) continue;
 
-    console.log(`\n🔍 Collection: ${colName}`);
-    console.log(`✅ Unique indexes found: ${uniqueIndexes.length}`);
-
-    for (const idx of uniqueIndexes) {
-      // Skip default _id_ index
-      if (idx.name === "_id_") continue;
-
-      console.log(`➡️ Checking index: ${idx.name} ->`, idx.key);
-
-      const deleted = await removeDuplicatesForUniqueIndex(collection, idx);
-
-      if (deleted > 0) {
-        console.log(`🧹 Removed duplicates: ${deleted} for index: ${idx.name}`);
-      } else {
-        console.log(`✅ No duplicates for index: ${idx.name}`);
-      }
-
-      // Ensure index still exists
-      try {
-        await collection.createIndex(idx.key, { unique: true, name: idx.name });
-        console.log(`🔒 Unique index ensured: ${idx.name}`);
-      } catch (e) {
-        console.log(`⚠️ Could not ensure index ${idx.name}:`, e.message);
-      }
+      console.log(`🔍 Cleaning ${collectionName} -> ${indexName}`);
+      const deleted = await removeDuplicatesForUniqueIndex(collection, index);
+      console.log(`🧹 Removed ${deleted} duplicates`);
     }
   }
-
-  console.log("\n🎉 All Collections Cleanup Completed!");
 }
 
 const connectDB = async () => {
@@ -84,8 +68,18 @@ const connectDB = async () => {
     await mongoose.connect(process.env.MONGO_URI);
     console.log("✅ MongoDB connected successfully");
 
-    // ✅ Run universal cleanup
-    await cleanupAllCollectionsDuplicates();
+    /**
+     * ⚠️ VERY IMPORTANT
+     * Duplicate cleanup runs ONLY when explicitly enabled
+     */
+    if (
+      process.env.RUN_DB_CLEANUP === "true" &&
+      process.env.NODE_ENV !== "production"
+    ) {
+      console.log("🧹 Running controlled duplicate cleanup...");
+      await runDuplicateCleanup();
+      console.log("✅ Duplicate cleanup completed");
+    }
   } catch (err) {
     console.error("❌ MongoDB connection error:", err);
     process.exit(1);
@@ -93,3 +87,4 @@ const connectDB = async () => {
 };
 
 module.exports = connectDB;
+
