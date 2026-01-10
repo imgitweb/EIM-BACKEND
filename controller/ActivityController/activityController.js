@@ -21,16 +21,12 @@ exports.generateActivities = async ({ startup_id, planName }) => {
   const startup = await StartupModel.findById(startup_id);
   if (!startup) throw new Error("Startup not found");
 
-  const exists = await ActivityModel.findOne({ startup_id });
-  if (exists) throw new Error("Activities already generated");
-
   const docs = activitiesData.map((act, index) => ({
     startup_id,
     activity_name: act.activity_name,
     activity_schema: act.activity_path,
     order: index + 1,
 
-    // FLOW RULE: previous 3 activities
     prerequisite: activitiesData
       .slice(Math.max(0, index - 3), index)
       .map((p) => ({
@@ -38,16 +34,25 @@ exports.generateActivities = async ({ startup_id, planName }) => {
         status: false,
       })),
 
-    // HARD STAGE RULE
     is_accessible: isAccessibleByStage(planName, act.activity_path),
 
     is_completed: false,
     is_deleted: false,
   }));
 
-  await ActivityModel.insertMany(docs);
+  const ops = docs.map((doc) => ({
+    updateOne: {
+      filter: { startup_id: doc.startup_id, activity_schema: doc.activity_schema },
+      update: { $setOnInsert: doc },
+      upsert: true,
+    },
+  }));
+
+  await ActivityModel.bulkWrite(ops, { ordered: false });
+
   return { success: true };
 };
+
 
 /* =========================== GET ALL ACTIVITIES ====================== */
 

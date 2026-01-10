@@ -176,24 +176,25 @@ app.use(
 app.use(
   session({
     name: "sessionId",
-    secret: process.env.JWT_SECRET,
+    secret: process.env.SESSION_SECRET, // ✅ change this
     resave: false,
     saveUninitialized: false,
-    rolling: true, // 🔥 keeps session alive
+    rolling: true,
     store: MongoStore.create({
       mongoUrl: process.env.MONGO_URI,
       collectionName: "sessions",
-      ttl: 24 * 60 * 60, // 1 day
+      ttl: 24 * 60 * 60,
     }),
-    cookie: {
-      httpOnly: true,
-      secure: true, // 🔥 HTTPS only
-      sameSite: "None", // 🔥 cross-domain allowed
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
-      // domain: ".incubationmasters.com", // ✅ enable ONLY if subdomains used
-    },
+   cookie: {
+        httpOnly: true,
+        secure: false,
+        sameSite: "lax",
+        maxAge: 24 * 60 * 60 * 1000,
+      }
   })
 );
+
+
 
 // ─────────────────────────────────────────────────────────────
 // ✅ Request Logging
@@ -286,7 +287,7 @@ app.use("/api/cofounders", routes.cofounders(upload));
 app.use("/api/chatgpt", require("./routes/chatGptRoutes"));
 app.use("/api/idea", require("./routes/chatGptRoutes"));
 app.use("/api/uim-register", require("./routes/chatGptRoutes"));
-app.use("/api", courseRoutes);
+app.use("/api/course", courseRoutes);
 app.use("/api/post-cofounder", routes.postCoFounder);
 app.use("/api/startup-hire", routes.startupHireTeamRoutes);
 app.use(
