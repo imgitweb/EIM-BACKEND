@@ -176,29 +176,25 @@ app.use(
 // ✅ Session Configuration
 // ─────────────────────────────────────────────────────────────
 
+// Add this at the very top of your app initialization
+app.set("trust proxy", 1);
 app.use(
   session({
     name: "sessionId",
     secret: process.env.SESSION_SECRET,
     resave: false,
-    saveUninitialized: false, // Login ke bina faltu session create nahi karega
-    rolling: true, // Har request pe expiry time refresh karega
+    saveUninitialized: false,
+    rolling: true,
     store: MongoStore.create({
       mongoUrl: process.env.MONGO_URI,
       collectionName: "sessions",
-      ttl: 24 * 60 * 60, // Database me session 1 din tak rahega
-      autoRemove: "native",
+      ttl: 24 * 60 * 60,
     }),
     cookie: {
-      httpOnly: true, // Frontend JS cookie access nahi kar payega (Security)
-      // ✅ Production Logic
-      secure: process.env.NODE_ENV === "production", // Production me TRUE hona zaroori hai
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Cross-site ke liye 'none'
-
-      // ⚠️ DHYAN DEIN: Agar ye session sirf OTP ke liye hai to 5 min thik hai.
-      // Agar ye LOGIN session hai, to user 5 minute baad logout ho jayega.
-      // Login ke liye isse badha kar 24 hours kar dena chahiye: 24 * 60 * 60 * 1000
-      maxAge: 5 * 60 * 1000,
+      httpOnly: true,
+      secure: true, // Force true for production
+      sameSite: "none", // Required for cross-site (Frontend on one domain, Backend on another)
+      maxAge: 30 * 60 * 1000, // Increase to 30 minutes to give users time to get OTP
     },
   })
 );
