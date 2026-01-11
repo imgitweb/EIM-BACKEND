@@ -170,7 +170,10 @@ app.use(
   "/startupidea/uploads",
   express.static(path.join(__dirname, "startupidea/uploads"))
 );
-
+app.use(
+  "/startupidea/photos",
+  express.static(path.join(__dirname, "startupidea/photos"))
+);
 // ─────────────────────────────────────────────────────────────
 // ✅ Session Configuration
 // ─────────────────────────────────────────────────────────────
