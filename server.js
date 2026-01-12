@@ -118,6 +118,8 @@ const allowedOrigins =
         "https://hackmake.in",
         "https://www.hackmake.in",
         "http://www.hackmake.in",
+        "https://hackathon-app-entry-system-1.onrender.com",
+        "http://hackathon-app-entry-system-1.onrender.com",
       ]
     : [
         "http://localhost:3000",
@@ -133,21 +135,19 @@ const corsOptions = {
   origin: function (origin, callback) {
     if (!origin) return callback(null, true);
     if (
-      origin.startsWith("http://localhost") ||
-      origin.startsWith("http://127.0.0.1")
+      allowedOrigins.indexOf(origin) !== -1 ||
+      origin.startsWith("http://localhost")
     ) {
-      return callback(null, true);
+      callback(null, true);
+    } else {
+      console.error("❌ CORS Blocked Origin:", origin);
+      callback(new Error("Not allowed by CORS"));
     }
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-
-    console.error("❌ CORS Blocked Origin:", origin);
-    return callback(new Error("Not allowed by CORS"));
   },
   credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token"],
 };
-
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions));
 
@@ -157,8 +157,9 @@ app.options("*", cors(corsOptions));
 app.use(helmet());
 app.use(
   helmet({
-    crossOriginResourcePolicy: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" },
     crossOriginEmbedderPolicy: false,
+    contentSecurityPolicy: false,
   })
 );
 app.use(cookieParser());
@@ -169,31 +170,32 @@ app.use(
   "/startupidea/uploads",
   express.static(path.join(__dirname, "startupidea/uploads"))
 );
-
+app.use(
+  "/startupidea/photos",
+  express.static(path.join(__dirname, "startupidea/photos"))
+);
 // ─────────────────────────────────────────────────────────────
 // ✅ Session Configuration
 // ─────────────────────────────────────────────────────────────
+
+// Add this at the very top of your app initialization
+app.set("trust proxy", 1);
 app.use(
   session({
     name: "sessionId",
     secret: process.env.SESSION_SECRET,
-
-    resave: false,
+    resave: true, // true rakhein taaki session refresh ho
     saveUninitialized: false,
     rolling: true,
-
     store: MongoStore.create({
       mongoUrl: process.env.MONGO_URI,
       collectionName: "sessions",
-      ttl: 24 * 60 * 60,
-      autoRemove: "native",
     }),
-
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      maxAge: 24 * 60 * 60 * 1000,
+      secure: true, // Mandatory for production HTTPS
+      sameSite: "none", // Mandatory if Frontend and Backend domains are different
+      maxAge: 30 * 60 * 1000, // 30 mins
     },
   })
 );
