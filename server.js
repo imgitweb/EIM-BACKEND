@@ -179,23 +179,28 @@ app.use(
 // ─────────────────────────────────────────────────────────────
 
 // Add this at the very top of your app initialization
-app.set("trust proxy", 1);
+const isProduction = process.env.NODE_ENV === "production";
+app.set("trust proxy", isProduction ? 1 : 0);
+
 app.use(
   session({
     name: "sessionId",
     secret: process.env.SESSION_SECRET,
-    resave: true, // true rakhein taaki session refresh ho
+    resave: false,
     saveUninitialized: false,
     rolling: true,
+
     store: MongoStore.create({
       mongoUrl: process.env.MONGO_URI,
       collectionName: "sessions",
+      ttl: 30 * 60, // 30 minutes
     }),
+
     cookie: {
       httpOnly: true,
-      secure: true, // Mandatory for production HTTPS
-      sameSite: "none", // Mandatory if Frontend and Backend domains are different
-      maxAge: 30 * 60 * 1000, // 30 mins
+      secure: isProduction, // HTTPS only in prod
+      sameSite: isProduction ? "none" : "lax", // Cross-site in prod, normal in local
+      maxAge: 30 * 60 * 1000,
     },
   })
 );

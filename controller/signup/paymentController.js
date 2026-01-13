@@ -3,8 +3,6 @@ const Stripe = require("stripe");
 const fs = require("fs");
 const path = require("path");
 const StartupModel = require("../../models/signup/StartupModel");
-
-// Initialize Stripe with proper error handling
 const getStripeInstance = () => {
   const stripeKey = process.env.STRIPE_SECRET_KEY;
   if (!stripeKey) {
@@ -13,8 +11,6 @@ const getStripeInstance = () => {
   }
   return new Stripe(stripeKey);
 };
-
-// Load plans with error handling
 const getPlans = () => {
   try {
     const plansPath = path.join(__dirname, "../../config/Plans.json");
@@ -25,7 +21,6 @@ const getPlans = () => {
     if (!plansData.plans || !Array.isArray(plansData.plans)) {
       throw new Error("Invalid plans configuration");
     }
-    // Validate each plan
     plansData.plans.forEach((plan) => {
       if (!plan.id || !plan.name || plan.price === undefined) {
         throw new Error(`Invalid plan: ${JSON.stringify(plan)}`);
@@ -71,8 +66,6 @@ exports.createPaymentIntent = async (req, res) => {
     }
 
     console.log("Selected Plan:", plan);
-
-    // Handle free plan case
     let amount = 0;
     const price =
       typeof plan.price === "string"
@@ -87,7 +80,7 @@ exports.createPaymentIntent = async (req, res) => {
           error: "Invalid plan price format",
         });
       }
-      amount = parsed * 100; // Convert to cents
+      amount = parsed * 100;
     }
 
     console.log("Calculated Amount:", amount);
@@ -101,7 +94,6 @@ exports.createPaymentIntent = async (req, res) => {
       });
     }
 
-    // Find startup and create/update Stripe customer
     let startup = await StartupModel.findOne({ email });
     if (!startup) {
       return res.status(404).json({
@@ -109,8 +101,6 @@ exports.createPaymentIntent = async (req, res) => {
         error: "Startup not found",
       });
     }
-
-    // Create or retrieve Stripe customer
     if (!startup.stripeCustomerId) {
       const customer = await stripe.customers.create({
         email,
@@ -122,10 +112,9 @@ exports.createPaymentIntent = async (req, res) => {
 
     console.log("Creating payment intent with amount:", amount);
 
-    // Create payment intent
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amount, // Amount in cents
-      currency: "usd",
+      currency: "inr",
       customer: startup.stripeCustomerId,
       metadata: {
         planId,
