@@ -67,6 +67,7 @@ const routes = {
   schemeRoutes: require("./routes/schemeRoutes"),
   updateCompanyDetailsRoutes: require("./routes/UpdateCompanyDetailsRoutes"),
   whatsappRoutes: require("./routes/twilio/notifyRoutes"),
+ 
 };
 const { ActivityRoute } = require("./routes/Activity/activityRoute");
 const { seedDeliverables } = require("./seeding/deliverablesSeeder");
@@ -78,6 +79,7 @@ const marketsizecalculator = require("./routes/MarketSizeRoutes/MarketSizeCalcul
 const HackRegistration = require("./routes/HackRoute/HackRoutes");
 const marketing = require("./routes/marketingRoutes");
 const leadRoutes = require("./routes/LeadRoute.js");
+const pitchDeckroutes = require("./routes/pitchDeckroutes.js")
 const businessModelRoutes = require("./routes/businessModelRoutes.js");
 const {
   DocumentVaultRoutes,
@@ -323,6 +325,8 @@ app.use("/api/leads", leadRoutes);
 app.use("/api/business-model", businessModelRoutes);
 app.use("/api/whatsapp", routes.whatsappRoutes);
 app.use("/api/document_vault", DocumentVaultRoutes(upload));
+app.use("/api/pitchdeck", pitchDeckroutes);
+
 
 // ─────────────────────────────────────────────────────────────
 // ✅ Error Handlers
