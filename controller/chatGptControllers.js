@@ -4,7 +4,7 @@ const {
 } = require("../controller/helper/helper.js");
 const UimRegister = require("../models/UimRegisterModel");
 const Idea = require("../models/IdeaModel");
-const { CallOpenAi } = require("./helper/helper");
+const { CallOpenAi } = require("./helper/helper.js");
 
 const GenerateIdeaForUim = async (req, res) => {
   try {
