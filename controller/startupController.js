@@ -245,26 +245,57 @@ exports.updateStartupDetails = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
 exports.uploadStartupLogo = async (req, res) => {
   try {
     const startupId = req.params.id;
-
-    if (!req.file) {
-      return res.status(400).json({ message: "Logo file required" });
-    }
 
     const startup = await User.findById(startupId);
     if (!startup) {
       return res.status(404).json({ message: "Startup not found" });
     }
 
-    startup.logoUrl = `/uploads/${req.file.filename}`;
+    // 👇 Logo optional
+    if (req.file) {
+      startup.logoUrl = `/uploads/${req.file.filename}`;
+    }
+
     await startup.save();
 
     res.json({
-      message: "Logo uploaded successfully",
-      logoUrl: startup.logoUrl,
+      message: req.file
+        ? "Logo uploaded successfully"
+        : "Startup updated without logo",
+      logoUrl: startup.logoUrl || null,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.uploadStartupProfile = async (req, res) => {
+  try {
+    const startupId = req.params.id;
+
+    const startup = await User.findById(startupId);
+    if (!startup) {
+      return res.status(404).json({ message: "Startup not found" });
+    }
+
+    console.log("🔵 Uploading profile PDF for startup:", req.file);
+    // PDF optional
+    if (req.file) {
+      startup.startupProfilePdf = `/uploads/${req.file.filename}`;
+    }
+
+    await startup.save();
+
+    res.json({
+      success: true,
+      message: req.file
+        ? "Profile PDF uploaded successfully"
+        : "Startup updated without PDF",
+      profilePdf: startup.profilePdf || null,
     });
   } catch (err) {
     console.error(err);
