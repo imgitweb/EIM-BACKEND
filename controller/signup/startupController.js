@@ -74,7 +74,7 @@ exports.createStartup = async (req, res) => {
       password,
       startupName,
       problemStatement,
-      revenueStarted,
+      revenueStarted = false,
       contactPersonName,
       country,
       state,

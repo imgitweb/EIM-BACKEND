@@ -97,18 +97,18 @@ const startupSchema = new mongoose.Schema(
       type: Date,
     },
     // ✅ NEW FIELDS ADDED
-    revenueModel: { 
-      type: String, 
-      trim: true 
-    }, 
-    mvpLaunched: { 
-      type: Boolean, 
-      default: false 
-    }, 
-    companyRegistered: { 
-      type: Boolean, 
-      default: false 
-    }, 
+    revenueModel: {
+      type: String,
+      trim: true,
+    },
+    mvpLaunched: {
+      type: Boolean,
+      default: false,
+    },
+    companyRegistered: {
+      type: Boolean,
+      default: false,
+    },
 
     // --- 5. LOCATION (MIXED OLD & NEW) ---
     country: {
@@ -120,14 +120,14 @@ const startupSchema = new mongoose.Schema(
       trim: true,
     },
     // ✅ NEW FIELDS ADDED
-    city: { 
-      type: String, 
-      trim: true 
-    }, 
-    address: { 
-      type: String, 
-      trim: true 
-    }, 
+    city: {
+      type: String,
+      trim: true,
+    },
+    address: {
+      type: String,
+      trim: true,
+    },
 
     // --- 6. FINANCIALS (KEPT AS IS) ---
     revenueStarted: {
@@ -139,14 +139,14 @@ const startupSchema = new mongoose.Schema(
       default: false,
     },
     bootstrap: {
-      currency: { type: String, default: "USD" },
+      currency: { type: String, default: "INR" },
       amount: { type: Number },
     },
     revenue: {
       generated: { type: Boolean, default: false },
       lastMonth: { type: String },
       amount: { type: Number },
-      currency: { type: String, default: "USD" },
+      currency: { type: String, default: "INR" },
     },
 
     // --- 7. LEGAL & FILES (KEPT AS IS) ---

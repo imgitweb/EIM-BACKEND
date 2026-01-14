@@ -78,6 +78,7 @@ const marketsizecalculator = require("./routes/MarketSizeRoutes/MarketSizeCalcul
 const HackRegistration = require("./routes/HackRoute/HackRoutes");
 const marketing = require("./routes/marketingRoutes");
 const leadRoutes = require("./routes/LeadRoute.js");
+const pitchDeckroutes = require("./routes/pitchDeckroutes.js");
 const businessModelRoutes = require("./routes/businessModelRoutes.js");
 const {
   DocumentVaultRoutes,
@@ -179,23 +180,26 @@ app.use(
 // ─────────────────────────────────────────────────────────────
 
 // Add this at the very top of your app initialization
-app.set("trust proxy", 1);
+const isProduction = process.env.NODE_ENV === "production";
+app.set("trust proxy", isProduction ? 1 : 0);
+
 app.use(
   session({
-    name: "sessionId",
+    name: "sid", // Custom name to avoid fingerprinting
     secret: process.env.SESSION_SECRET,
-    resave: true, // true rakhein taaki session refresh ho
+    resave: false,
     saveUninitialized: false,
-    rolling: true,
+    rolling: false, // Set to false to prevent refreshing on every request
     store: MongoStore.create({
       mongoUrl: process.env.MONGO_URI,
-      collectionName: "sessions",
+      ttl: 24 * 60 * 60, // 1 day
     }),
     cookie: {
       httpOnly: true,
-      secure: true, // Mandatory for production HTTPS
-      sameSite: "none", // Mandatory if Frontend and Backend domains are different
-      maxAge: 30 * 60 * 1000, // 30 mins
+      secure: isProduction, // Required for SameSite: 'none'
+      sameSite: isProduction ? "none" : "lax",
+      maxAge: 24 * 60 * 60 * 1000,
+      domain: isProduction ? ".incubationmasters.com" : undefined, // Optional: share across subdomains
     },
   })
 );
@@ -318,6 +322,7 @@ app.use("/api/leads", leadRoutes);
 app.use("/api/business-model", businessModelRoutes);
 app.use("/api/whatsapp", routes.whatsappRoutes);
 app.use("/api/document_vault", DocumentVaultRoutes(upload));
+app.use("/api/pitchdeck", pitchDeckroutes);
 
 // ─────────────────────────────────────────────────────────────
 // ✅ Error Handlers
