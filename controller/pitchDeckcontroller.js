@@ -15,10 +15,10 @@ const generatePitchDeck = async (req, res) => {
 
     const systemPrompt = "You are a professional startup consultant. You must respond ONLY with a valid JSON object.";
 
-    const prompt = `
-Based on the business profile provided below, generate a professional startup pitch deck.
+const prompt = `
+Based on the business profile provided below, generate a professional startup pitch deck in JSON format. 
 
-Business Profile:
+### BUSINESS PROFILE:
 - Startup Name: ${formData.businessName}
 - Business Type: ${formData.businessType}
 - Services Offered: ${(formData.services || []).join(", ")}
@@ -29,39 +29,47 @@ Business Profile:
 - Contact Information:
     - Email: ${formData.email}
     - Mobile: ${formData.mobile}
-    - Address: ${formData.address || "Not provided"}
+    - Address: ${formData.address || "India"}
 
-Strict Output JSON Structure:
+### OUTPUT INSTRUCTIONS:
+1. Return ONLY a valid JSON object.
+2. The JSON structure must EXACTLY match the keys provided below.
+3. Be professional, creative, and persuasive in the content.
+4. Use the "team" array to generate 4 logical founding members based on the industry.
+
+### STRICT JSON STRUCTURE:
 {
   "StartupName": "${formData.businessName}",
-  "Who_We_are": "A brief summary of the startup",
-  "Problem": "The core problem being solved",
-  "Solution0": "Key solution point 1",
-  "Solution1": "Key solution point 2",
-  "Solution2": "Key solution point 3",
-  "Solution3": "Key solution point 4",
-  "firstToMarketText": "Explanation of market timing",
-  "Market": "Market size and opportunity description",
-  "Features": "Detailed list of unique features",
+  "Who_We_are": "A concise and catchy 1-sentence summary of the startup.",
+  "Problem": "A detailed description of the pain point being addressed.",
+  "Solution0": "Direct solution feature 1",
+  "Solution1": "Direct solution feature 2",
+  "Solution2": "Direct solution feature 3",
+  "Solution3": "Direct solution feature 4",
   "ProductOverview": {
     "isUnique": true,
     "isTested": true,
     "firstToMarket": true,
     "hasAdditionalFeatures": true
   },
-  "BusinessModel": "How the startup makes money",
-  "CompetitionAnalysis": "Brief overview of competitors",
-  "GrowthStrategy": "Plan for scaling the business",
-  "FundingRequest": "Capital needed and its use",
+  "Features": "A comprehensive list of product features and capabilities.",
+  "Market": "Description of the target audience and market opportunity.",
+  "CompetitionAnalysis": "How this startup stands out from existing competitors.",
+  "GrowthStrategy": "3-step plan for scaling and acquiring customers.",
+  "BusinessModel": "Detailed explanation of revenue streams and pricing strategy.",
+  "founders": "Main founder names and roles (e.g., Member1 (CEO), Member2 (CTO))",
+  "team": [
+    { "name": "Name 1", "designation": "Founder & CEO", "image": "https://i.pravatar.cc/150?img=1" },
+    { "name": "Name 2", "designation": "Co-founder & CTO", "image": "https://i.pravatar.cc/150?img=2" },
+    { "name": "Name 3", "designation": "Lead Designer", "image": "https://i.pravatar.cc/150?img=3" },
+    { "name": "Name 4", "designation": "Marketing Head", "image": "https://i.pravatar.cc/150?img=4" }
+  ],
+  "fundingRequest": "A professional funding request (e.g., We are seeking ₹${formData.bootstrapFund} for expansion).",
   "ContactInformation": {
     "Email": "${formData.email}",
     "Mobile": "${formData.mobile}",
-    "Address": "${formData.address || 'Not provided'}"
-  },
-  "team": [
-    { "name": "Founding Member 1", "designation": "CEO", "image": "https://via.placeholder.com/150" },
-    { "name": "Founding Member 2", "designation": "CTO", "image": "https://via.placeholder.com/150" }
-  ]
+    "Address": "${formData.address || 'India'}"
+  }
 }`;
 
     // 2. OpenAI Call (Using your helper)
