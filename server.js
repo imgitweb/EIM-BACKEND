@@ -184,6 +184,8 @@ const isProduction = process.env.NODE_ENV === "production";
 console.log("isProduction", isProduction);
 app.set("trust proxy", true);
 
+app.set("trust proxy", 1);
+
 app.use(
   session({
     name: "sid",
@@ -191,12 +193,10 @@ app.use(
     resave: false,
     saveUninitialized: false,
     rolling: true,
-
     store: MongoStore.create({
       mongoUrl: process.env.MONGO_URI,
       ttl: 24 * 60 * 60,
     }),
-
     cookie: {
       httpOnly: true,
       secure: true,
