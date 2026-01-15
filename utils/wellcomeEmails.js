@@ -19,47 +19,81 @@ const welcomeEmail = async ({ email, startupName }) => {
       subject: "Welcome to EIM – Your Account Is Ready",
       html: `
       <!DOCTYPE html>
-      <html>
-      <body style="font-family:Arial;background:#f4f6f8;padding:20px">
-        <table width="100%" align="center">
-          <tr>
-            <td align="center">
-              <table width="600" style="background:#fff;padding:30px;border-radius:8px">
-                <tr>
-                  <td align="center">
-                    <h2>Welcome to EIM 🎉</h2>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <p>Hello <strong>${startupName}</strong>,</p>
-                    <p>Your account has been successfully created on <strong>EIM</strong>.</p>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Welcome to EIM</title>
 
-                    <p style="text-align:center;margin:30px 0">
-                      <a href="${process.env.APP_URL}/login"
-                        style="background:#4f46e5;color:#fff;padding:12px 25px;
-                        text-decoration:none;border-radius:5px;font-weight:bold">
-                        Login to Your Account
-                      </a>
-                    </p>
+  <!-- Bootstrap CSS -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  >
+</head>
 
-                    <p>If you need help, contact us at
-                      <a href="mailto:support@eim.com">support@eim.com</a>
-                    </p>
+<body class="bg-light d-flex align-items-center min-vh-100">
 
-                    <p>Regards,<br><strong>EIM Team</strong></p>
-                  </td>
-                </tr>
-              </table>
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-12 col-md-9 col-lg-7">
 
-              <p style="font-size:12px;color:#999;margin-top:10px">
-                © ${new Date().getFullYear()} EIM. All rights reserved.
+        <div class="card border-0 shadow-lg rounded-4">
+          <div class="card-body p-4 p-md-5">
+
+            <!-- Header -->
+            <div class="text-center mb-4">
+              
+              <h2 class="fw-bold mt-3">Welcome to EIM</h2>
+              <p class="text-muted mb-0">
+                Let’s get you started
               </p>
-            </td>
-          </tr>
-        </table>
-      </body>
-      </html>
+            </div>
+
+            <hr class="my-4">
+
+            <!-- Content -->
+            <p class="fs-6">
+              Hello <strong>${startupName}</strong>,
+            </p>
+
+            <p class="text-muted">
+              Your EIM account has been created successfully. You can now log in
+              and start managing your workspace right away.
+            </p>
+
+            <!-- CTA -->
+            <div class="d-grid gap-2 my-4">
+              <a
+                href="https://www.incubationmasters.com/login"
+                class="btn btn-primary btn-lg rounded-3"
+              >
+                Access Your Dashboard
+              </a>
+            </div>
+
+            <!-- Support -->
+            <div class="alert alert-light border text-center small mb-0">
+              Need help?
+              <a href="mailto:eimsupport@imglobal.in" class="fw-semibold">
+                eimsupport@imglobal.in
+              </a>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <p class="text-center text-muted small mt-4">
+          © ${new Date().getFullYear()} EIM. All rights reserved.
+        </p>
+
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
+
       `,
     };
 

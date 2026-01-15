@@ -182,40 +182,51 @@ app.use(
 
 const isProduction = process.env.NODE_ENV === "production";
 console.log("isProduction", isProduction);
+// app.set("trust proxy", 1);
+// app.use(
+//   session({
+//     name: "sid",
+//     secret: process.env.SESSION_SECRET,
+//     resave: false,
+//     saveUninitialized: false,
+//     rolling: true,
+//     store: MongoStore.create({
+//       mongoUrl: process.env.MONGO_URI,
+//       ttl: 24 * 60 * 60,
+//     }),
+//     cookie: {
+//       httpOnly: true,
+//       secure: isProduction,
+//       sameSite: "none",
+//       maxAge: 24 * 60 * 60 * 1000,
+//     },
+//   })
+// );
 
-// ✅ correct for nginx / aws / load balancer
-app.set("trust proxy", 1);
-
+app.set("trust proxy", isProduction);
 app.use(
   session({
     name: "sid",
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-
-    // ✅ OTP + CSRF flows ke liye best
     rolling: true,
 
     store: MongoStore.create({
       mongoUrl: process.env.MONGO_URI,
-      ttl: 24 * 60 * 60, // 1 day
+      ttl: 24 * 60 * 60,
     }),
 
     cookie: {
       httpOnly: true,
-
-      // ✅ ONLY production me secure cookie
       secure: isProduction,
-
-      // ✅ frontend ↔ backend cross-domain ke liye required
-      sameSite: "none",
+      sameSite: isProduction ? "none" : "lax",
 
       maxAge: 24 * 60 * 60 * 1000,
     },
   })
 );
 
-// ✅ debugging (safe)
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.url} - Session ID: ${req.sessionID}`);
   next();
