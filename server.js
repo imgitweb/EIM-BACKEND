@@ -182,18 +182,21 @@ app.use(
 
 const isProduction = process.env.NODE_ENV === "production";
 console.log("isProduction", isProduction);
-app.set("trust proxy", 1);
+app.set("trust proxy", true);
 
 app.use(
   session({
-    name: "eim.sid",
+    name: "sid",
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
+    rolling: true,
+
     store: MongoStore.create({
       mongoUrl: process.env.MONGO_URI,
       ttl: 24 * 60 * 60,
     }),
+
     cookie: {
       httpOnly: true,
       secure: true,
