@@ -27,6 +27,13 @@ router.post(
   upload.single("logo"),
   startupController.uploadStartupLogo
 );
+router.post(
+  "/upload-profile/:id",
+  upload.single("file"),
+  startupController.uploadStartupProfile
+);
+
+
 
 
 router.post("/validate_startup/:id", startupController.validateStartup);

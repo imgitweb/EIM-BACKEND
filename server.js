@@ -175,31 +175,31 @@ app.use(
   "/startupidea/photos",
   express.static(path.join(__dirname, "startupidea/photos"))
 );
+
 // ─────────────────────────────────────────────────────────────
 // ✅ Session Configuration
 // ─────────────────────────────────────────────────────────────
 
-// Add this at the very top of your app initialization
 const isProduction = process.env.NODE_ENV === "production";
 app.set("trust proxy", isProduction ? 1 : 0);
 
 app.use(
   session({
-    name: "sid", // Custom name to avoid fingerprinting
+    name: "sid",
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-    rolling: false, // Set to false to prevent refreshing on every request
+    rolling: false,
     store: MongoStore.create({
       mongoUrl: process.env.MONGO_URI,
       ttl: 24 * 60 * 60, // 1 day
     }),
     cookie: {
       httpOnly: true,
-      secure: isProduction, // Required for SameSite: 'none'
+      secure: isProduction,
       sameSite: isProduction ? "none" : "lax",
       maxAge: 24 * 60 * 60 * 1000,
-      domain: isProduction ? ".incubationmasters.com" : undefined, // Optional: share across subdomains
+      domain: isProduction ? ".incubationmasters.com" : undefined,
     },
   })
 );
