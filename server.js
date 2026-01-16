@@ -180,26 +180,27 @@ app.use(
 // ✅ Session Configuration
 // ─────────────────────────────────────────────────────────────
 
+// 1. Define production flag
 const isProduction = process.env.NODE_ENV === "production";
-app.set("trust proxy", isProduction ? 1 : 0);
 
+app.set("trust proxy", 1);
 app.use(
   session({
     name: "sid",
-    secret: process.env.SESSION_SECRET,
+    secret: process.env.SESSION_SECRET || "fallback_secret",
     resave: false,
     saveUninitialized: false,
-    rolling: false,
+    rolling: true,
     store: MongoStore.create({
       mongoUrl: process.env.MONGO_URI,
-      ttl: 24 * 60 * 60, // 1 day
+      ttl: 24 * 60 * 60,
     }),
     cookie: {
       httpOnly: true,
       secure: isProduction,
       sameSite: isProduction ? "none" : "lax",
       maxAge: 24 * 60 * 60 * 1000,
-      domain: isProduction ? ".incubationmasters.com" : undefined,
+      path: "/",
     },
   })
 );
