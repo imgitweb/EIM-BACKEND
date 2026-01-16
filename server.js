@@ -119,8 +119,6 @@ const allowedOrigins =
         "https://hackmake.in",
         "https://www.hackmake.in",
         "http://www.hackmake.in",
-        "https://hackathon-app-entry-system-1.onrender.com",
-        "http://hackathon-app-entry-system-1.onrender.com",
       ]
     : [
         "http://localhost:3000",
@@ -128,8 +126,6 @@ const allowedOrigins =
         "http://localhost:3002",
         "http://localhost:5000",
         "http://localhost:5173",
-        "https://hack-and-make-2026.vercel.app",
-        "http://hack-and-make-2026.vercel.app",
       ];
 
 const corsOptions = {
@@ -184,22 +180,24 @@ app.use(
 const isProduction = process.env.NODE_ENV === "production";
 
 app.set("trust proxy", 1);
+// Is block ko dhundhein aur isse replace karein
 app.use(
   session({
     name: "sid",
     secret: process.env.SESSION_SECRET || "fallback_secret",
-    resave: false,
+    resave: true, // Isse true karein agar session expire ho raha hai
     saveUninitialized: false,
-    rolling: true,
+    rolling: true, // Har request par expiry time badh jayega
+    proxy: true, // Yeh line add karein (Nginx/Production ke liye zaroori hai)
     store: MongoStore.create({
       mongoUrl: process.env.MONGO_URI,
-      ttl: 24 * 60 * 60,
+      ttl: 24 * 60 * 60, // 1 din
     }),
     cookie: {
       httpOnly: true,
-      secure: isProduction,
+      secure: isProduction, // Production mein HTTPS hona chahiye
       sameSite: isProduction ? "none" : "lax",
-      maxAge: 24 * 60 * 60 * 1000,
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
       path: "/",
     },
   })
