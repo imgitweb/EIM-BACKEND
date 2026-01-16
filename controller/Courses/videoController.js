@@ -423,8 +423,20 @@ const getAllVideos = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    const totalVideos = await Video.countDocuments();
-    const videos = await Video.find()
+    const search = req.query.search || "";
+
+    // 🔍 Search condition (title based)
+    const query = search
+      ? {
+          title: { $regex: search, $options: "i" }, // case-insensitive
+        }
+      : {};
+
+    // 📊 Count after search
+    const totalVideos = await Video.countDocuments(query);
+
+    // 🎥 Fetch videos
+    const videos = await Video.find(query)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
