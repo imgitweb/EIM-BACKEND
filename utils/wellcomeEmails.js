@@ -1,106 +1,147 @@
 const nodemailer = require("nodemailer");
 
-const welcomeEmail = async ({ email, startupName }) => {
-  try {
-    const transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST || "smtp.gmail.com",
-      port: 587,
-      secure: false,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS, // Gmail App Password
-      },
-    });
+// --- Helper Function to Replace Variables in HTML ---
+const replacePlaceholders = (html, replacements) => {
+  let finalHtml = html;
+  for (const key in replacements) {
+    finalHtml = finalHtml.replace(new RegExp(`{{${key}}}`, 'g'), replacements[key]);
+  }
+  return finalHtml;
+};
 
-    const mailOptions = {
-      from: process.env.EMAIL_FROM || "EIM Platform <no-reply@eim.com>",
-      to: email,
-      cc: "imcktiwari@gmail.com",
-      subject: "Welcome to EIM – Your Account Is Ready",
-      html: `
-      <!DOCTYPE html>
+// --- HTML Templates ---
+const TEMPLATES = {
+  welcome: `<!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Welcome to EIM</title>
-
-  <!-- Bootstrap CSS -->
-  <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-    rel="stylesheet"
-  >
-</head>
-
-<body class="bg-light d-flex align-items-center min-vh-100">
-
-  <div class="container">
-    <div class="row justify-content-center">
-      <div class="col-12 col-md-9 col-lg-7">
-
-        <div class="card border-0 shadow-lg rounded-4">
-          <div class="card-body p-4 p-md-5">
-
-            <!-- Header -->
-            <div class="text-center mb-4">
-              
-              <h2 class="fw-bold mt-3">Welcome to EIM</h2>
-              <p class="text-muted mb-0">
-                Let’s get you started
-              </p>
-            </div>
-
-            <hr class="my-4">
-
-            <!-- Content -->
-            <p class="fs-6">
-              Hello <strong>${startupName}</strong>,
-            </p>
-
-            <p class="text-muted">
-              Your EIM account has been created successfully. You can now log in
-              and start managing your workspace right away.
-            </p>
-
-            <!-- CTA -->
-            <div class="d-grid gap-2 my-4">
-              <a
-                href="https://www.incubationmasters.com/login"
-                class="btn btn-primary btn-lg rounded-3"
-              >
-                Access Your Dashboard
-              </a>
-            </div>
-
-            <!-- Support -->
-            <div class="alert alert-light border text-center small mb-0">
-              Need help?
-              <a href="mailto:eimsupport@imglobal.in" class="fw-semibold">
-                eimsupport@imglobal.in
-              </a>
-            </div>
-
-          </div>
+<head><meta charset="UTF-8"><title>Welcome</title></head>
+<body style="margin:0;padding:0;background-color:#f8f9fa;font-family:'Segoe UI',sans-serif;">
+  <div style="background-color:#f8f9fa;padding:40px 20px;">
+    <div style="max-width:600px;margin:0 auto;background-color:#ffffff;border-radius:16px;border:1px solid #eeeeee;overflow:hidden;">
+      <div style="padding:40px;">
+        <div style="text-align:center;margin-bottom:30px;">
+          <h2 style="color:#212529;font-size:24px;margin:0;">👋 Welcome to EIM</h2>
+          <p style="color:#6c757d;">Elevate by Incubation Masters</p>
         </div>
-
-        <!-- Footer -->
-        <p class="text-center text-muted small mt-4">
-          © ${new Date().getFullYear()} EIM. All rights reserved.
+        <hr style="border:none;border-top:1px solid #dee2e6;margin:30px 0;">
+        <p style="color:#212529;font-size:16px;line-height:1.6;">
+          Hi <strong>${Name}</strong>, great to have you onboard.<br>
+          Your account has been successfully created.
         </p>
+        <div style="background-color:#f8f9fa;border-left:4px solid #0d6efd;padding:15px;margin-bottom:25px;">
+          <p style="margin:0;color:#495057;">✅ <strong>Next step:</strong> Complete your startup profile.</p>
+        </div>
+        <div style="text-align:center;margin:30px 0;">
+          <a href="${Login_Link}" style="background-color:#0d6efd;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:6px;font-weight:bold;display:inline-block;">👉 Access Dashboard</a>
+        </div>
+        <p style="color:#212529;">I'm excited to help you build, scale, and win.<br><br>– <strong>Eila</strong> (Your AI-CoFounder)</p>
+      </div>
+      <div style="background-color:#f1f3f5;padding:15px;text-align:center;"><p style="margin:0;font-size:14px;color:#6c757d;">Need help? <a href="mailto:eimsupport@imglobal.in" style="color:#0d6efd;">eimsupport@imglobal.in</a></p></div>
+    </div>
+    <div style="text-align:center;margin-top:25px;"><p style="color:#adb5bd;font-size:12px;">© 2026 EIM. All rights reserved.</p></div>
+  </div>
+</body></html>`,
 
+  profileReminder: `<!DOCTYPE html>
+<html lang="en">
+<body style="margin:0;padding:0;background-color:#f8f9fa;font-family:'Segoe UI',sans-serif;">
+  <div style="background-color:#f8f9fa;padding:40px 20px;">
+    <div style="max-width:600px;margin:0 auto;background-color:#ffffff;border-radius:16px;border:1px solid #eeeeee;overflow:hidden;">
+      <div style="padding:40px;">
+        <div style="text-align:center;margin-bottom:30px;">
+           <h2 style="color:#212529;font-size:24px;font-weight:700;">Action Required <span style="color:#ffc107;">⚠️</span></h2>
+        </div>
+        <p style="color:#212529;font-size:16px;line-height:1.6;">Hi <strong>${Name}</strong> 👋<br>I noticed your EIM profile is still incomplete.</p>
+        <div style="background-color:#f0f8ff;border:1px solid #cfe2ff;border-radius:8px;padding:20px;margin-bottom:25px;">
+          <p style="margin:0 0 10px 0;font-weight:600;color:#084298;">Completing it helps us:</p>
+          <ul style="margin:0;padding-left:20px;color:#495057;"><li>Match you with the right mentors</li><li>Recommend relevant programs</li><li>Track your startup progress</li></ul>
+        </div>
+        <p style="text-align:center;color:#6c757d;font-size:14px;">⏱ Takes less than 5 minutes</p>
+        <div style="text-align:center;margin-bottom:30px;">
+          <a href="${Profile_Link}" style="background-color:#0d6efd;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:6px;font-weight:bold;display:inline-block;">👉 Complete Now</a>
+        </div>
       </div>
     </div>
   </div>
+</body></html>`,
 
-</body>
-</html>
+  taskReminder: `<!DOCTYPE html>
+<html lang="en">
+<body style="margin:0;padding:0;background-color:#f8f9fa;font-family:'Segoe UI',sans-serif;">
+  <div style="background-color:#f8f9fa;padding:40px 20px;">
+    <div style="max-width:600px;margin:0 auto;background-color:#ffffff;border-radius:16px;border:1px solid #eeeeee;overflow:hidden;">
+      <div style="padding:40px;">
+        <div style="text-align:center;margin-bottom:25px;">
+           <h2 style="color:#212529;font-size:22px;font-weight:700;">⏰ Quick reminder from EIM</h2>
+        </div>
+        <div style="background-color:#fff8e1;border:1px dashed #ffc107;border-radius:8px;padding:20px;margin-bottom:25px;text-align:center;">
+          <p style="margin:0 0 5px 0;color:#6c757d;font-size:13px;text-transform:uppercase;">Pending Task</p>
+          <p style="margin:0;color:#212529;font-size:18px;font-weight:700;">“${Task_Title}”</p>
+        </div>
+        <p style="color:#495057;font-size:16px;text-align:center;margin-bottom:25px;">Completing it helps us unlock your next milestone and mentor inputs.</p>
+        <div style="text-align:center;margin-bottom:30px;">
+          <a href="${Task_Link}" style="background-color:#0d6efd;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:6px;font-weight:bold;display:inline-block;">👉 Finish Here</a>
+        </div>
+        <div style="text-align:center;"><p style="color:#6c757d;font-size:14px;">Need help? Just reply <strong>HELP</strong></p></div>
+      </div>
+    </div>
+  </div>
+</body></html>`
+};
 
-      `,
-    };
+// --- Main Email Function ---
+const welcomeEmail = async ({ email, startupName, taskTitle }) => {
+  const transporter = nodemailer.createTransport({
+    host: process.env.EMAIL_HOST || "smtp.gmail.com",
+    port: 587,
+    secure: false,
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
 
-    await transporter.sendMail(mailOptions);
+  // Base Data for replacements
+  const baseData = {
+    Name: startupName,
+    Login_Link: "https://www.incubationmasters.com/login",
+    Profile_Link: "https://www.incubationmasters.com/app-profile",
+    Task_Title: taskTitle || "Your Startup Overview",
+    Task_Link: "https://www.incubationmasters.com/submit-idea"
+  };
+
+  // Helper to send individual mail
+  const sendMail = async (subject, htmlTemplate) => {
+    try {
+      const htmlContent = replacePlaceholders(htmlTemplate, baseData);
+      await transporter.sendMail({
+        from: process.env.EMAIL_FROM || "EIM Platform <no-reply@eim.com>",
+        to: email,
+        subject: subject,
+        html: htmlContent,
+      });
+      console.log(`✅ Email sent: "${subject}" to ${email}`);
+    } catch (err) {
+      console.error(`❌ Failed to send "${subject}":`, err);
+    }
+  };
+
+  try {
+    await sendMail("Welcome to EIM – Your Account Is Ready", TEMPLATES.welcome);
+
+
+    setTimeout(() => {
+      sendMail("Action Required: Complete your EIM Profile ⚠️", TEMPLATES.profileReminder);
+    }, 180000);
+
+
+    setTimeout(() => {
+      sendMail("⏰ Quick reminder: Pending Task", TEMPLATES.taskReminder);
+    }, 300000);
+
     return true;
+
   } catch (error) {
-    console.error("Email sending error:", error);
+    console.error("Critical Email Error:", error);
     return false;
   }
 };
