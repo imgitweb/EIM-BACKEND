@@ -5,7 +5,7 @@ const { uploadToVimeo } = require("../../utils/vimeoUploader.js");
 const fs = require("fs").promises;
 const fsSync = require("fs");
 const Quiz = require("../../models/courses/Quiz.js");
-const { CallOpenai } = require("../helper/helper.js");
+const { CallOpenAi } = require("../helper/helper.js");
 
 // Helper function to safely delete files
 const safeDeleteFile = async (filePath) => {
@@ -155,7 +155,7 @@ const uploadVideo = async (req, res) => {
       ]
       `;
 
-        const response = CallOpenai(prompt);
+        const response = CallOpenAi(prompt);
         let parsedQuestions;
         try {
           parsedQuestions = response;

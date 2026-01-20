@@ -35,6 +35,11 @@ const {
   getQuizByVideo,
   updateQuiz,
   deleteQuiz,
+  SubmitQuiz,
+  GetRecentQuizResults,
+  GetQuizResult,
+  getQuizById,
+  generateNewQuiz,
 } = require("../controller/Courses/quizController");
 
 const { upload } = require("../utils/vimeoUploader");
@@ -74,9 +79,34 @@ router.get("/full-course/:id", getFullCourseByID);
 /* ===========================
    QUIZ ROUTES
 =========================== */
+
 router.post("/quizzes/:videoId", createQuiz);
 router.get("/quizzes/video/:videoId", getQuizByVideo);
+router.get("/quizzes/:quizId", getQuizById);
 router.put("/quizzes/:quizId", updateQuiz);
 router.delete("/quizzes/:quizId", deleteQuiz);
+
+
+
+/* ===========================
+   QUIZ Saved In DB
+=========================== */
+router.post("/quiz/generate", generateNewQuiz);
+router.post("/submit" , SubmitQuiz);
+router.get("/recent/:startupId/:videoId", GetRecentQuizResults);
+router.get("/result/:resultId", GetQuizResult);
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 module.exports = router;
