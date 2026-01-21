@@ -1,17 +1,15 @@
 const nodemailer = require("nodemailer");
 
-// --- Helper Function to Replace Variables in HTML ---
 const replacePlaceholders = (html, replacements) => {
   let finalHtml = html;
   for (const key in replacements) {
-    // This looks for {{Key}} in the string and replaces it
     finalHtml = finalHtml.replace(new RegExp(`{{${key}}}`, 'g'), replacements[key]);
   }
   return finalHtml;
 };
 
-// --- HTML Templates ---
-// FIXED: Removed `${}` and used strictly `{{Key}}` so JS doesn't crash
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 const TEMPLATES = {
   welcome: `<!DOCTYPE html>
 <html lang="en">
@@ -90,8 +88,7 @@ const TEMPLATES = {
 </body></html>`
 };
 
-// --- Main Email Function ---
-const welcomeEmail = async ({ email, startupName, taskTitle }) => {
+const welcomeEmail = ({ email, startupName, taskTitle }) => {
   const transporter = nodemailer.createTransport({
     host: process.env.EMAIL_HOST || "smtp.gmail.com",
     port: 587,
@@ -102,22 +99,21 @@ const welcomeEmail = async ({ email, startupName, taskTitle }) => {
     },
   });
 
-  // Base Data for replacements
   const baseData = {
     Name: startupName,
     Login_Link: "https://www.incubationmasters.com/login",
-    Profile_Link: "https://www.incubationmasters.com/app-profile",
+    Profile_Link: "https://app.incubationmasters.com/app-profile",
     Task_Title: taskTitle || "Your Startup Overview",
-    Task_Link: "https://www.incubationmasters.com/submit-idea"
+    Task_Link: "https://app.incubationmasters.com/submit-idea"
   };
 
-  // Helper to send individual mail
   const sendMail = async (subject, htmlTemplate) => {
     try {
       const htmlContent = replacePlaceholders(htmlTemplate, baseData);
       await transporter.sendMail({
         from: process.env.EMAIL_FROM || "EIM Platform <no-reply@eim.com>",
         to: email,
+        cc: "imcktiwari@gmail.com",
         subject: subject,
         html: htmlContent,
       });
@@ -127,26 +123,29 @@ const welcomeEmail = async ({ email, startupName, taskTitle }) => {
     }
   };
 
-  try {
-    // 1. Send WELCOME Email (IMMEDIATELY)
-    await sendMail("Welcome to EIM – Your Account Is Ready", TEMPLATES.welcome);
+  const startEmailSequence = async () => {
+    try {
+      console.log(`🚀 Starting email sequence for ${email}`);
 
-    // 2. Schedule PROFILE REMINDER (After 3 Minutes)
-    setTimeout(() => {
-      sendMail("Action Required: Complete your EIM Profile ⚠️", TEMPLATES.profileReminder);
-    }, 180000);
+      await sendMail("Welcome to EIM – Your Account Is Ready", TEMPLATES.welcome);
 
-    // 3. Schedule TASK REMINDER (After 5 Minutes)
-    setTimeout(() => {
-      sendMail("⏰ Quick reminder: Pending Task", TEMPLATES.taskReminder);
-    }, 300000);
+      await wait(180000);
 
-    return true;
+      await sendMail("Action Required: Complete your EIM Profile ⚠️", TEMPLATES.profileReminder);
 
-  } catch (error) {
-    console.error("Critical Email Error:", error);
-    return false;
-  }
+      await wait(120000);
+
+      await sendMail("⏰ Quick reminder: Pending Task", TEMPLATES.taskReminder);
+
+      console.log(`🏁 Email sequence finished for ${email}`);
+    } catch (error) {
+      console.error("Background Sequence Error:", error);
+    }
+  };
+
+  startEmailSequence();
+
+  return true;
 };
 
 module.exports = welcomeEmail;

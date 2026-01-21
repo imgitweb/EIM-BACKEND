@@ -36,8 +36,6 @@ const sendEmail = async (options) => {
   const mailOptions = {
     from: process.env.EMAIL_FROM || `"Incubation Masters" <${process.env.EMAIL_USER}>`,
     to: options.email,
-    // Optional BCC to admin for monitoring — make it configurable
-    bcc: "imcktiwari@gmail.com" || undefined, // e.g., set to "connect@incubationmasters.com" if needed
     subject: options.subject,
     html: options.message,
   };

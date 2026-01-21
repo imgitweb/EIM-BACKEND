@@ -213,24 +213,24 @@ exports.createStartup = async (req, res) => {
       toolsTemplates: toolsTemplates,
       planData: planData,
     };
-    console.log("milestoneDataassinge", data);
-    const milestoneData = await openAI(data);
-    console.log("milestoneData", milestoneData);
+    // console.log("milestoneDataassinge", data);
+    // const milestoneData = await openAI(data);
+    // console.log("milestoneData", milestoneData);
 
-    if (milestoneData.error) {
-      console.error("Milestone generation failed:", milestoneData.debug);
-      // Proceed even if milestones fail
-    } else {
-      try {
-        await saveMilestoneDataToDB.create({
-          startup_id: startup._id,
-          milestones: milestoneData,
-        });
-        console.log("Milestone data saved successfully.");
-      } catch (dbError) {
-        console.error("Error saving milestone data to the database:", dbError);
-      }
-    }
+    // if (milestoneData.error) {
+    //   console.error("Milestone generation failed:", milestoneData.debug);
+    //   // Proceed even if milestones fail
+    // } else {
+    //   try {
+    //     await saveMilestoneDataToDB.create({
+    //       startup_id: startup._id,
+    //       milestones: milestoneData,
+    //     });
+    //     console.log("Milestone data saved successfully.");
+    //   } catch (dbError) {
+    //     console.error("Error saving milestone data to the database:", dbError);
+    //   }
+    // }
 
     // Fixed typo: wellcomeEmails -> welcomeEmails (assuming function name is welcomeEmails)
     await wellcomeEmails({ email: startup.email, startupName: startupName }); // Adjust if function name differs
