@@ -1,5 +1,5 @@
 const ShaktiSangam = require("../models/shaktiSangamModel");
-const sendEmail = require("../utils/sendEmail");
+const sendEmail = require("../utils/sendEmails");
 
 // Controller to save Shakti Sangam registration data and send confirmation email
 const registerShaktiSangam = async (req, res) => {
