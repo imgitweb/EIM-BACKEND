@@ -1,8 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const nodemailer = require('nodemailer');
+const multer = require('multer');
+const path = require('path');
 const Application = require('../models/FounderApplication');
 
+// --- EMAIL CONFIG ---
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -11,36 +14,44 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-transporter.verify((error, success) => {
-    if (error) {
-        console.log(error);
-    } else {
-        console.log("Email Server Ready");
+// --- MULTER CONFIG (File Upload) ---
+const storage = multer.diskStorage({
+    destination: './uploads/', // Ensure this folder exists
+    filename: function (req, file, cb) {
+        cb(null, 'deck-' + Date.now() + path.extname(file.originalname));
     }
 });
 
-const sendEmail = async (to, subject, userName, statusUpdate = false) => {
-    let htmlContent = '';
-
-    if (statusUpdate) {
-        htmlContent = `
-            <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee;">
-                <h2 style="color: #ff2020;">Status Update</h2>
-                <p>Hello <strong>${userName}</strong>,</p>
-                <p>Your application status has been updated to <strong>Shortlisted</strong>.</p>
-                <p>Regards,<br>RISE Jhansi</p>
-            </div>
-        `;
-    } else {
-        htmlContent = `
-            <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee;">
-                <h2 style="color: #ff2020;">Application Received</h2>
-                <p>Hello <strong>${userName}</strong>,</p>
-                <p>Thank you for applying to RAMP. We have received your details.</p>
-                <p>Regards,<br>RISE Jhansi</p>
-            </div>
-        `;
+const upload = multer({
+    storage: storage,
+    limits: { fileSize: 10000000 }, // 10MB Limit
+    fileFilter: function (req, file, cb) {
+        const filetypes = /pdf/;
+        const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+        const mimetype = filetypes.test(file.mimetype);
+        if (mimetype && extname) {
+            return cb(null, true);
+        } else {
+            cb('Error: PDFs Only!');
+        }
     }
+}).single('pitch_deck'); // Field name must match Frontend
+
+// --- EMAIL SENDER ---
+const sendEmail = async (to, subject, userName) => {
+    const htmlContent = `
+        <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee; line-height: 1.6; color: #333;">
+            <p>Dear <strong>${userName}</strong>,</p>
+            
+            <p>Thank you for registering for the <strong>RAMP Program</strong>.</p>
+            
+            <p>We’re pleased to inform you that we have successfully received your application. Our screening team is currently reviewing all entries, and a member of our team will get in touch with you shortly regarding the next steps.</p>
+            
+            <p>We truly appreciate your interest and initiative in being part of the RAMP journey.</p>
+            
+            <p>All the best,<br><strong>Team RAMP</strong></p>
+        </div>
+    `;
 
     try {
         await transporter.sendMail({
@@ -55,76 +66,39 @@ const sendEmail = async (to, subject, userName, statusUpdate = false) => {
     }
 };
 
-router.post('/', async (req, res) => {
-    try {
-        const { email, brand_name, legal_name, founded_date, brief, domain, stage, website, linkedin, pitch_deck } = req.body;
+// --- POST ROUTE ---
+router.post('/', (req, res) => {
+    upload(req, res, async (err) => {
+        if (err) return res.status(400).json({ success: false, message: err });
 
-        if (!email || !brand_name || !pitch_deck) {
-            return res.status(400).json({ success: false, message: "Missing required fields." });
+        try {
+            if (!req.file) return res.status(400).json({ success: false, message: "Please upload your Pitch Deck PDF." });
+
+            // Extract text fields
+            const { email, brand_name, legal_name, founded_date, brief, domain, stage, website, linkedin } = req.body;
+
+            // Validate
+            if (!email || !brand_name) {
+                return res.status(400).json({ success: false, message: "Missing required fields." });
+            }
+
+            // Save to DB
+            const newApp = new Application({
+                email, brand_name, legal_name, founded_date, brief, domain, stage, website, linkedin,
+                pitch_deck: req.file.path // Save file path
+            });
+
+            await newApp.save();
+
+            // Send Email
+            await sendEmail(email, "Your RAMP Application has been received.", brand_name);
+
+            res.status(201).json({ success: true, message: "Submitted successfully!", id: newApp._id });
+
+        } catch (error) {
+            res.status(500).json({ success: false, message: "Server Error", error: error.message });
         }
-
-        const newApp = new Application({
-            email, brand_name, legal_name, founded_date,
-            brief, domain, stage, website, linkedin, pitch_deck
-        });
-
-        await newApp.save();
-
-        await sendEmail(email, "Application Received - RAMP", brand_name);
-
-        res.status(201).json({ success: true, message: "Submitted successfully!", id: newApp._id });
-
-    } catch (error) {
-        res.status(500).json({ success: false, message: "Server Error", error: error.message });
-    }
-});
-
-router.get('/', async (req, res) => {
-    try {
-        const { id, status } = req.query;
-        let query = {};
-
-        if (id) query._id = id;
-        if (status) query.status = status;
-
-        const apps = await Application.find(query).sort({ applied_at: -1 });
-
-        res.status(200).json({ success: true, count: apps.length, data: apps });
-
-    } catch (error) {
-        res.status(500).json({ success: false, message: "Fetch Error", error: error.message });
-    }
-});
-
-router.patch('/update-status/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { status } = req.body;
-
-        const validStatuses = ['Pending', 'Shortlisted', 'Rejected', 'Interview'];
-        if (!validStatuses.includes(status)) {
-            return res.status(400).json({ success: false, message: "Invalid status." });
-        }
-
-        const updatedApp = await Application.findByIdAndUpdate(
-            id,
-            { status: status },
-            { new: true }
-        );
-
-        if (!updatedApp) {
-            return res.status(404).json({ success: false, message: "Application not found." });
-        }
-
-        if (status === 'Shortlisted') {
-            await sendEmail(updatedApp.email, "Application Shortlisted", updatedApp.brand_name, true);
-        }
-
-        res.status(200).json({ success: true, message: `Status updated to ${status}`, data: updatedApp });
-
-    } catch (error) {
-        res.status(500).json({ success: false, message: "Update Error", error: error.message });
-    }
+    });
 });
 
 module.exports = router;
