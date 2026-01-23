@@ -79,6 +79,7 @@ const businessModelRoutes = require("./routes/businessModelRoutes.js");
 const {
   DocumentVaultRoutes,
 } = require("./routes/DocumentVaultRoutes/routes.js");
+const applyCofunerRoute = require("./routes/applyCofunderRoute.js")
 
 // ─────────────────────────────────────────────────────────────
 // ✅ App Initialization & DB
@@ -132,19 +133,22 @@ app.use((req, res, next) => {
 // ─────────────────────────────────────────────────────────────
 const allowedOrigins = isProduction
   ? [
-      "https://app.incubationmasters.com",
-      "https://admin.incubationmasters.com",
-      "https://www.incubationmasters.com",
-      "https://incubationmasters.com",
-      "https://hackmake.in",
-      "https://www.hackmake.in",
-    ]
+    "https://app.incubationmasters.com",
+    "https://admin.incubationmasters.com",
+    "https://www.incubationmasters.com",
+    "https://incubationmasters.com",
+    "https://hackmake.in",
+    "https://www.hackmake.in",
+    "https://risejhansi.in",
+    "https://www.risejhansi.in",
+    "http://risejhansi.in",
+  ]
   : [
-      "http://localhost:3000",
-      "http://localhost:3001",
-      "http://localhost:5000",
-      "http://localhost:5173",
-    ];
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://localhost:5000",
+    "http://localhost:5173",
+  ];
 
 const corsOptions = {
   origin: function (origin, callback) {
@@ -285,6 +289,7 @@ app.use("/api/business-model", businessModelRoutes);
 app.use("/api/whatsapp", routes.whatsappRoutes);
 app.use("/api/document_vault", DocumentVaultRoutes(upload));
 app.use("/api/pitchdeck", pitchDeckroutes);
+app.use('/api/apply-cofounder', applyCofunerRoute);
 
 app.get("/", (req, res) => {
   res.json({ message: "Incubation Masters API Online", status: "OK" });
