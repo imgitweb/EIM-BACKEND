@@ -47,8 +47,6 @@ const ApplicationSchema = new mongoose.Schema({
     },
     pitch_deck: {
         type: String,
-        required: true
-        // Stores the file path (e.g., "uploads/deck-123.pdf")
     },
     status: {
         type: String,
