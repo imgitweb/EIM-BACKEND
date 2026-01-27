@@ -98,7 +98,7 @@ router.post('/', (req, res) => {
             if (!req.file) return res.status(400).json({ success: false, message: "Please upload your Pitch Deck PDF." });
 
             // Extract text fields
-            const { email, brand_name, legal_name, founded_date, brief, domain, stage, website, linkedin } = req.body;
+            const { email, brand_name, phone_no, founded_date, brief, domain, stage, website, linkedin } = req.body;
 
             // Validate
             if (!email || !brand_name) {
@@ -107,7 +107,7 @@ router.post('/', (req, res) => {
 
             // Save to DB
             const newApp = new Application({
-                email, brand_name, legal_name, founded_date, brief, domain, stage, website, linkedin,
+                email, brand_name, phone_no, founded_date, brief, domain, stage, website, linkedin,
                 pitch_deck: req.file.path // Save file path
             });
 

@@ -12,7 +12,7 @@ const ApplicationSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
-    legal_name: {
+    phone_no: {
         type: String,
         required: true,
         trim: true
