@@ -12,7 +12,7 @@ const ApplicationSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
-    legal_name: {
+    phone_no: {
         type: String,
         required: true,
         trim: true
@@ -34,7 +34,6 @@ const ApplicationSchema = new mongoose.Schema({
     stage: {
         type: String,
         required: true,
-        enum: ['Idea', 'Growth', 'MVP', 'Scaling', 'Early_Traction', 'Acceleration', 'Pre_Product', 'Pre_Revenue', 'PMF']
     },
     website: {
         type: String,
@@ -48,8 +47,6 @@ const ApplicationSchema = new mongoose.Schema({
     },
     pitch_deck: {
         type: String,
-        required: true
-        // Stores the file path (e.g., "uploads/deck-123.pdf")
     },
     status: {
         type: String,
