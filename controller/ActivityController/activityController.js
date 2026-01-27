@@ -60,6 +60,7 @@ exports.generateActivities = async ({ startup_id, planName }) => {
 
 exports.getAllActivities = async (req, res) => {
   const { startup_id } = req.body;
+  console.log("Startup ID:", startup_id);
 
   const activities = await ActivityModel.find({
     startup_id,
