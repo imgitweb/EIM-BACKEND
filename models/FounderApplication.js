@@ -34,7 +34,6 @@ const ApplicationSchema = new mongoose.Schema({
     stage: {
         type: String,
         required: true,
-        enum: ['Idea', 'Growth', 'MVP', 'Scaling', 'Early_Traction', 'Acceleration', 'Pre_Product', 'Pre_Revenue', 'PMF']
     },
     website: {
         type: String,
