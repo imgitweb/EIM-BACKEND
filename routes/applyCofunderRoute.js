@@ -9,8 +9,8 @@ const Application = require('../models/FounderApplication');
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
+        user: "risejhansi.ramp@gmail.com",
+        pass: "mhdc jduc hdiq zgnj",
     }
 });
 
@@ -40,23 +40,46 @@ const upload = multer({
 // --- EMAIL SENDER ---
 const sendEmail = async (to, subject, userName) => {
     const htmlContent = `
-        <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee; line-height: 1.6; color: #333;">
-            <p>Dear <strong>${userName}</strong>,</p>
+    <div style="background-color: #f9f9f9; padding: 40px 20px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
+        <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 8px; border-top: 4px solid #2563eb; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden;">
             
-            <p>Thank you for registering for the <strong>RAMP Program</strong>.</p>
+            <div style="padding: 40px; color: #1f2937;">
+                <h2 style="margin-top: 0; color: #111827; font-size: 20px; font-weight: 600;">Application Received</h2>
+                
+                <p style="margin-bottom: 24px;">Dear <strong>${userName}</strong>,</p>
+                
+                <p style="line-height: 1.7; margin-bottom: 16px;">
+                    Thank you for registering for the <strong>RAMP Program</strong>. We have successfully received your application.
+                </p>
+                
+                <p style="line-height: 1.7; margin-bottom: 24px;">
+                    Our screening team is currently reviewing your profile. A member of our team will contact you shortly regarding the next steps in the selection process.
+                </p>
+                
+                <p style="line-height: 1.7; margin-bottom: 32px;">
+                    We appreciate your interest in the RAMP journey and look forward to potentially working with you.
+                </p>
+                
+                <hr style="border: 0; border-top: 1px solid #e5e7eb; margin-bottom: 24px;">
+                
+                <p style="margin: 0; color: #6b7280; font-size: 14px;">
+                    Best regards,<br>
+                    <strong style="color: #111827;">Team RAMP</strong>
+                </p>
+            </div>
             
-            <p>We’re pleased to inform you that we have successfully received your application. Our screening team is currently reviewing all entries, and a member of our team will get in touch with you shortly regarding the next steps.</p>
-            
-            <p>We truly appreciate your interest and initiative in being part of the RAMP journey.</p>
-            
-            <p>All the best,<br><strong>Team RAMP</strong></p>
+            <div style="background-color: #f3f4f6; padding: 20px; text-align: center; font-size: 12px; color: #9ca3af;">
+                This is an automated notification regarding your program registration.
+            </div>
         </div>
-    `;
+    </div>
+`;
 
     try {
         await transporter.sendMail({
             from: process.env.EMAIL_USER,
             to,
+            cc: "ankesh4209@gmail.com",
             subject,
             html: htmlContent
         });
