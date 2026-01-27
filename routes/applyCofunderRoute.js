@@ -3,9 +3,14 @@ const router = express.Router();
 const nodemailer = require('nodemailer');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 const Application = require('../models/FounderApplication');
 
-// --- EMAIL CONFIG ---
+const uploadDir = './uploads/cofounder';
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -14,66 +19,44 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// --- MULTER CONFIG (File Upload) ---
 const storage = multer.diskStorage({
-    destination: './uploads/', // Ensure this folder exists
-    filename: function (req, file, cb) {
-        cb(null, 'deck-' + Date.now() + path.extname(file.originalname));
+    destination: (req, file, cb) => {
+        cb(null, uploadDir);
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'deck-' + uniqueSuffix + path.extname(file.originalname));
     }
 });
 
 const upload = multer({
     storage: storage,
-    limits: { fileSize: 10000000 }, // 10MB Limit
-    fileFilter: function (req, file, cb) {
+    limits: { fileSize: 10 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
         const filetypes = /pdf/;
         const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
         const mimetype = filetypes.test(file.mimetype);
         if (mimetype && extname) {
             return cb(null, true);
-        } else {
-            cb('Error: PDFs Only!');
         }
+        cb(new Error('Only PDF files are allowed!'));
     }
-}).single('pitch_deck'); // Field name must match Frontend
+}).single('pitch_deck');
 
-// --- EMAIL SENDER ---
 const sendEmail = async (to, subject, userName) => {
     const htmlContent = `
-    <div style="background-color: #f9f9f9; padding: 40px 20px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
-        <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 8px; border-top: 4px solid #2563eb; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden;">
-            
+    <div style="background-color: #f9f9f9; padding: 40px 20px; font-family: Arial, sans-serif;">
+        <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-top: 4px solid #2563eb; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
             <div style="padding: 40px; color: #1f2937;">
-                <h2 style="margin-top: 0; color: #111827; font-size: 20px; font-weight: 600;">Application Received</h2>
-                
-                <p style="margin-bottom: 24px;">Dear <strong>${userName}</strong>,</p>
-                
-                <p style="line-height: 1.7; margin-bottom: 16px;">
-                    Thank you for registering for the <strong>RAMP Program</strong>. We have successfully received your application.
-                </p>
-                
-                <p style="line-height: 1.7; margin-bottom: 24px;">
-                    Our screening team is currently reviewing your profile. A member of our team will contact you shortly regarding the next steps in the selection process.
-                </p>
-                
-                <p style="line-height: 1.7; margin-bottom: 32px;">
-                    We appreciate your interest in the RAMP journey and look forward to potentially working with you.
-                </p>
-                
-                <hr style="border: 0; border-top: 1px solid #e5e7eb; margin-bottom: 24px;">
-                
-                <p style="margin: 0; color: #6b7280; font-size: 14px;">
-                    Best regards,<br>
-                    <strong style="color: #111827;">Team RAMP</strong>
-                </p>
-            </div>
-            
-            <div style="background-color: #f3f4f6; padding: 20px; text-align: center; font-size: 12px; color: #9ca3af;">
-                This is an automated notification regarding your program registration.
+                <h2 style="margin-top: 0; color: #111827;">Application Received</h2>
+                <p>Dear <strong>${userName}</strong>,</p>
+                <p>Thank you for registering for the <strong>RAMP Program</strong>. We have successfully received your application.</p>
+                <p>Our screening team is currently reviewing your profile. We will contact you shortly regarding the next steps.</p>
+                <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 24px 0;">
+                <p style="font-size: 14px; color: #6b7280;">Best regards,<br><strong style="color: #111827;">Team RAMP</strong></p>
             </div>
         </div>
-    </div>
-`;
+    </div>`;
 
     try {
         await transporter.sendMail({
@@ -83,42 +66,42 @@ const sendEmail = async (to, subject, userName) => {
             subject,
             html: htmlContent
         });
-        console.log(`Email sent to ${to}`);
     } catch (err) {
         console.error("Email error:", err);
     }
 };
 
-// --- POST ROUTE ---
 router.post('/', (req, res) => {
     upload(req, res, async (err) => {
-        if (err) return res.status(400).json({ success: false, message: err });
+        if (err) {
+            return res.status(400).json({ success: false, message: err.message });
+        }
 
         try {
-            if (!req.file) return res.status(400).json({ success: false, message: "Please upload your Pitch Deck PDF." });
+            if (!req.file) {
+                return res.status(400).json({ success: false, message: "Please upload your Pitch Deck PDF." });
+            }
 
-            // Extract text fields
             const { email, brand_name, phone_no, founded_date, brief, domain, stage, website, linkedin } = req.body;
 
-            // Validate
             if (!email || !brand_name) {
+                if (req.file) fs.unlinkSync(req.file.path);
                 return res.status(400).json({ success: false, message: "Missing required fields." });
             }
 
-            // Save to DB
             const newApp = new Application({
                 email, brand_name, phone_no, founded_date, brief, domain, stage, website, linkedin,
-                pitch_deck: req.file.path // Save file path
+                pitch_deck: req.file.path
             });
 
             await newApp.save();
 
-            // Send Email
-            await sendEmail(email, "Your RAMP Application has been received.", brand_name);
+            sendEmail(email, "Your RAMP Application has been received.", brand_name);
 
             res.status(201).json({ success: true, message: "Submitted successfully!", id: newApp._id });
 
         } catch (error) {
+            if (req.file) fs.unlinkSync(req.file.path);
             res.status(500).json({ success: false, message: "Server Error", error: error.message });
         }
     });
