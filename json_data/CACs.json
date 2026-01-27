@@ -1,0 +1,93 @@
+[
+  {
+    "S.NO": 1,
+    "NAME": "Sidharth Bhojwani",
+    "Designation": "CEO",
+    "Company": "EnsureKar Pvt Ltd",
+    "Classification": "Company Incorporation & Compliance Firm",
+    "Contact": "8878440844",
+    "Location": "Jabalpur"
+  },
+  {
+    "S.NO": 2,
+    "NAME": "Vipul Sharma",
+    "Designation": "CEO",
+    "Company": "Futuredge Startup Solution LLP",
+    "Classification": "Company Incorporation & Compliance Firm",
+    "Contact": "9770096097",
+    "Location": "Satna"
+  },
+  {
+    "S.NO": 3,
+    "NAME": "Ankit/Gaurav Kanudawala",
+    "Designation": "CA",
+    "Company": "Kanudawala & Associates LLP",
+    "Classification": "Taxation & Compliance Expert",
+    "Contact": "9998577791",
+    "Location": "Vadodra"
+  },
+  {
+    "S.NO": 4,
+    "NAME": "Divesh Goyal",
+    "Designation": "CS",
+    "Company": "Goyal Divesh & Associates",
+    "Classification": "IRP & Contract Law Specialist",
+    "Contact": "8130757966",
+    "Location": "Delhi"
+  },
+  {
+    "S.NO": 5,
+    "NAME": "Devendar Agrawal",
+    "Designation": "CS",
+    "Company": "KOUNDINYA & DEVENDER",
+    "Classification": "IRP & Contract Lawct Law Specialist",
+    "Contact": "9030033003",
+    "Location": "Hydrabad"
+  },
+  {
+    "S.NO": 6,
+    "NAME": "Akshit Dingra",
+    "Designation": "CA",
+    "Company": "Dhingra & Associates",
+    "Classification": "Taxation & Compliance Expert",
+    "Contact": "9993102459",
+    "Location": "Bhopal"
+  },
+  {
+    "S.NO": 7,
+    "NAME": "Keshav Daliya",
+    "Designation": "CA",
+    "Company": "DSRK & Associates",
+    "Classification": "Corporate Secreterial & Government Advisor",
+    "Contact": "9422457514",
+    "Location": "Nagpur"
+  },
+  {
+    "S.NO": 8,
+    "NAME": "Ajay Sharma",
+    "Designation": "CA",
+    "Company": "Sharma Ajay & Associates",
+    "Classification": "Taxation & Compliance Expert",
+    "Contact": "8435200170",
+    "Location": "Indore"
+  },
+  {
+    "S.NO": 9,
+    "NAME": "Anshul Jain",
+    "Designation": "CA",
+    "Company": "Former Chairman ICSI Chapter Bhopal",
+    "Classification": "Taxation & Compliance Expert",
+    "Contact": "9755024681",
+    "Location": "Bhopal"
+  },
+  {
+    "S.NO": 10,
+    "NAME": "Dhanraj Thakur",
+    "Designation": "CS",
+    "Company": "DST & Associates",
+    "Classification": "Corporate Secreterial & Government Advisor",
+    "Contact": "9074660044",
+    "Location": "Bhopal"
+  }
+]
+ 
