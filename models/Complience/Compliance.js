@@ -108,9 +108,5 @@ const complianceSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Index for performance
-complianceSchema.index({ companyId: 1, complianceType: 1 });
-complianceSchema.index({ dueDate: 1 });
-complianceSchema.index({ status: 1 });
 
 module.exports = mongoose.model("Compliance", complianceSchema);
