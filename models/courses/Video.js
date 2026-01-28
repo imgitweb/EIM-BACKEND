@@ -31,6 +31,10 @@ const VideoSchema = new mongoose.Schema({
     // ✅ New Quiz Field
   quiz: { type: mongoose.Schema.Types.ObjectId, ref: "Quiz" },
   duration: String,
+  thumbnail: {
+    type: String,
+    default: "https://your-default-placeholder-url.com/default.png",
+  },
   createdAt: {
     type: Date,
     default: Date.now,

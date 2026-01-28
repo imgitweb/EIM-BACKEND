@@ -201,7 +201,10 @@ const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     let folder = "uploads/template";
     const url = req.originalUrl;
-    if (url.includes("/api/investors")) folder = "uploads/investors";
+    if (url.includes("/api/course/upload-thumbnail")) {
+      folder = "uploads/thumbnails";
+    }
+     else if(url.includes("/api/investors")) folder = "uploads/investors";
     else if (url.includes("/api/mentors")) folder = "uploads/mentors";
     else if (url.includes("/api/categories")) folder = "uploads/categories";
     else if (url.includes("/api/templates")) folder = "uploads/templates";

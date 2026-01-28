@@ -96,6 +96,14 @@ router.post("/submit" , SubmitQuiz);
 router.get("/recent/:startupId/:videoId", GetRecentQuizResults);
 router.get("/result/:resultId", GetQuizResult);
 
+router.post("/course/upload-thumbnail", upload1.single("thumbnail"), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: "No file uploaded" });
+  }
+  // Return the path of the uploaded thumbnail
+  res.status(200).json({ filePath: req.file.path });
+});
+
 
 
 
