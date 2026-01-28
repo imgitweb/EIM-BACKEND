@@ -442,6 +442,16 @@ const getAllVideos = async (req, res) => {
       .limit(limit)
       .select("-__v");
 
+
+
+     // 2. Migration logic (Background mein chalne dein, await hata sakte hain agar speed chahiye)
+    // Video.updateMany(
+    //   { thumbnail: { $exists: false } }, 
+    //   { $set: { thumbnail: "https://your-default-placeholder-url.com/default.png" } }
+    // ).then(res => {
+    //    if(res.modifiedCount > 0) console.log(`Background Update: ${res.modifiedCount} thumbnails fixed.`);
+    // });
+
     const hasMore = skip + videos.length < totalVideos;
 
     res.json({
