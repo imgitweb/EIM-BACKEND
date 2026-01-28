@@ -952,60 +952,241 @@ const schemesData = [
       "Active funding rounds in 2025",
     ],
   },
+  
+  
   {
-    id: 27,
-    name: "Microsoft for Startups (India)",
-    shortName: "Microsoft Startups",
-    category: "international",
-    oneLiner: "Microsoft for Startups is a global program by Microsoft that offers startups access to technology credits, technical support, co-selling opportunities, and go-to-market resources to help them build, scale, and commercialize their products.",
-    description: "Azure credits, mentorship, and go-to-market support for software startups.",
-    fullDescription: "Investor-referred program; up to $150K Azure credits; co-selling with Microsoft.",
-    detailedBenefits: [
-      "Azure Cloud Credits & Technical Resources - Free or discounted Azure credits for infrastructure, data services, AI, and analytics. Technical support, best-practice guidance, and architecture reviews",
-      "Go-To-Market Support - Marketing exposure through Microsoft’s channels. Access to co-selling and partner networks (including Azure Marketplace and AppSource). Joint campaign opportunities aligned with Microsoft sales teams",
-      "Enterprise Customer Access - Introductions to enterprise customers via Microsoft ecosystem. Opportunity to be featured in Microsoft sales and partner interactions",
-      "Technical Mentorship & Advisory - Guidance from Microsoft engineers and ecosystem partners. Workshops, technical sessions, and mentorship programs",
-      "Networking & Community - Inclusion in startup ecosystems with access to Microsoft events, mentorship forums, and industry connections",
-    ],
-    detailedEligibility: [
-      "Startup must be affiliated with an investor who is a part of the Microsoft for Startups Investor Network",
-      "Startup is engaged in the development of a software-based product or service that is a core part of their current or intended business. The software must be owned and not licensed from another party",
-      "Startup has received fewer than $350,000 in lifetime free Azure credits",
-      "Startup is headquartered in a country where Azure services are available",
-      "Startup hasn't raised Series C funding",
-      "Startup is privately held",
-      "Startup is a for-profit business",
-      "Startup isn't an educational institution, government organization, personal blog, development shop, consultancy, agency, or involved in bitcoin or crypto mining",
-    ],
-    applicationProcess: [
-      "Step 1: Obtain Referral - Once a startup receives their referral code from their investor, they should visit startups.microsoft.com, click 'Get started now,' and enter the referral code provided to you by your investor to begin the application process",
-      "Step 2: Choose the Appropriate Development Stage - During the application process, you're asked to choose the stage that best describes your startup's current state: Concept design, Prototyping, Building MVP, MVP in market, Established market",
-      "Step 3: Application Review and Evaluation - On average, it takes three business days to review an application. Response times may be delayed if information in the application needs to be verified. You're notified via the email used to apply as soon as a decision is made",
-      "Step 4: Onboarding - If approved, access credits, support, and resources immediately",
-    ],
-    documentsRequired: [
-      "Company name and legal registration",
-      "Website and product URL (if available)",
-      "Founders and team details",
-      "Location and contact information",
-      "Description of the product or solution",
-      "Current stage of development (MVP/production)",
-      "Technology stack (especially Azure use cases)",
-      "Target customers and value proposition",
-      "Revenue model (if available)",
-      "Growth plans and customer acquisition strategy",
-      "Azure subscription ID (if already using cloud)",
-      "GitHub or repository links (optional)",
-    ],
-    applyUrl: "https://www.microsoft.com/en-in/startups",
-    processingTime: "3 business days (review)",
-    keyPoints: [
-      "Requires investor referral for full benefits",
-      "Focus on software/AI; up to $150K credits",
-      "India program active as of December 2025",
-    ],
-  },
+  id: 40,
+  name: "Prototype Grant",
+  shortName: "MVP Grant",
+  category: "Development Support",
+  oneLiner: "One-time financial assistance to convert an innovative idea into a Minimum Viable Product (MVP).",
+  description: "One-time grant up to ₹5 Lakh for building a prototype.",
+  fullDescription: "Financial support to cover the costs of hardware, software, and development needed to create the first working model of the product.",
+  detailedBenefits: [
+    "Direct grant up to ₹5,00,000 for product development",
+    "Support for purchasing raw materials or software licenses",
+    "Technical guidance from experts at Centers of Excellence (CoE)"
+  ],
+  detailedEligibility: [
+    "Recognized UP startup",
+    "Must have a clear proof-of-concept (PoC)",
+    "Product must be in the 'Development Stage'"
+  ],
+  applicationProcess: [
+    "Step 1: Apply through the StartinUP portal",
+    "Step 2: Submit a Detailed Project Report (DPR) explaining the prototype cost",
+    "Step 3: Present the idea to the Evaluation Committee",
+    "Step 4: Milestone-based disbursement of funds"
+  ],
+  documentsRequired: [
+    "Detailed Project Report (DPR)",
+    "Cost estimation/Quotation for development",
+    "Entity Incorporation Certificate",
+    "PAN Card of the Entity"
+  ],
+  applyUrl: "https://startinup.up.gov.in/",
+  processingTime: "60 days",
+  keyPoints: [
+    "One-time non-repayable grant",
+    "Focused on technical feasibility",
+    "Up to ₹5 Lakh limit"
+  ]
+},
 
+{
+  id: 41,
+  name: "Seed Capital / Marketing Assistance",
+  shortName: "Marketing Grant",
+  category: "Market Entry",
+  oneLiner: "Financial support to help startups launch their products in the market and scale initial sales.",
+  description: "Grant up to ₹7.5 Lakh for market launch and scaling.",
+  fullDescription: "Funds provided to assist with marketing, branding, distribution, and commercialization of the startup's product.",
+  detailedBenefits: [
+    "Grant of ₹7.5 Lakh (up to ₹11.25 Lakh for women/special categories)",
+    "Disbursed in 3 tranches: 40% (Advance), 30% (Milestone 1), 30% (Milestone 2)",
+    "Assistance in customer acquisition and digital marketing expenses"
+  ],
+  detailedEligibility: [
+    "Startup must have a ready MVP/Product in the market",
+    "Must be generating early traction or have a pilot client",
+    "Less than 25 startups per incubator can avail this annually"
+  ],
+  applicationProcess: [
+    "Step 1: Apply via StartinUP dashboard after product launch",
+    "Step 2: Submit marketing strategy and revenue projections",
+    "Step 3: Approval by the State Level Evaluation Committee",
+    "Step 4: Periodic reporting of milestones for fund release"
+  ],
+  documentsRequired: [
+    "Marketing Plan & Budget",
+    "GST Registration (if applicable)",
+    "Customer Feedback or Pilot Proof",
+    "Bank Statement of the Startup"
+  ],
+  applyUrl: "https://startinup.up.gov.in/",
+  processingTime: "45-90 days",
+  keyPoints: [
+    "Milestone-based disbursement",
+    "Biggest grant for early-stage commercialization",
+    "Special focus on women-led startups"
+  ]
+}, 
+
+{
+  id: 42,
+  name: "Mukhyamantri Yuva Swarozgar Yojana",
+  shortName: "MYSY",
+  category: "Employment & Loan",
+  oneLiner: "A credit-linked subsidy scheme for educated youth to start their own micro-enterprises.",
+  description: "Loans up to ₹25 Lakh with a 25% government subsidy.",
+  fullDescription: "Promotes self-employment in industry and service sectors with low-interest loans and significant capital subsidies.",
+  detailedBenefits: [
+    "Project cost up to ₹25 Lakh (Industry) or ₹10 Lakh (Service)",
+    "Margin money subsidy of 25% of project cost",
+    "Collateral-free loans for smaller amounts under CGTMSE"
+  ],
+  detailedEligibility: [
+    "Age between 18 to 40 years",
+    "Minimum 10th pass qualification",
+    "Native of Uttar Pradesh",
+    "Should not be a defaulter at any bank"
+  ],
+  applicationProcess: [
+    "Step 1: Apply on the DIUP portal (diupmsme.upsdc.gov.in)",
+    "Step 2: Selection by the District Level Task Force Committee",
+    "Step 3: Loan sanctioning by the designated bank",
+    "Step 4: Subsidy release after 2 years of successful operation"
+  ],
+  documentsRequired: [
+    "Educational Certificates",
+    "Domicile Certificate (Niwas Praman Patra)",
+    "Project Report (Business Plan)",
+    "Aadhaar and PAN Card"
+  ],
+  applyUrl: "https://dcmsme.gov.in/",
+  processingTime: "60-90 days",
+  keyPoints: [
+    "Best for local micro-manufacturing",
+    "Large subsidy component",
+    "Bank-linked process"
+  ]
+},
+
+{
+  id: 43,
+  name: "One District One Product (ODOP) Margin Money",
+  shortName: "ODOP Margin Money",
+  category: "Traditional Crafts",
+  oneLiner: "Financial aid for startups and MSMEs working on the specific identified products of UP's 75 districts.",
+  description: "Subsidy of 10% to 25% on total project cost.",
+  fullDescription: "Aims to modernize and scale traditional industries like Lucknow's Chikankari, Aligarh's Locks, etc.",
+  detailedBenefits: [
+    "Financial subsidy up to ₹6.25 Lakh to ₹20 Lakh depending on project size",
+    "Priority in government procurement",
+    "Branding and marketing support from the ODOP cell"
+  ],
+  detailedEligibility: [
+    "Business must relate to the district's specific ODOP product",
+    "Must be a new unit or expanding an existing one in UP"
+  ],
+  applicationProcess: [
+    "Step 1: Register on the ODOP portal",
+    "Step 2: Submit a project report for the ODOP unit",
+    "Step 3: Approval by DIC (District Industries Centre)",
+    "Step 4: Loan and subsidy disbursement through bank"
+  ],
+  documentsRequired: [
+    "Udyam Registration",
+    "ODOP Product Certificate (from DIC)",
+    "Project Report",
+    "Caste/Category certificate for extra benefits"
+  ],
+  applyUrl: "https://odopup.in/",
+  processingTime: "45-60 days",
+  keyPoints: [
+    "Supports local culture and crafts",
+    "Huge focus on rural entrepreneurship",
+    "Linked with district-specific growth"
+  ]
+},
+
+{
+  id: 44,
+  name: "Startup India Seed Fund (SISFS) via UP Incubators",
+  shortName: "Seed Fund",
+  category: "Investment",
+  oneLiner: "Central government fund managed through UP-based incubators for early scaling.",
+  description: "Up to ₹20 Lakh grant for PoC and ₹50 Lakh for scaling.",
+  fullDescription: "Available through top UP incubators like SIIC IIT Kanpur, IIML EIC, and BIMTECH.",
+  detailedBenefits: [
+    "₹20 Lakh for Prototype/Product Trials",
+    "₹50 Lakh via Debt/Convertible Debentures for market entry",
+    "No collateral required"
+  ],
+  detailedEligibility: [
+    "DPIIT recognized startup",
+    "Incorporated not more than 2 years ago",
+    "Should not have received more than ₹10 Lakh from other Govt schemes (excluding prizes)"
+  ],
+  applicationProcess: [
+    "Step 1: Go to Seed Fund portal",
+    "Step 2: Select a UP incubator as your primary choice",
+    "Step 3: Pitch to the ISMC (Incubator Seed Management Committee)",
+    "Step 4: Fund disbursement on selection"
+  ],
+  documentsRequired: [
+    "DPIIT Certificate",
+    "Company PAN/Aadhaar",
+    "Pitch Deck",
+    "Projected Cash Flow"
+  ],
+  applyUrl: "https://seedfund.startupindia.gov.in/",
+  processingTime: "60-120 days",
+  keyPoints: [
+    "Large ticket size funding",
+    "Equity-free (for grants)",
+    "Competitive selection"
+  ]
+},
+
+{
+  id: 46,
+  name: "Event Participation Incentive",
+  shortName: "Expo Grant",
+  category: "Marketing",
+  oneLiner: "Financial support to attend national and international exhibitions, trade fairs, and conferences.",
+  description: "Reimbursement up to ₹50k (National) and ₹1 Lakh (International).",
+  fullDescription: "Encourages startups to showcase their products to global investors and customers by covering travel and stall costs.",
+  detailedBenefits: [
+    "Reimbursement of stall rentals",
+    "Airfare/Travel cost support",
+    "Opportunity for networking and global exposure"
+  ],
+  detailedEligibility: [
+    "UP recognized startup",
+    "Startup must be selected as an exhibitor at a recognized event",
+    "Maximum one event per year"
+  ],
+  applicationProcess: [
+    "Step 1: Intimate the Nodal Agency before participating",
+    "Step 2: Participate and collect all original invoices/boarding passes",
+    "Step 3: Submit the claim form within 30 days of the event",
+    "Step 4: Approval and reimbursement"
+  ],
+  documentsRequired: [
+    "Event Invitation/Confirmation",
+    "Stall booking invoices",
+    "Travel tickets and boarding passes",
+    "Participation Report with photos"
+  ],
+  applyUrl: "https://startinup.up.gov.in/",
+  processingTime: "30 days",
+  keyPoints: [
+    "Boosts brand visibility",
+    "Covers both domestic and global events",
+    "Quick reimbursement"
+  ]
+}
  
 ];
 
