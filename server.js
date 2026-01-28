@@ -13,21 +13,17 @@ const MongoStore = require("connect-mongo");
 require("dotenv").config();
 
 // ─────────────────────────────────────────────────────────────
-// ✅ Import Custom Modules
+// ✅ Import Custom Modules & Routes
 // ─────────────────────────────────────────────────────────────
 const connectDB = require("./config/db");
 const seedMentorData = require("./seeding/mentorSeed");
 const seedInvestorData = require("./seeding/seedInvestorData");
 const seedCategoryData = require("./seeding/seedCategoryData");
 const seedPartnerData = require("./seeding/partnerSeed");
-const courseRoutes = require("./routes/CourseRoutes");
 const SeedMVPTeam = require("./seeding/MVPSeed");
-// const { seedActivities } = require("./seeding/activitySeeder");
+const { seedDeliverables } = require("./seeding/deliverablesSeeder");
 const eilaRoutes = require("./routes/EILACofounderRoutes");
 
-// ─────────────────────────────────────────────────────────────
-// ✅ Import Routes
-// ─────────────────────────────────────────────────────────────
 const routes = {
   auth: require("./routes/authRoutes"),
   team: require("./routes/teamRoutes"),
@@ -68,8 +64,8 @@ const routes = {
   updateCompanyDetailsRoutes: require("./routes/UpdateCompanyDetailsRoutes"),
   whatsappRoutes: require("./routes/twilio/notifyRoutes"),
 };
+
 const { ActivityRoute } = require("./routes/Activity/activityRoute");
-const { seedDeliverables } = require("./seeding/deliverablesSeeder");
 const { paymentRouters } = require("./routes/PaymentRoutes/routes");
 const { DeliverableRoutes } = require("./routes/DeliverableRoutes/deliverable");
 const { milestoneRoutes } = require("./routes/MilistonePath/milestoneRoutes");
@@ -83,11 +79,11 @@ const businessModelRoutes = require("./routes/businessModelRoutes.js");
 const {
   DocumentVaultRoutes,
 } = require("./routes/DocumentVaultRoutes/routes.js");
+const applyCofunerRoute = require("./routes/applyCofunderRoute.js")
 
 // ─────────────────────────────────────────────────────────────
-// ✅ App Initialization
+// ✅ App Initialization & DB
 // ─────────────────────────────────────────────────────────────
-
 const app = express();
 connectDB();
 seedMentorData();
@@ -95,102 +91,23 @@ seedInvestorData();
 seedCategoryData();
 seedPartnerData();
 SeedMVPTeam();
-// seedActivities();
 seedDeliverables();
-// ─────────────────────────────────────────────────────────────
-// ✅ CORS Setup
-// ─────────────────────────────────────────────────────────────
-const allowedOrigins =
-  process.env.NODE_ENV === "production"
-    ? [
-        "https://app.incubationmasters.com",
-        "http://app.incubationmasters.com",
-        "https://app.incubationmasters.com:5000",
-        "http://app.incubationmasters.com:5000",
-        "https://admin.incubationmasters.com",
-        "http://admin.incubationmasters.com",
-        "https://www.incubationmasters.com",
-        "http://www.incubationmasters.com",
-        "https://incubationmasters.com:5000",
-        "http://incubationmasters.com:5000",
-        "https://incubationmasters.com",
-        "http://incubationmasters.com",
-        "http://hackmake.in",
-        "https://hackmake.in",
-        "https://www.hackmake.in",
-        "http://www.hackmake.in",
-        "https://hackathon-app-entry-system-1.onrender.com",
-        "http://hackathon-app-entry-system-1.onrender.com",
-      ]
-    : [
-        "http://localhost:3000",
-        "http://localhost:3001",
-        "http://localhost:3002",
-        "http://localhost:5000",
-        "http://localhost:5173",
-        "https://hack-and-make-2026.vercel.app",
-        "http://hack-and-make-2026.vercel.app",
-      ];
-
-const corsOptions = {
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
-    if (
-      allowedOrigins.indexOf(origin) !== -1 ||
-      origin.startsWith("http://localhost")
-    ) {
-      callback(null, true);
-    } else {
-      console.error("❌ CORS Blocked Origin:", origin);
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token"],
-};
-app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
 
 // ─────────────────────────────────────────────────────────────
-// ✅ Global Middleware
+// ✅ Security & Session (Fixed for Production)
 // ─────────────────────────────────────────────────────────────
-app.use(helmet());
-app.use(
-  helmet({
-    crossOriginResourcePolicy: { policy: "cross-origin" },
-    crossOriginEmbedderPolicy: false,
-    contentSecurityPolicy: false,
-  })
-);
-app.use(cookieParser());
-app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ limit: "10mb", extended: true }));
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-app.use(
-  "/startupidea/uploads",
-  express.static(path.join(__dirname, "startupidea/uploads"))
-);
-app.use(
-  "/startupidea/photos",
-  express.static(path.join(__dirname, "startupidea/photos"))
-);
+app.set("trust proxy", 1);
 
-// ─────────────────────────────────────────────────────────────
-// ✅ Session Configuration
-// ─────────────────────────────────────────────────────────────
-
-// 1. Define production flag
 const isProduction = process.env.NODE_ENV === "production";
 
-app.set("trust proxy", 1);
 app.use(
   session({
     name: "sid",
     secret: process.env.SESSION_SECRET || "fallback_secret",
-    resave: false,
-    saveUninitialized: false,
+    resave: true,
+    saveUninitialized: true,
     rolling: true,
+    proxy: true,
     store: MongoStore.create({
       mongoUrl: process.env.MONGO_URI,
       ttl: 24 * 60 * 60,
@@ -205,16 +122,85 @@ app.use(
   })
 );
 
+// Session Debugger
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.url} - Session ID: ${req.sessionID}`);
   next();
 });
 
+// ─────────────────────────────────────────────────────────────
+// ✅ CORS Setup
+// ─────────────────────────────────────────────────────────────
+const allowedOrigins = isProduction
+  ? [
+    "https://app.incubationmasters.com",
+    "https://admin.incubationmasters.com",
+    "https://www.incubationmasters.com",
+    "https://incubationmasters.com",
+    "https://hackmake.in",
+    "https://www.hackmake.in",
+    "https://risejhansi.in",
+    "https://www.risejhansi.in",
+    "http://risejhansi.in",
+  ]
+  : [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://localhost:5000",
+    "http://localhost:5173",
+  ];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (
+      !origin ||
+      allowedOrigins.includes(origin) ||
+      origin.startsWith("http://localhost")
+    ) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token"],
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
+
+// ─────────────────────────────────────────────────────────────
+// ✅ Global Middleware & Static Files
+// ─────────────────────────────────────────────────────────────
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    crossOriginEmbedderPolicy: false,
+    contentSecurityPolicy: false,
+  })
+);
+app.use(cookieParser());
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
+
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use(
+  "/startupidea/uploads",
+  express.static(path.join(__dirname, "startupidea/uploads"))
+);
+app.use(
+  "/startupidea/photos",
+  express.static(path.join(__dirname, "startupidea/photos"))
+);
+
+// ─────────────────────────────────────────────────────────────
+// ✅ Multer Storage Config
+// ─────────────────────────────────────────────────────────────
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     let folder = "uploads/template";
     const url = req.originalUrl;
-
     if (url.includes("/api/investors")) folder = "uploads/investors";
     else if (url.includes("/api/mentors")) folder = "uploads/mentors";
     else if (url.includes("/api/categories")) folder = "uploads/categories";
@@ -234,33 +220,13 @@ const storage = multer.diskStorage({
   },
 });
 
-const fileFilter = (req, file, cb) => {
-  const isImageRoute =
-    req.originalUrl.includes("/api/investors") ||
-    req.originalUrl.includes("/api/cofounders");
-  if (isImageRoute && !file.mimetype.startsWith("image/")) {
-    return cb(new Error("Not an image! Please upload an image file."), false);
-  }
-  cb(null, true);
-};
-
 const upload = multer({
   storage,
-  fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
-});
-
-app.get("/", (req, res) => {
-  res.json({
-    message: "Incubation Masters API",
-    status: "OK",
-    timestamp: new Date().toISOString(),
-    endpoints: ["/api/startup", "/api/auth", "/api/templates", "..."],
-  });
+  limits: { fileSize: 5 * 1024 * 1024 },
 });
 
 // ─────────────────────────────────────────────────────────────
-// ✅ Routes
+// ✅ Routes Mapping
 // ─────────────────────────────────────────────────────────────
 app.use("/api/auth", routes.auth);
 app.use("/api/team", routes.team);
@@ -287,7 +253,7 @@ app.use("/api/cofounders", routes.cofounders(upload));
 app.use("/api/chatgpt", require("./routes/chatGptRoutes"));
 app.use("/api/idea", require("./routes/chatGptRoutes"));
 app.use("/api/uim-register", require("./routes/chatGptRoutes"));
-app.use("/api/course", courseRoutes);
+app.use("/api/course", routes.course);
 app.use("/api/post-cofounder", routes.postCoFounder);
 app.use("/api/startup-hire", routes.startupHireTeamRoutes);
 app.use(
@@ -302,7 +268,6 @@ app.use("/api/mvp-team", require("./routes/MVP/MVPTeamRoutes"));
 app.use("/api/mvp-feature", require("./routes/MVP/featureRoutes"));
 app.use("/api/valuation", routes.valuationRoutes);
 app.use("/api/product", routes.salesProduct);
-app.use("/api/market", routes.MarketSize);
 app.use("/api/termsheets", routes.termSheetRoutes);
 app.use("/api/client-personas", routes.clientPersonaRoutes);
 app.use("/api/compliances", routes.complianceRoutes);
@@ -324,19 +289,15 @@ app.use("/api/business-model", businessModelRoutes);
 app.use("/api/whatsapp", routes.whatsappRoutes);
 app.use("/api/document_vault", DocumentVaultRoutes(upload));
 app.use("/api/pitchdeck", pitchDeckroutes);
+app.use('/api/apply-cofounder', applyCofunerRoute);
+
+app.get("/", (req, res) => {
+  res.json({ message: "Incubation Masters API Online", status: "OK" });
+});
 
 // ─────────────────────────────────────────────────────────────
 // ✅ Error Handlers
 // ─────────────────────────────────────────────────────────────
-app.use((err, req, res, next) => {
-  if (err instanceof multer.MulterError) {
-    return res.status(400).json({ error: `Multer Error: ${err.message}` });
-  } else if (err.message === "Not an image! Please upload an image file.") {
-    return res.status(400).json({ error: err.message });
-  }
-  next(err);
-});
-
 app.use((err, req, res, next) => {
   console.error("Server Error:", err.stack);
   res
@@ -345,17 +306,11 @@ app.use((err, req, res, next) => {
 });
 
 // ─────────────────────────────────────────────────────────────
-// ✅ Server Start (HTTPS in production)
+// ✅ Server Start
 // ─────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
-const HOST = "0.0.0.0";
-
-if (process.env.NODE_ENV === "production") {
-  app.listen(PORT, HOST, () => {
-    console.log(`🌐 HTTP Server running at http://${HOST}:${PORT}`);
-  });
-} else {
-  app.listen(PORT, HOST, () => {
-    console.log(`🌐 Dev server running at http://${HOST}:${PORT}`);
-  });
-}
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(
+    `🌐 Server running on port ${PORT} in ${process.env.NODE_ENV} mode`
+  );
+});

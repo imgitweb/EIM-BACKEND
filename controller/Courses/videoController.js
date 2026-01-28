@@ -5,7 +5,7 @@ const { uploadToVimeo } = require("../../utils/vimeoUploader.js");
 const fs = require("fs").promises;
 const fsSync = require("fs");
 const Quiz = require("../../models/courses/Quiz.js");
-const { CallOpenai } = require("../helper/helper.js");
+const { CallOpenAi } = require("../helper/helper.js");
 
 // Helper function to safely delete files
 const safeDeleteFile = async (filePath) => {
@@ -155,7 +155,7 @@ const uploadVideo = async (req, res) => {
       ]
       `;
 
-        const response = CallOpenai(prompt);
+        const response = CallOpenAi(prompt);
         let parsedQuestions;
         try {
           parsedQuestions = response;
@@ -423,8 +423,20 @@ const getAllVideos = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    const totalVideos = await Video.countDocuments();
-    const videos = await Video.find()
+    const search = req.query.search || "";
+
+    // 🔍 Search condition (title based)
+    const query = search
+      ? {
+          title: { $regex: search, $options: "i" }, // case-insensitive
+        }
+      : {};
+
+    // 📊 Count after search
+    const totalVideos = await Video.countDocuments(query);
+
+    // 🎥 Fetch videos
+    const videos = await Video.find(query)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)

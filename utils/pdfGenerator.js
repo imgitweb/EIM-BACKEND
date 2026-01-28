@@ -20,10 +20,10 @@ const formatDate = (d) => {
   return isNaN(date.getTime())
     ? "[●]"
     : date.toLocaleDateString("en-IN", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      });
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
 };
 const formatPercent = (v) => {
   const n = toNum(v);
@@ -193,7 +193,7 @@ function drawTable(doc, headers, rows, yPos) {
 
 function drawSection(doc, title, content, yPos) {
   yPos = drawSubHeading(doc, title, yPos);
-  
+
   doc
     .font("Helvetica")
     .fontSize(10)

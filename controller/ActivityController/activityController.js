@@ -42,7 +42,10 @@ exports.generateActivities = async ({ startup_id, planName }) => {
 
   const ops = docs.map((doc) => ({
     updateOne: {
-      filter: { startup_id: doc.startup_id, activity_schema: doc.activity_schema },
+      filter: {
+        startup_id: doc.startup_id,
+        activity_schema: doc.activity_schema,
+      },
       update: { $setOnInsert: doc },
       upsert: true,
     },
@@ -52,7 +55,6 @@ exports.generateActivities = async ({ startup_id, planName }) => {
 
   return { success: true };
 };
-
 
 /* =========================== GET ALL ACTIVITIES ====================== */
 
@@ -73,6 +75,7 @@ exports.getAllActivities = async (req, res) => {
       activity_name: act.activity_name,
       activity_path: act.activity_schema,
       is_accessible: act.is_accessible,
+      is_completed: act.is_completed,
       can_proceed: act.is_accessible && blocked.length === 0,
       prerequisites: act.prerequisite,
       blocked_by_prerequisite: blocked.map((b) => b.activity_schema),

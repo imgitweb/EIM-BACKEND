@@ -15,13 +15,13 @@ const generatePitchDeck = async (req, res) => {
 
     const systemPrompt = "You are a professional startup consultant. You must respond ONLY with a valid JSON object.";
 
-const prompt = `
+    const prompt = `
 Based on the business profile provided below, generate a professional startup pitch deck in JSON format. 
 
 ### BUSINESS PROFILE:
 - Startup Name: ${formData.businessName}
 - Business Type: ${formData.businessType}
-- Services Offered: ${(formData.services || []).join(", ")}
+- Services Offered: ${formData.services}
 - Target Market Location: ${formData.targetLocation}
 - Bootstrap Fund: ₹${formData.bootstrapFund}
 - Estimated Customer Base: ${formData.customerCount}
@@ -85,7 +85,7 @@ Based on the business profile provided below, generate a professional startup pi
     // 3. Database Storage
     // Hum user ka input aur AI ka output dono save kar rahe hain
     const newPitchEntry = new PitchDeck({
-      formData: formData, 
+      formData: formData,
       pitchDeckData: pitchDeckJson,
       createdAt: new Date()
     });
