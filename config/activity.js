@@ -102,7 +102,6 @@ exports.activitiesData = [
 
 exports.stagedefaltfalseActivityMap = {
   alpha: [
-    "/submit-idea",
     "/idea-validation",
     "/feedback-risk",
     "/rivarly-insights",

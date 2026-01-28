@@ -23,10 +23,11 @@ const activitySchema = new mongoose.Schema(
 
     is_completed: { type: Boolean, default: false },
     is_accessible: { type: Boolean, default: false },
+    can_proceed: { type: Boolean, default: false },
     is_deleted: { type: Boolean, default: false },
   },
   { timestamps: true }
-); 
+);
 
 module.exports = {
   ActivityModel: mongoose.model("activities", activitySchema),

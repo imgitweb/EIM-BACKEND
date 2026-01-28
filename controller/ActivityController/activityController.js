@@ -94,20 +94,12 @@ exports.getAllActivities = async (req, res) => {
 
 exports.completeActivity = async (req, res) => {
   const { activity_id } = req.body;
-
   const activity = await ActivityModel.findById(activity_id);
   if (!activity)
-    return res.status(404).json({
-      success: false,
-      message: "Activity not found",
-    });
+    return res.status(404).json({ success: false, message: "Activity not found" });
 
-  // HARD STAGE CHECK
   if (!activity.is_accessible)
-    return res.status(403).json({
-      success: false,
-      message: "Activity locked by stage",
-    });
+    return res.status(403).json({ success: false, message: "Activity locked by stage" });
 
   const blocked = activity.prerequisite.filter((p) => !p.status);
   if (blocked.length)
@@ -118,18 +110,36 @@ exports.completeActivity = async (req, res) => {
 
   activity.is_completed = true;
   await activity.save();
-
-  // Mark this activity as completed in future prerequisites
   await ActivityModel.updateMany(
-    {
-      startup_id: activity.startup_id,
-      "prerequisite.activity_schema": activity.activity_schema,
-    },
+    { startup_id: activity.startup_id, "prerequisite.activity_schema": activity.activity_schema },
     { $set: { "prerequisite.$.status": true } }
   );
 
+  const dependentActivities = await ActivityModel.find({
+    startup_id: activity.startup_id,
+    "prerequisite.activity_schema": activity.activity_schema,
+  });
+
+  for (const dep of dependentActivities) {
+    const allDone = dep.prerequisite.every((p) => p.status === true);
+    if (allDone && !dep.is_accessible) {
+      dep.is_accessible = true; // Unlock activity
+      await dep.save();
+    }
+  }
+
+
+  await Promise.all(dependentActivities.map(dep => {
+    const allDone = dep.prerequisite.every((p) => p.status === true);
+    if (allDone && !dep.is_accessible) {
+      return ActivityModel.updateOne({ _id: dep._id }, { is_accessible: true });
+    }
+  }));
   res.json({ success: true });
+
+
 };
+
 
 /* ============================ UPGRADE STAGE =========================== */
 

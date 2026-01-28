@@ -250,15 +250,11 @@ exports.createStartup = async (req, res) => {
 exports.updateStartupProfile = async (req, res) => {
   try {
     const startupId = req.params.id;
-
-    // Security: Verify against authenticated user
     if (startupId !== req.user?.id) {
       return res
         .status(403)
         .json({ error: "Unauthorized to update this profile" });
     }
-
-    // Find existing startup
     const startup = await StartupModel.findById(startupId);
     if (!startup) {
       return res.status(404).json({ error: "Startup not found" });
